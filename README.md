@@ -3,6 +3,7 @@ A yet another header only library for ini in C89. **INCOMPLETE**
 
 ## Planned Features
 * Custom Allocation Functions.
+* Optional UTF-8 Support
 * INI Tokenization. Data Structure: Linked Lists containing Arrays which holds the tokens.
 * INI Parsing. Convert the tokens and place them in a hash table.
 * Create Hash Table for key value pairs.
