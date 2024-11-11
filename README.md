@@ -1,5 +1,5 @@
 # cs-ini
-A yet another header only library for ini in C89. **INCOMPLETE** **PLANNING STAGE**
+A yet another header only library for ini in C89. **INCOMPLETE**, **PLANNING STAGE**
 
 ## Planned Features
 * Custom Library Function Aliasing.
@@ -7,7 +7,5 @@ A yet another header only library for ini in C89. **INCOMPLETE** **PLANNING STAG
 * INI Lexer. Data Structure: Linked Lists containing Arrays which holds the tokens.
 * INI Parser. Convert the tokens and place them in a hash table. This should not be too hard to write.
 * Create Hash Table for key value pairs.
-* Int value decode support.
-* Float value decode support.
 * Section Support.
 * Create Unit Tests for this header-only library with CMake.
