@@ -20,9 +20,9 @@ typedef enum {
  * @param pCharacterByteSize Pointer to a variable storing the read character size. If zero then either NULL has been found or error. (updated by the function)
  * @return 0-127 if there is no error. CS64_INI_BAD_NOT_ASCII is the stream is not ASCII.
  */
-inline CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
+CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
 
-inline CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
+CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
 
 /**
  * This function implements the encoding scheme for converting Unicode characters into UTF-8 byte sequences. UTF-8 uses a variable number of bytes to represent different characters: 1 byte for ASCII, 2 bytes for most common extended characters, and up to 4 bytes for rare Unicode characters.
@@ -31,13 +31,13 @@ inline CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size
  * @param character The Unicode character to be converted to UTF-8.
  * @return  The function returns the number of bytes written to the buffer, indicating the length of the UTF-8 representation. If a character is too big for the buffer then return 0. If the character is out of unicode range then -1.
  */
-inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character);
+int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character);
 
 #endif // CS64_INI_LIBRARY_H
 
 #ifdef CS64_INI_LIBRARY_IMP
 
-inline CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
+CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
     if(*pDataHead >= 0x80 || *pDataHead == 0) {
         *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
 
