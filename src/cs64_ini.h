@@ -39,7 +39,7 @@ inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize,
 
 inline CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
     if(*pDataHead >= 0x80 || *pDataHead == 0) {
-        *pCharacterByteAmount = 0; // Indicate that the loop calling this function should end.
+        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
 
         if(*pDataHead != 0)
             return CS64_INI_BAD_NOT_ASCII;
@@ -47,11 +47,15 @@ inline CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size
         return 0; // Encountering NULL means EOF.
     }
 
-    *pCharacterByteAmount = 1; // Indicate that there are more bytes to be read.
+    *pCharacterByteSize = 1; // Indicate that there are more bytes to be read.
     return *pDataHead;
 }
 
-// inline CS64UniChar cs64_ini_utf_8_read(CS64UTF8 *pData, CS64Size *pSize);
+inline CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
+    CS64UniChar unicodeCharacter;
+
+    return unicodeCharacter;
+}
 
 inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character) {
     if(character < 0x80) { // ASCII range. UTF-8 1 Byte Case.
