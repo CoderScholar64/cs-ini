@@ -8,10 +8,11 @@ typedef size_t   CS64Size;
 typedef enum {
     CS64_INI_MAX_CODE       = 0x10ffff,
     CS64_INI_BAD_NOT_ASCII  = 0x110000,
-    CS64_INI_BAD_CONTINUE   = 0x110001,
-    CS64_INI_BAD_OVERLONG   = 0x110002,
-    CS64_INI_BAD_EARLY_NULL = 0x110003,
-    CS64_INI_BAD_LACK_SPACE = 0x110004
+    CS64_INI_BAD_NOT_UTF_8  = 0x110001,
+    CS64_INI_BAD_CONTINUE   = 0x110002,
+    CS64_INI_BAD_OVERLONG   = 0x110003,
+    CS64_INI_BAD_EARLY_NULL = 0x110004,
+    CS64_INI_BAD_LACK_SPACE = 0x110005
 } CS64UniCharCode;
 
 /**
@@ -61,6 +62,14 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remain
 
 CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
     CS64UniChar unicodeCharacter;
+
+    if(remainingDataSize == 0) {
+        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+        return CS64_INI_BAD_LACK_SPACE;
+    } else if(CHECK_NEVER_BYTE(*pDataHead)) {
+        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+        return CS64_INI_BAD_NOT_UTF_8;
+    }
 
     return unicodeCharacter;
 }
