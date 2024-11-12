@@ -7,14 +7,22 @@ typedef size_t   CS64Size;
 
 typedef enum {
     CS64_INI_MAX_CODE       = 0x10ffff,
-    CS64_INI_BAD_BYTE       = 0x110000,
+    CS64_INI_BAD_NOT_ASCII  = 0x110000,
     CS64_INI_BAD_CONTINUE   = 0x110001,
     CS64_INI_BAD_OVERLONG   = 0x110002,
     CS64_INI_BAD_EARLY_NULL = 0x110003
 } CS64UniCharCode;
 
-CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pData, CS64Size *pSize);
-CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pData, CS64Size *pSize);
+/**
+ * This function reads an ASCII value.
+ * @warning UTF-8 characters need to stay within the ASCII range.
+ * @param pDataHead Pointer to the current byte in the UTF-8 stream.
+ * @param pCharacterByteSize Pointer to a variable storing the read character size. If zero then either NULL has been found or error. (updated by the function)
+ * @return 0-127 if there is no error. CS64_INI_BAD_NOT_ASCII is the stream is not ASCII.
+ */
+inline CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
+
+inline CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
 
 /**
  * This function implements the encoding scheme for converting Unicode characters into UTF-8 byte sequences. UTF-8 uses a variable number of bytes to represent different characters: 1 byte for ASCII, 2 bytes for most common extended characters, and up to 4 bytes for rare Unicode characters.
@@ -29,19 +37,21 @@ inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize,
 
 #ifdef CS64_INI_LIBRARY_IMP
 
-CS64UniChar cs64_ini_ascii_read(CS64UTF8 *pData, CS64Size *pSize) {
-    if(*pData == '\0') {
-        *pSize = 0;
-        return 0;
-    } else if(*pData >= 0x80) {
-        *pSize = 0;
-        return CS64_INI_BAD_BYTE;
+inline CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
+    if(*pDataHead >= 0x80 || *pDataHead == 0) {
+        *pCharacterByteAmount = 0; // Indicate that the loop calling this function should end.
+
+        if(*pDataHead != 0)
+            return CS64_INI_BAD_NOT_ASCII;
+
+        return 0; // Encountering NULL means EOF.
     }
 
-    *pSize = 1;
-    return *pData;
+    *pCharacterByteAmount = 1; // Indicate that there are more bytes to be read.
+    return *pDataHead;
 }
-// CS64UniChar cs64_ini_utf_8_read(CS64UTF8 *pData, CS64Size *pSize);
+
+// inline CS64UniChar cs64_ini_utf_8_read(CS64UTF8 *pData, CS64Size *pSize);
 
 inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character) {
     if(character < 0x80) { // ASCII range. UTF-8 1 Byte Case.
@@ -82,4 +92,4 @@ inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize,
         return -1; // character is too big for this algorithm.
 }
 
-#endif
+#endif // CS64_INI_LIBRARY_IMP
