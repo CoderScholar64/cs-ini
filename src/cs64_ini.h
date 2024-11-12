@@ -10,19 +10,21 @@ typedef enum {
     CS64_INI_BAD_NOT_ASCII  = 0x110000,
     CS64_INI_BAD_CONTINUE   = 0x110001,
     CS64_INI_BAD_OVERLONG   = 0x110002,
-    CS64_INI_BAD_EARLY_NULL = 0x110003
+    CS64_INI_BAD_EARLY_NULL = 0x110003,
+    CS64_INI_BAD_LACK_SPACE = 0x110004
 } CS64UniCharCode;
 
 /**
  * This function reads an ASCII value.
  * @warning UTF-8 characters need to stay within the ASCII range.
  * @param pDataHead Pointer to the current byte in the UTF-8 stream.
+ * @param remainingDataSize The space left to read. Used to prevent buffer overflows.
  * @param pCharacterByteSize Pointer to a variable storing the read character size. If zero then either NULL has been found or error. (updated by the function)
  * @return 0-127 if there is no error. CS64_INI_BAD_NOT_ASCII is the stream is not ASCII.
  */
-CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
+CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize);
 
-CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize);
+CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize);
 
 /**
  * This function implements the encoding scheme for converting Unicode characters into UTF-8 byte sequences. UTF-8 uses a variable number of bytes to represent different characters: 1 byte for ASCII, 2 bytes for most common extended characters, and up to 4 bytes for rare Unicode characters.
@@ -39,12 +41,14 @@ int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64Un
 
 // ### TEXT HANDLING SECTION ###
 
-CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
-    if(*pDataHead >= 0x80 || *pDataHead == 0) {
+CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
+    if(remainingDataSize == 0 || *pDataHead >= 0x80 || *pDataHead == 0) {
         *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
 
         if(*pDataHead != 0)
             return CS64_INI_BAD_NOT_ASCII;
+        else if(remainingDataSize == 0)
+            return CS64_INI_BAD_LACK_SPACE;
 
         return 0; // Encountering NULL means EOF.
     }
@@ -55,7 +59,7 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pChar
 
 #define CHECK_NEVER_BYTE( byte ) (byte == 0xc1 || byte == 0xc2 || (byte >= 0xf5 && byte <= 0xff))
 
-CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
+CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
     CS64UniChar unicodeCharacter;
 
     return unicodeCharacter;
