@@ -37,6 +37,8 @@ int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64Un
 
 #ifdef CS64_INI_LIBRARY_IMP
 
+// ### TEXT HANDLING SECTION ###
+
 CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
     if(*pDataHead >= 0x80 || *pDataHead == 0) {
         *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
@@ -51,13 +53,18 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size *pChar
     return *pDataHead;
 }
 
-inline CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
+#define CHECK_NEVER_BYTE( byte ) (byte == 0xc1 || byte == 0xc2 || (byte >= 0xf5 && byte <= 0xff))
+
+CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size *pCharacterByteSize) {
     CS64UniChar unicodeCharacter;
 
     return unicodeCharacter;
 }
 
-inline int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character) {
+// Clean up Macros!
+#undef CHECK_NEVER_BYTE
+
+int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character) {
     if(character < 0x80) { // ASCII range. UTF-8 1 Byte Case.
         if(remainingDataSize < 1)
             return 0; // Not Enough Space
