@@ -25,6 +25,13 @@ typedef enum {
  */
 CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize);
 
+/**
+ * This function reads a UTF-8 value.
+ * @param pDataHead Pointer to the current byte in the UTF-8 stream.
+ * @param remainingDataSize The space left to read. Used to prevent buffer overflows. @warning make sure you subtract this value using *pCharacterByteSize to successfully test agaisnt buffer-overflows.
+ * @param pCharacterByteSize Pointer to a variable storing the read character size. If zero then either NULL has been found or error. (updated by the function)
+ * @return Any value that is lesser than or equal to CS64_INI_MAX_CODE is a correct UTF-8 character.
+ */
 CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize);
 
 /**
