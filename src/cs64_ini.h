@@ -11,15 +11,15 @@ typedef enum {
     CS64_INI_BAD_NOT_UTF_8  = 0x110001,
     CS64_INI_BAD_CONTINUE   = 0x110002,
     CS64_INI_BAD_OVERLONG   = 0x110003,
-    CS64_INI_BAD_EARLY_NULL = 0x110004,
-    CS64_INI_BAD_LACK_SPACE = 0x110005
+    CS64_INI_BAD_LACK_SPACE = 0x110004,
+    CS64_INI_BAD_TOO_BIG    = 0x110005
 } CS64UniCharCode;
 
 /**
  * This function reads an ASCII value.
  * @warning UTF-8 characters need to stay within the ASCII range.
  * @param pDataHead Pointer to the current byte in the UTF-8 stream.
- * @param remainingDataSize The space left to read. Used to prevent buffer overflows.
+ * @param remainingDataSize The space left to read. Used to prevent buffer overflows. @warning make sure you subtract this value using *pCharacterByteSize to successfully test agaisnt buffer-overflows.
  * @param pCharacterByteSize Pointer to a variable storing the read character size. If zero then either NULL has been found or error. (updated by the function)
  * @return 0-127 if there is no error. CS64_INI_BAD_NOT_ASCII is the stream is not ASCII.
  */
@@ -46,11 +46,11 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remain
     if(remainingDataSize == 0 || *pDataHead >= 0x80 || *pDataHead == 0) {
         *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
 
+        if(remainingDataSize == 0)
+            return CS64_INI_BAD_LACK_SPACE;
+        else
         if(*pDataHead != 0)
             return CS64_INI_BAD_NOT_ASCII;
-        else if(remainingDataSize == 0)
-            return CS64_INI_BAD_LACK_SPACE;
-
         return 0; // Encountering NULL means EOF.
     }
 
@@ -59,23 +59,90 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remain
 }
 
 #define CHECK_NEVER_BYTE( byte ) (byte == 0xc1 || byte == 0xc2 || (byte >= 0xf5 && byte <= 0xff))
+#define IS_CHAR_CONTINUATION( byte ) ((byte & 0b11000000) == 0b10000000)
+#define        IS_UTF_1_BYTE( byte ) ((byte & 0b10000000) == 0)
+#define        IS_UTF_2_BYTE( byte ) ((byte & 0b11100000) == 0b11000000)
+#define        IS_UTF_3_BYTE( byte ) ((byte & 0b11110000) == 0b11100000)
+#define        IS_UTF_4_BYTE( byte ) ((byte & 0b11111000) == 0b11110000)
 
 CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
-    CS64UniChar unicodeCharacter;
+    CS64UniChar result;
 
-    if(remainingDataSize == 0) {
-        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+    *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+
+    if(remainingDataSize == 0)
         return CS64_INI_BAD_LACK_SPACE;
-    } else if(CHECK_NEVER_BYTE(*pDataHead)) {
-        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+    else if(pDataHead[0] == 0)
+        return 0;
+    else if(CHECK_NEVER_BYTE(pDataHead[0]))
         return CS64_INI_BAD_NOT_UTF_8;
+    else if(IS_CHAR_CONTINUATION(pDataHead[0]))
+        return CS64_INI_BAD_CONTINUE;
+    else if(IS_UTF_1_BYTE(pDataHead[0])) {
+        *pCharacterByteSize = 1;
+        return pDataHead[0];
+    }
+    else if(IS_UTF_2_BYTE(pDataHead[0])) {
+        if( !IS_CHAR_CONTINUATION(pDataHead[1]) ) // Check if byte is continuous.
+            return CS64_INI_BAD_CONTINUE;
+        else if((pDataHead[0] & 0b00011110) == 0) // Check for overlong error.
+            return CS64_INI_BAD_OVERLONG;
+
+        result  = ((pDataHead[0] & 0b00011111) << 6);
+        result |= ((pDataHead[1] & 0b00111111) << 0);
+
+        *pCharacterByteSize = 2;
+
+        return result;
+    }
+    else if(IS_UTF_3_BYTE(pDataHead[0])) {
+        if( !IS_CHAR_CONTINUATION(pDataHead[1]) ) // Check if byte is continuous.
+            return CS64_INI_BAD_CONTINUE;
+        else if( !IS_CHAR_CONTINUATION(pDataHead[2]) ) // Check if byte is continuous.
+            return CS64_INI_BAD_CONTINUE;
+        else if((pDataHead[0] & 0b00001111) == 0 && (pDataHead[1] & 0b00100000) == 0) // Check for overlong error.
+            return CS64_INI_BAD_OVERLONG;
+
+        result  = ((pDataHead[0] & 0b00001111) << 12);
+        result |= ((pDataHead[1] & 0b00111111) <<  6);
+        result |= ((pDataHead[2] & 0b00111111) <<  0);
+
+        *pCharacterByteSize = 3;
+
+        return result;
+    }
+    else if(IS_UTF_4_BYTE(pDataHead[0])) {
+        if( !IS_CHAR_CONTINUATION(pDataHead[1]) ) // Check if byte is continuous.
+            return CS64_INI_BAD_CONTINUE;
+        else if(!IS_CHAR_CONTINUATION(pDataHead[2]) ) // Check if byte is continuous.
+            return CS64_INI_BAD_CONTINUE;
+        else if(!IS_CHAR_CONTINUATION(pDataHead[3]) ) // Check if byte is continuous.
+            return CS64_INI_BAD_CONTINUE;
+        else if((pDataHead[0] & 0b00000111) == 0 && (pDataHead[1] & 0b00110000) == 0) // Check for overlong error.
+            return CS64_INI_BAD_OVERLONG;
+        else if(pDataHead[0] == 0xf4 && pDataHead[1] >= 0x90) // Check for overlong error.
+            return CS64_INI_BAD_TOO_BIG;
+
+        result  = ((pDataHead[0] & 0b00000111) << 18);
+        result |= ((pDataHead[1] & 0b00111111) << 12);
+        result |= ((pDataHead[2] & 0b00111111) <<  6);
+        result |= ((pDataHead[3] & 0b00111111) <<  0);
+
+        *pCharacterByteSize = 4;
+
+        return result;
     }
 
-    return unicodeCharacter;
+    return CS64_INI_BAD_NOT_UTF_8;
 }
 
 // Clean up Macros!
 #undef CHECK_NEVER_BYTE
+#undef IS_CHAR_CONTINUATION
+#undef IS_UTF_1_BYTE
+#undef IS_UTF_2_BYTE
+#undef IS_UTF_3_BYTE
+#undef IS_UTF_4_BYTE
 
 int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character) {
     if(character < 0x80) { // ASCII range. UTF-8 1 Byte Case.
