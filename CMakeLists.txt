@@ -10,3 +10,6 @@ enable_testing()
 
 add_executable(simple_test src-tests/simple.c)
 add_test(NAME simple_test COMMAND $<TARGET_FILE:simple_test>)
+
+add_executable(unicode_test src-tests/unicode.c)
+add_test(NAME unicode_test COMMAND $<TARGET_FILE:unicode_test>)
