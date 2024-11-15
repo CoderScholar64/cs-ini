@@ -9,6 +9,7 @@
 
 int invalid_ascii_test();
 int reencoding_test();
+void print_bytes(const char* const name, CS64UTF8 *pUTF8Data);
 
 int main() {
     int testResult = reencoding_test();
@@ -63,6 +64,11 @@ int reencoding_test() {
         if(writeResult <= 0) {
             printf("Reencoding ASCII: cs64_ini_utf_8_write failed for unicode char 0x%x with error code 0x%x\n", c, writeResult);
 
+            return 1;
+        }
+        else if(writeResult != 1) {
+            printf("Reencoding ASCII: cs64_ini_utf_8_write failed got length %i not 1!\n", writeResult);
+
             return 2;
         }
 
@@ -70,16 +76,7 @@ int reencoding_test() {
 
         if(character != c) {
             printf("Reencoding ASCII: cs64_ini_ascii_read failed for unicode char 0x%x produced 0x%x\n", c, character);
-            printf("Bytes: 0x");
-
-            int i = 0;
-
-            while(utf8_data[i] != 0) {
-                printf("%02x", utf8_data[i]);
-                i++;
-            }
-
-            printf("\n");
+            print_bytes("Bytes", utf8_data);
 
             return 3;
         }
@@ -103,16 +100,7 @@ int reencoding_test() {
 
         if(character != c) {
             printf("Reencoding UTF-8: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x\n", c, character);
-            printf("Bytes: 0x");
-
-            int i = 0;
-
-            while(utf8_data[i] != 0) {
-                printf("%02x", utf8_data[i]);
-                i++;
-            }
-
-            printf("\n");
+            print_bytes("Bytes", utf8_data);
 
             return 5;
         }
@@ -120,4 +108,17 @@ int reencoding_test() {
     }
 
     return 0;
+}
+
+void print_bytes(const char* const pName, CS64UTF8 *pUTF8Data) {
+    int i = 0;
+
+    printf("%s: 0x", pName);
+
+    while(pUTF8Data[i] != 0) {
+        printf("%02x", pUTF8Data[i]);
+        i++;
+    }
+
+    printf("\n");
 }
