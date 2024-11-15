@@ -19,7 +19,9 @@ int main() {
     while(1) {
         character = cs64_ini_ascii_read(pUTF8_data_head, utf8_data_size, &characterByteSize);
 
-        if(characterByteSize == 0) {
+        if(character != '\0')
+            break;
+        else if(characterByteSize == 0) {
             if(character == CS64_INI_BAD_NOT_ASCII)
                 printf("\nError: Encountered non-ASCII character\n");
 

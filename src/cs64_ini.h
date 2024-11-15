@@ -50,15 +50,13 @@ int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64Un
 // ### TEXT HANDLING SECTION ###
 
 CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
-    if(remainingDataSize == 0 || *pDataHead >= 0x80 || *pDataHead == 0) {
+    if(remainingDataSize == 0) {
         *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
-
-        if(remainingDataSize == 0)
-            return CS64_INI_BAD_LACK_SPACE;
-        else
-        if(*pDataHead != 0)
-            return CS64_INI_BAD_NOT_ASCII;
-        return 0; // Encountering NULL means EOF.
+        return CS64_INI_BAD_LACK_SPACE;
+    }
+    else if(*pDataHead >= 0x80) {
+        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+        return CS64_INI_BAD_NOT_ASCII;
     }
 
     *pCharacterByteSize = 1; // Indicate that there are more bytes to be read.
@@ -79,8 +77,6 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
 
     if(remainingDataSize == 0)
         return CS64_INI_BAD_LACK_SPACE;
-    else if(pDataHead[0] == 0)
-        return 0;
     else if(CHECK_NEVER_BYTE(pDataHead[0]))
         return CS64_INI_BAD_NOT_UTF_8;
     else if(IS_CHAR_CONTINUATION(pDataHead[0]))
