@@ -95,6 +95,30 @@ int reencoding_test() {
 
             return 4;
         }
+        else if(c < 0x80) {
+            if(writeResult != 1) {
+                printf("Reencoding UTF-8: cs64_ini_utf_8_write expected 1 for character 0x%x but got length of %i\n", c, writeResult);
+                return 5;
+            }
+        }
+        else if(c < 0x800) {
+            if(writeResult != 2) {
+                printf("Reencoding UTF-8: cs64_ini_utf_8_write expected 2 for character 0x%x but got length of %i\n", c, writeResult);
+                return 6;
+            }
+        }
+        else if(c < 0x10000) {
+            if(writeResult != 3) {
+                printf("Reencoding UTF-8: cs64_ini_utf_8_write expected 3 for character 0x%x but got length of %i\n", c, writeResult);
+                return 7;
+            }
+        }
+        else if(c < 0x110000) {
+            if(writeResult != 4) {
+                printf("Reencoding UTF-8: cs64_ini_utf_8_write expected 4 for character 0x%x but got length of %i\n", c, writeResult);
+                return 8;
+            }
+        }
 
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, writeResult, &characterByteSize);
 
