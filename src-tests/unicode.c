@@ -8,17 +8,25 @@
 #include <string.h>
 
 int invalid_ascii_test();
+int invalid_unicode_byte_test();
 int reencoding_test();
 void print_bytes(const char* const name, CS64UTF8 *pUTF8Data);
 
 int main() {
-    int testResult = reencoding_test();
+    int testResult;
+
+    testResult = reencoding_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = invalid_unicode_byte_test();
     if(testResult != 0)
         return testResult;
 
     testResult = invalid_ascii_test();
     if(testResult != 0)
         return testResult;
+
     return testResult;
 }
 
@@ -49,10 +57,53 @@ int invalid_ascii_test() {
     }
 }
 
+int invalid_unicode_byte_test() {
+    CS64UTF8 invalidUTF8values[] = {0xc0, 0xc1, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff};
+    CS64Size characterByteSize = 1;
+    CS64UniChar character;
+    int i;
+
+    // Single byte case.
+    i = 0;
+    while(i < sizeof(invalidUTF8values) / sizeof(invalidUTF8values[0])) {
+        character = cs64_ini_utf_8_read(&invalidUTF8values[i], 1, &characterByteSize);
+
+        if(character != CS64_INI_BAD_NOT_UTF_8) {
+            printf("Invalid Unicode Test: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
+
+            return 1;
+        }
+        i++;
+    }
+
+    CS64UTF8 utf8_data[8];
+
+    memset(utf8_data, 0, sizeof(utf8_data) / sizeof(utf8_data[0]));
+
+    cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), 0x80);
+
+    // Two byte case.
+    i = 0;
+    while(i < sizeof(invalidUTF8values) / sizeof(invalidUTF8values[0])) {
+        utf8_data[1] = invalidUTF8values[i];
+
+        character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
+        if(character <= CS64_INI_MAX_CODE) {
+            printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
+            print_bytes("Bytes", utf8_data);
+
+            return 2;
+        }
+        i++;
+    }
+
+    return 1;
+}
+
 int reencoding_test() {
     CS64UTF8 utf8_data[8];
     CS64Size characterByteSize = 1;
-    CS64UniChar c = 0;
+    CS64UniChar c;
 
     // Reencoding ASCII Test.
     c = 0;
