@@ -24,7 +24,17 @@ int main() {
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, writeResult, &characterByteSize);
 
         if(character != c) {
-            printf("cs64_ini_utf_8_read failed for unicode char %i produced %i\n", c, character);
+            printf("cs64_ini_utf_8_read failed for unicode char %i produced 0x%x\n", c, character);
+            printf("Bytes: 0x");
+
+            int i = 0;
+
+            while(utf8_data[i] != 0) {
+                printf("%02x", utf8_data[i]);
+                i++;
+            }
+
+            printf("\n");
 
             return 2;
         }
