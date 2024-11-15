@@ -16,7 +16,7 @@ int main() {
         int writeResult = cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), c);
 
         if(writeResult <= 0) {
-            printf("cs64_ini_utf_8_write failed for unicode char %i with error code %i\n", c, writeResult);
+            printf("cs64_ini_utf_8_write failed for unicode char 0x%x with error code 0x%x\n", c, writeResult);
 
             return 1;
         }
@@ -24,7 +24,7 @@ int main() {
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, writeResult, &characterByteSize);
 
         if(character != c) {
-            printf("cs64_ini_utf_8_read failed for unicode char %i produced 0x%x\n", c, character);
+            printf("cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x\n", c, character);
             printf("Bytes: 0x");
 
             int i = 0;
