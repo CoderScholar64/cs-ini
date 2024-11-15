@@ -63,7 +63,7 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remain
     return *pDataHead;
 }
 
-#define CHECK_NEVER_BYTE( byte ) (byte == 0xc1 || byte == 0xc2 || (byte >= 0xf5 && byte <= 0xff))
+#define CHECK_NEVER_BYTE( byte ) (byte == 0xc0 || byte == 0xc1 || (byte >= 0xf5 && byte <= 0xff))
 #define IS_CHAR_CONTINUATION( byte ) ((byte & 0b11000000) == 0b10000000)
 #define        IS_UTF_1_BYTE( byte ) ((byte & 0b10000000) == 0)
 #define        IS_UTF_2_BYTE( byte ) ((byte & 0b11100000) == 0b11000000)
