@@ -7,12 +7,45 @@
 #include <stdio.h>
 #include <string.h>
 
+int invalid_ascii_test();
 int reencoding_test();
 
 int main() {
     int testResult = reencoding_test();
+    if(testResult != 0)
+        return testResult;
 
+    testResult = invalid_ascii_test();
+    if(testResult != 0)
+        return testResult;
     return testResult;
+}
+
+int invalid_ascii_test() {
+    CS64UTF8 ascii_byte;
+    CS64Size characterByteSize = 1;
+    CS64UniChar c;
+
+    c = 128;
+    while(c < 0x100) {
+        ascii_byte = c;
+
+        CS64UniChar character = cs64_ini_ascii_read(&ascii_byte, sizeof(ascii_byte), &characterByteSize);
+
+        if(character != CS64_INI_BAD_NOT_ASCII) {
+            printf("Invalid ASCII: cs64_ini_ascii_read failed to produce CS64_INI_BAD_NOT_ASCII value 0x%x produced 0x%x\n", CS64_INI_BAD_NOT_ASCII, character);
+            printf("Input: 0x%02x", ascii_byte);
+
+            return 1;
+        }
+        else if(characterByteSize != 0) {
+            printf("Invalid ASCII: characterByteSize 0x%x should be 0x%x\n", characterByteSize, 0);
+            printf("Input: 0x%02x", ascii_byte);
+
+            return 2;
+        }
+        c++;
+    }
 }
 
 int reencoding_test() {
@@ -30,7 +63,7 @@ int reencoding_test() {
         if(writeResult <= 0) {
             printf("Reencoding ASCII: cs64_ini_utf_8_write failed for unicode char 0x%x with error code 0x%x\n", c, writeResult);
 
-            return 1;
+            return 2;
         }
 
         CS64UniChar character = cs64_ini_ascii_read(utf8_data, writeResult, &characterByteSize);
@@ -48,7 +81,7 @@ int reencoding_test() {
 
             printf("\n");
 
-            return 2;
+            return 3;
         }
         c++;
     }
@@ -63,7 +96,7 @@ int reencoding_test() {
         if(writeResult <= 0) {
             printf("Reencoding UTF-8: cs64_ini_utf_8_write failed for unicode char 0x%x with error code 0x%x\n", c, writeResult);
 
-            return 3;
+            return 4;
         }
 
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, writeResult, &characterByteSize);
@@ -81,7 +114,7 @@ int reencoding_test() {
 
             printf("\n");
 
-            return 4;
+            return 5;
         }
         c++;
     }
