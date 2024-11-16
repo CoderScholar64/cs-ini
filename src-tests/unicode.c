@@ -77,12 +77,18 @@ int invalid_unicode_byte_test() {
     }
 
     CS64UTF8 utf8_data[8];
-
-    memset(utf8_data, 0, sizeof(utf8_data) / sizeof(utf8_data[0]));
-
-    cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), 0x80);
+    int length;
+    int m;
 
     // Two byte case.
+    memset(utf8_data, 0, sizeof(utf8_data) / sizeof(utf8_data[0]));
+    length = cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), 0x80);
+
+    if(length != 2) {
+        printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_write length %i. Expected 2\n", length);
+        return 2;
+    }
+
     i = 0;
     while(i < sizeof(invalidUTF8values) / sizeof(invalidUTF8values[0])) {
         utf8_data[1] = invalidUTF8values[i];
@@ -92,12 +98,64 @@ int invalid_unicode_byte_test() {
             printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
             print_bytes("Bytes", utf8_data);
 
-            return 2;
+            return 3;
         }
         i++;
     }
 
-    return 1;
+    // Three byte case.
+    m = 1;
+    while(m < 3) {
+        memset(utf8_data, 0, sizeof(utf8_data) / sizeof(utf8_data[0]));
+        length = cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), 0x800);
+
+        if(length != 3) {
+            printf("Invalid Unicode Test Three Byte Case (%i): cs64_ini_utf_8_write length %i. Expected 3\n", m, length);
+            return 4;
+        }
+        i = 0;
+        while(i < sizeof(invalidUTF8values) / sizeof(invalidUTF8values[0])) {
+            utf8_data[m] = invalidUTF8values[i];
+
+            character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
+            if(character <= CS64_INI_MAX_CODE) {
+                printf("Invalid Unicode Test Three Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
+                print_bytes("Bytes", utf8_data);
+
+                return 5;
+            }
+            i++;
+        }
+        m++;
+    }
+
+    // Four byte case.
+    m = 1;
+    while(m < 4) {
+        memset(utf8_data, 0, sizeof(utf8_data) / sizeof(utf8_data[0]));
+        length = cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), 0x10000);
+
+        if(length != 4) {
+            printf("Invalid Unicode Test Four Byte Case (%i): cs64_ini_utf_8_write length %i. Expected 4\n", m, length);
+            return 6;
+        }
+        i = 0;
+        while(i < sizeof(invalidUTF8values) / sizeof(invalidUTF8values[0])) {
+            utf8_data[m] = invalidUTF8values[i];
+
+            character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
+            if(character <= CS64_INI_MAX_CODE) {
+                printf("Invalid Unicode Test Four Byte Case (%i): cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", m, invalidUTF8values[i], character);
+                print_bytes("Bytes", utf8_data);
+
+                return 7;
+            }
+            i++;
+        }
+        m++;
+    }
+
+    return 0;
 }
 
 int reencoding_test() {
