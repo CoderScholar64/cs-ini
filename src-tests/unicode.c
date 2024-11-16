@@ -68,8 +68,8 @@ int invalid_unicode_byte_test() {
     while(i < sizeof(invalidUTF8values) / sizeof(invalidUTF8values[0])) {
         character = cs64_ini_utf_8_read(&invalidUTF8values[i], 1, &characterByteSize);
 
-        if(character != CS64_INI_BAD_NOT_UTF_8) {
-            printf("Invalid Unicode Test: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
+        if(character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
+            printf("Invalid Unicode Test: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", invalidUTF8values[i], character, characterByteSize);
 
             return 1;
         }
@@ -94,8 +94,8 @@ int invalid_unicode_byte_test() {
         utf8_data[1] = invalidUTF8values[i];
 
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
-        if(character <= CS64_INI_MAX_CODE) {
-            printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
+        if(character <= CS64_INI_MAX_CODE || characterByteSize != 0) {
+            printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", invalidUTF8values[i], character, characterByteSize);
             print_bytes("Bytes", utf8_data);
 
             return 3;
@@ -118,8 +118,8 @@ int invalid_unicode_byte_test() {
             utf8_data[m] = invalidUTF8values[i];
 
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
-            if(character <= CS64_INI_MAX_CODE) {
-                printf("Invalid Unicode Test Three Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", invalidUTF8values[i], character);
+            if(character <= CS64_INI_MAX_CODE || characterByteSize != 0) {
+                printf("Invalid Unicode Test Three Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", invalidUTF8values[i], character, characterByteSize);
                 print_bytes("Bytes", utf8_data);
 
                 return 5;
@@ -144,8 +144,8 @@ int invalid_unicode_byte_test() {
             utf8_data[m] = invalidUTF8values[i];
 
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
-            if(character <= CS64_INI_MAX_CODE) {
-                printf("Invalid Unicode Test Four Byte Case (%i): cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x\n", m, invalidUTF8values[i], character);
+            if(character <= CS64_INI_MAX_CODE || characterByteSize != 0) {
+                printf("Invalid Unicode Test Four Byte Case (%i): cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", characterByteSize, m, invalidUTF8values[i], character);
                 print_bytes("Bytes", utf8_data);
 
                 return 7;
