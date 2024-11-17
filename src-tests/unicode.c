@@ -186,15 +186,15 @@ int invalid_utf8_invalid_continuous_test() {
         arrayIndexes[0]++;
     }
 
-#define INVALID_CONITINOUS(ARRAY_INDEX, UTF_8_INDEX, NAME) \
+#define INVALID_CONITINOUS(ARRAY_INDEX, UTF_8_INDEX, NAME, VALUE) \
     arrayIndexes[ARRAY_INDEX] = 0; \
     while(arrayIndexes[ARRAY_INDEX] < 64) {\
         utf8_data[UTF_8_INDEX] = 0b00000000 | arrayIndexes[ARRAY_INDEX]; /* Invalid Continuous bytes with 0b00XXXXXX */\
 \
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
 \
-        if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
-            printf("Invalid UTF-8 Invalid Continuous %s 0b00XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
+        if((character != VALUE && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
+            printf("Invalid UTF-8 Invalid Continuous %s 0b00XXXXXX: cs64_ini_utf_8_read did not produce ###VALUE or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
             print_bytes("Bytes", utf8_data);\
 \
             return 2;\
@@ -204,8 +204,8 @@ int invalid_utf8_invalid_continuous_test() {
 \
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
 \
-        if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
-            printf("Invalid UTF-8 Invalid Continuous %s 0b01XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
+        if((character != VALUE && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
+            printf("Invalid UTF-8 Invalid Continuous %s 0b01XXXXXX: cs64_ini_utf_8_read did not produce ###VALUE or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
             print_bytes("Bytes", utf8_data);\
 \
             return 3;\
@@ -215,8 +215,8 @@ int invalid_utf8_invalid_continuous_test() {
 \
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
 \
-        if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
-            printf("Invalid UTF-8 Invalid Continuous %s 0b11XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
+        if((character != VALUE && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
+            printf("Invalid UTF-8 Invalid Continuous %s 0b11XXXXXX: cs64_ini_utf_8_read did not produce ###VALUE or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
             print_bytes("Bytes", utf8_data);\
 \
             return 4;\
@@ -224,11 +224,81 @@ int invalid_utf8_invalid_continuous_test() {
         arrayIndexes[ARRAY_INDEX]++;\
     }
 
+    // 2 Byte Case
     arrayIndexes[0] = 0;
     while(arrayIndexes[0] < 32) {
         utf8_data[0] = 0b11000000 | arrayIndexes[0]; // Valid Continuous Bytes
 
-        INVALID_CONITINOUS(1, 1, "2 Byte")
+        INVALID_CONITINOUS(1, 1, "2 Byte", CS64_INI_BAD_CONTINUE_BYTE_1)
+
+        arrayIndexes[0]++;
+    }
+
+    // 3 Byte Case
+    arrayIndexes[0] = 0;
+    while(arrayIndexes[0] < 16) {
+        utf8_data[0] = 0b11100000 | arrayIndexes[0]; // Valid Continuous Bytes
+
+        arrayIndexes[1] = 0;
+        while(arrayIndexes[1] < 64) {
+            utf8_data[2] = 0b10000000 | arrayIndexes[1];
+            INVALID_CONITINOUS(2, 1, "3 Bytes Bad Middle Byte", CS64_INI_BAD_CONTINUE_BYTE_1)
+            arrayIndexes[1]++;
+        }
+
+        arrayIndexes[1] = 0;
+        while(arrayIndexes[1] < 64) {
+            utf8_data[1] = 0b10000000 | arrayIndexes[1];
+            INVALID_CONITINOUS(2, 2, "3 Bytes Bad Last Byte", CS64_INI_BAD_CONTINUE_BYTE_2)
+            arrayIndexes[1]++;
+        }
+
+        arrayIndexes[0]++;
+    }
+
+    // 4 Byte Case
+    arrayIndexes[0] = 0;
+    while(arrayIndexes[0] < 5) {
+        utf8_data[0] = 0b11110000 | arrayIndexes[0]; // Valid Continuous Bytes
+
+        arrayIndexes[1] = 0;
+        while(arrayIndexes[1] < 64) {
+            utf8_data[2] = 0b10000000 | arrayIndexes[1];
+
+            arrayIndexes[2] = 0;
+            while(arrayIndexes[2] < 64) {
+                utf8_data[3] = 0b10000000 | arrayIndexes[2];
+                INVALID_CONITINOUS(3, 1, "4 Bytes Bad 2nd Byte", CS64_INI_BAD_CONTINUE_BYTE_1)
+                arrayIndexes[2]++;
+            }
+            arrayIndexes[1]++;
+        }
+
+        arrayIndexes[1] = 0;
+        while(arrayIndexes[1] < 64) {
+            utf8_data[1] = 0b10000000 | arrayIndexes[1];
+
+            arrayIndexes[2] = 0;
+            while(arrayIndexes[2] < 64) {
+                utf8_data[3] = 0b10000000 | arrayIndexes[2];
+                INVALID_CONITINOUS(3, 2, "4 Bytes Bad 3rd Byte", CS64_INI_BAD_CONTINUE_BYTE_2)
+                arrayIndexes[2]++;
+            }
+            arrayIndexes[1]++;
+        }
+
+        arrayIndexes[1] = 0;
+        while(arrayIndexes[1] < 64) {
+            utf8_data[1] = 0b10000000 | arrayIndexes[1];
+
+            arrayIndexes[2] = 0;
+            while(arrayIndexes[2] < 64) {
+                utf8_data[2] = 0b10000000 | arrayIndexes[2];
+                INVALID_CONITINOUS(3, 3, "4 Bytes Bad 4th Byte", CS64_INI_BAD_CONTINUE_BYTE_3)
+                arrayIndexes[2]++;
+            }
+            arrayIndexes[1]++;
+        }
 
         arrayIndexes[0]++;
     }
