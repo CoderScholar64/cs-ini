@@ -197,7 +197,7 @@ int invalid_utf8_invalid_continuous_test() {
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
 
             if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
-                printf("Invalid Utf8 Invalid Continuous 2 Byte 0b00XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", character, characterByteSize);
+                printf("Invalid UTF-8 Invalid Continuous %s 0b00XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", "2 Byte", character, characterByteSize);
                 print_bytes("Bytes", utf8_data);
 
                 return 2;
@@ -208,7 +208,7 @@ int invalid_utf8_invalid_continuous_test() {
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
 
             if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
-                printf("Invalid Utf8 Invalid Continuous 2 Byte 0b01XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", character, characterByteSize);
+                printf("Invalid UTF-8 Invalid Continuous %s 0b01XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", "2 Byte", character, characterByteSize);
                 print_bytes("Bytes", utf8_data);
 
                 return 3;
@@ -219,7 +219,7 @@ int invalid_utf8_invalid_continuous_test() {
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
 
             if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
-                printf("Invalid Utf8 Invalid Continuous 2 Byte 0b11XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", character, characterByteSize);
+                printf("Invalid UTF-8 Invalid Continuous %s 0b11XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", "2 Byte", character, characterByteSize);
                 print_bytes("Bytes", utf8_data);
 
                 return 4;
