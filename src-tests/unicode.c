@@ -186,46 +186,49 @@ int invalid_utf8_invalid_continuous_test() {
         arrayIndexes[0]++;
     }
 
+#define INVALID_CONITINOUS(ARRAY_INDEX, UTF_8_INDEX, NAME) \
+    arrayIndexes[ARRAY_INDEX] = 0; \
+    while(arrayIndexes[ARRAY_INDEX] < 64) {\
+        utf8_data[UTF_8_INDEX] = 0b00000000 | arrayIndexes[ARRAY_INDEX]; /* Invalid Continuous bytes with 0b00XXXXXX */\
+\
+        character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
+\
+        if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
+            printf("Invalid UTF-8 Invalid Continuous %s 0b00XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
+            print_bytes("Bytes", utf8_data);\
+\
+            return 2;\
+        }\
+\
+        utf8_data[UTF_8_INDEX] = 0b01000000 | arrayIndexes[ARRAY_INDEX]; /* Invalid Continuous bytes with 0b01XXXXXX */\
+\
+        character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
+\
+        if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
+            printf("Invalid UTF-8 Invalid Continuous %s 0b01XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
+            print_bytes("Bytes", utf8_data);\
+\
+            return 3;\
+        }\
+\
+        utf8_data[UTF_8_INDEX] = 0b11000000 | arrayIndexes[ARRAY_INDEX]; /* Invalid Continuous bytes with 0b11XXXXXX */\
+\
+        character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
+\
+        if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
+            printf("Invalid UTF-8 Invalid Continuous %s 0b11XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", NAME, character, characterByteSize);\
+            print_bytes("Bytes", utf8_data);\
+\
+            return 4;\
+        }\
+        arrayIndexes[ARRAY_INDEX]++;\
+    }
+
     arrayIndexes[0] = 0;
     while(arrayIndexes[0] < 32) {
         utf8_data[0] = 0b11000000 | arrayIndexes[0]; // Valid Continuous Bytes
 
-        arrayIndexes[1] = 0;
-        while(arrayIndexes[1] < 64) {
-            utf8_data[1] = 0b00000000 | arrayIndexes[1]; // Invalid Continuous bytes with 0b00XXXXXX
-
-            character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
-
-            if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
-                printf("Invalid UTF-8 Invalid Continuous %s 0b00XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", "2 Byte", character, characterByteSize);
-                print_bytes("Bytes", utf8_data);
-
-                return 2;
-            }
-
-            utf8_data[1] = 0b01000000 | arrayIndexes[1]; // Invalid Continuous bytes with 0b01XXXXXX
-
-            character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
-
-            if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
-                printf("Invalid UTF-8 Invalid Continuous %s 0b01XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", "2 Byte", character, characterByteSize);
-                print_bytes("Bytes", utf8_data);
-
-                return 3;
-            }
-
-            utf8_data[1] = 0b11000000 | arrayIndexes[1]; // Invalid Continuous bytes with 0b11XXXXXX
-
-            character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
-
-            if((character != CS64_INI_BAD_CONTINUE_BYTE_1 && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
-                printf("Invalid UTF-8 Invalid Continuous %s 0b11XXXXXX: cs64_ini_utf_8_read did not produce CS64_INI_BAD_CONTINUE_BYTE_1 or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", "2 Byte", character, characterByteSize);
-                print_bytes("Bytes", utf8_data);
-
-                return 4;
-            }
-            arrayIndexes[1]++;
-        }
+        INVALID_CONITINOUS(1, 1, "2 Byte")
 
         arrayIndexes[0]++;
     }
