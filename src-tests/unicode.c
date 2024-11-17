@@ -399,8 +399,11 @@ int reencoding_test() {
 int invalid_utf8_overlong_test() {
     CS64UTF8 utf8_data[8] = {0};
     CS64Size characterByteSize = 0;
+    CS64UniChar number;
 
-    CS64UniChar number = 0;
+
+    // Two byte case.
+    number = 0;
     while(number <= 0x80 ) {
         utf8_data[1] = 0b10000000 | (0b00111111 & (number >> 0));
         utf8_data[0] = 0b11000000 | (0b00011111 & (number >> 6));
@@ -422,6 +425,58 @@ int invalid_utf8_overlong_test() {
 
         number++;
     }
+
+    // Three byte case.
+    number = 0;
+    while(number <= 0x800 ) {
+        utf8_data[2] = 0b10000000 | (0b00111111 & (number >>  0));
+        utf8_data[1] = 0b10000000 | (0b00111111 & (number >>  6));
+        utf8_data[0] = 0b11100000 | (0b00001111 & (number >> 12));
+
+        CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 3, &characterByteSize);
+
+        if(number != 0x800) {
+            if(character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
+                printf("Invalid UTF-8 Overlong Three Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+                print_bytes("Bytes", utf8_data);
+                return 3;
+            }
+        }
+        else if(character != 0x800 || characterByteSize != 3) {
+            printf("Invalid UTF-8 Overlong Three Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            print_bytes("Bytes", utf8_data);
+            return 4;
+        }
+
+        number++;
+    }
+
+    // Four byte case.
+    number = 0;
+    while(number <= 0x10000 ) {
+        utf8_data[3] = 0b10000000 | (0b00111111 & (number >>  0));
+        utf8_data[2] = 0b10000000 | (0b00111111 & (number >>  6));
+        utf8_data[1] = 0b10000000 | (0b00111111 & (number >> 12));
+        utf8_data[0] = 0b11110000 | (0b00000111 & (number >> 18));
+
+        CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 4, &characterByteSize);
+
+        if(number != 0x10000) {
+            if(character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
+                printf("Invalid UTF-8 Overlong Four Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+                print_bytes("Bytes", utf8_data);
+                return 5;
+            }
+        }
+        else if(character != 0x10000 || characterByteSize != 4) {
+            printf("Invalid UTF-8 Overlong Four Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            print_bytes("Bytes", utf8_data);
+            return 6;
+        }
+
+        number++;
+    }
+
     return 0;
 }
 
