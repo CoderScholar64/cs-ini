@@ -10,6 +10,7 @@
 int invalid_ascii_test();
 int invalid_unicode_byte_test();
 int invalid_utf8_invalid_continuous_test();
+int invalid_utf8_overlong_test();
 int reencoding_test();
 void print_bytes(const char* const name, CS64UTF8 *pUTF8Data);
 
@@ -25,6 +26,10 @@ int main() {
         return testResult;
 
     testResult = invalid_utf8_invalid_continuous_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = invalid_utf8_overlong_test();
     if(testResult != 0)
         return testResult;
 
@@ -256,7 +261,7 @@ int invalid_utf8_invalid_continuous_test() {
         arrayIndexes[0]++;
     }
 
-    // 4 Byte Case
+    // 4 Byte Case. I know it is rather slow code, but I decided to test almost every bad continious combo.
     arrayIndexes[0] = 0;
     while(arrayIndexes[0] < 5) {
         utf8_data[0] = 0b11110000 | arrayIndexes[0]; // Valid Continuous Bytes
@@ -388,6 +393,35 @@ int reencoding_test() {
         c++;
     }
 
+    return 0;
+}
+
+int invalid_utf8_overlong_test() {
+    CS64UTF8 utf8_data[8] = {0};
+    CS64Size characterByteSize = 0;
+
+    CS64UniChar number = 0;
+    while(number <= 0x80 ) {
+        utf8_data[1] = 0b10000000 | (0b00111111 & (number >> 0));
+        utf8_data[0] = 0b11000000 | (0b00011111 & (number >> 6));
+
+        CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 2, &characterByteSize);
+
+        if(number != 0x80) {
+            if(character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
+                printf("Invalid UTF-8 Overlong Two Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+                print_bytes("Bytes", utf8_data);
+                return 1;
+            }
+        }
+        else if(character != 0x80 || characterByteSize != 2) {
+            printf("Invalid UTF-8 Overlong Two Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            print_bytes("Bytes", utf8_data);
+            return 2;
+        }
+
+        number++;
+    }
     return 0;
 }
 
