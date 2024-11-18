@@ -577,7 +577,19 @@ int utf8_verify_test() {
             return 1;
         }
 
-        length = cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), expectedValues[index].unicodePoint);
+        unsigned underMemIndex = 0;
+        while(underMemIndex < length) {
+            character = cs64_ini_utf_8_read(expectedValues[index].utf8Buffer, expectedValues[index].length - (1 + underMemIndex), &length);
+
+            if(character != CS64_INI_BAD_LACK_SPACE || length != 0) {
+                printf("UTF-8 Verification Size Check: cs64_ini_utf_8_read did not handle 0x%x character with length %i properly. Instead it got error code 0x%x with length %i\n", character, length, expectedValues[index].unicodePoint, expectedValues[index].length);
+
+                return 2;
+            }
+            underMemIndex++;
+        }
+
+        length = cs64_ini_utf_8_write(utf8_data, expectedValues[index].length, expectedValues[index].unicodePoint);
 
         if( utf8_data[0] != expectedValues[index].utf8Buffer[0] ||
             utf8_data[1] != expectedValues[index].utf8Buffer[1] ||
@@ -587,9 +599,21 @@ int utf8_verify_test() {
         {
             printf("UTF-8 Verification Problem: cs64_ini_utf_8_write did not produce expected bytes with length of %i.\n", length, expectedValues[index].unicodePoint, expectedValues[index].length);
             print_bytes("Expected Bytes", expectedValues[index].utf8Buffer, expectedValues[index].length);
-            print_bytes("Decoded  Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
+            print_bytes("Decoded  Bytes", utf8_data, length);
 
-            return 1;
+            return 3;
+        }
+
+        underMemIndex = 0;
+        while(underMemIndex < length) {
+            length = cs64_ini_utf_8_write(utf8_data, expectedValues[index].length - (1 + underMemIndex), expectedValues[index].unicodePoint);
+
+            if(length != 0) {
+                printf("UTF-8 Verification Size Check: cs64_ini_utf_8_write did not handle 0x%x character with length %i properly. It got a length of %i\n",  expectedValues[index].unicodePoint, expectedValues[index].length - (1 + underMemIndex), length);
+
+                return 4;
+            }
+            underMemIndex++;
         }
 
         index++;
