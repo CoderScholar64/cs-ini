@@ -470,6 +470,39 @@ int reencoding_test() {
         c++;
     }
 
+    // ASCII: Bounds checking
+    c = 0;
+    while(c < 128) {
+        memset(utf8_data, 0, sizeof(utf8_data) / sizeof(utf8_data[0]));
+        utf8_data[0] = c;
+
+        CS64UniChar character = cs64_ini_ascii_read(utf8_data, 0, &characterByteSize);
+
+        if(character != CS64_INI_BAD_LACK_SPACE || characterByteSize != 0) {
+            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %i) returned %i failed to fail length 0 of unicode. Length %i\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
+
+            return 4;
+        }
+
+        character = cs64_ini_ascii_read(utf8_data, 1, &characterByteSize);
+
+        if(character != c || characterByteSize != 1) {
+            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %i) returned %i failed length 1 of unicode. Length %i\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
+
+            return 5;
+        }
+
+        character = cs64_ini_ascii_read(utf8_data, 2, &characterByteSize);
+
+        if(character != c || characterByteSize != 1) {
+            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %i) returned %i failed length 1 of unicode. Length %i\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
+
+            return 6;
+        }
+
+        c++;
+    }
+
     // Reencoding UTF-8 Test.
     c = 0;
     while(c < CS64_INI_MAX_CODE + 1) {
@@ -616,6 +649,17 @@ int utf8_verify_test() {
             underMemIndex++;
         }
 
+        index++;
+    }
+
+    index = 0x110000;
+    while(index < 0x120000) {
+        int error_code = cs64_ini_utf_8_write(utf8_data, length, index);
+
+        if(error_code != -1) {
+            printf("UTF-8 Verification Problem: cs64_ini_utf_8_write overload case should have failed %i.\n", error_code);
+            return 5;
+        }
         index++;
     }
 
