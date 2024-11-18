@@ -564,15 +564,29 @@ struct {
 
 int utf8_verify_test() {
     CS64UTF8 utf8_data[8] = {0};
-    CS64Size characterByteSize = 0;
+    CS64Size length;
     unsigned index;
 
     index = 0;
     while(index < sizeof(expectedValues) / sizeof(expectedValues[0])) {
-        CS64UniChar character = cs64_ini_utf_8_read(expectedValues[index].utf8Buffer, expectedValues[index].length, &characterByteSize);
+        CS64UniChar character = cs64_ini_utf_8_read(expectedValues[index].utf8Buffer, expectedValues[index].length, &length);
 
-        if(character != expectedValues[index].unicodePoint || expectedValues[index].length != characterByteSize) {
-            printf("UTF-8 Verification: cs64_ini_utf_8_read did not decode 0x%x character with length %i properly. Instead it got 0x%x with length %i\n", character, characterByteSize, expectedValues[index].unicodePoint, expectedValues[index].length);
+        if(character != expectedValues[index].unicodePoint || expectedValues[index].length != length) {
+            printf("UTF-8 Verification Problem: cs64_ini_utf_8_read did not decode 0x%x character with length %i properly. Instead it got 0x%x with length %i\n", character, length, expectedValues[index].unicodePoint, expectedValues[index].length);
+
+            return 1;
+        }
+
+        length = cs64_ini_utf_8_write(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), expectedValues[index].unicodePoint);
+
+        if( utf8_data[0] != expectedValues[index].utf8Buffer[0] ||
+            utf8_data[1] != expectedValues[index].utf8Buffer[1] ||
+            utf8_data[2] != expectedValues[index].utf8Buffer[2] ||
+            utf8_data[3] != expectedValues[index].utf8Buffer[3] ||
+            expectedValues[index].length != length)
+        {
+            printf("UTF-8 Verification Problem: cs64_ini_utf_8_write did not produce expected bytes with length of %i.\n", length, expectedValues[index].unicodePoint, expectedValues[index].length);
+            print_bytes("Decoded Bytes", utf8_data);
 
             return 1;
         }
