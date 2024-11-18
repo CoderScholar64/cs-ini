@@ -8,12 +8,13 @@
 #include <string.h>
 
 int invalid_ascii_test();
-int invalid_unicode_byte_test();
+int invalid_utf8_byte_test();
 int invalid_utf8_invalid_continuous_test();
 int invalid_utf8_overlong_test();
 int invalid_utf8_oversize_test();
 int reencoding_test();
 void print_bytes(const char* const name, CS64UTF8 *pUTF8Data);
+int utf8_verify_test();
 
 int main() {
     int testResult;
@@ -22,7 +23,11 @@ int main() {
     if(testResult != 0)
         return testResult;
 
-    testResult = invalid_unicode_byte_test();
+    testResult = utf8_verify_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = invalid_utf8_byte_test();
     if(testResult != 0)
         return testResult;
 
@@ -72,7 +77,7 @@ int invalid_ascii_test() {
     }
 }
 
-int invalid_unicode_byte_test() {
+int invalid_utf8_byte_test() {
     CS64UTF8 invalidUTF8values[] = {0xc0, 0xc1, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff};
     CS64Size characterByteSize = 1;
     CS64UniChar character;
@@ -508,7 +513,7 @@ int reencoding_test() {
             printf("Reencoding UTF-8: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x\n", c, character);
             print_bytes("Bytes", utf8_data);
 
-            return 5;
+            return 9;
         }
         c++;
     }
@@ -527,4 +532,53 @@ void print_bytes(const char* const pName, CS64UTF8 *pUTF8Data) {
     }
 
     printf("\n");
+}
+
+struct {
+    CS64UniChar unicodePoint;
+    unsigned    length;
+    CS64UTF8    utf8Buffer[4];
+} expectedValues[] = {
+    {0x000001, 1, {0x01, 0x00, 0x00, 0x00}},
+    {0x000002, 1, {0x02, 0x00, 0x00, 0x00}},
+    {0x000004, 1, {0x04, 0x00, 0x00, 0x00}},
+    {0x000008, 1, {0x08, 0x00, 0x00, 0x00}},
+    {0x000010, 1, {0x10, 0x00, 0x00, 0x00}},
+    {0x000020, 1, {0x20, 0x00, 0x00, 0x00}},
+    {0x000040, 1, {0x40, 0x00, 0x00, 0x00}},
+    {0x000080, 2, {0xc2, 0x80, 0x00, 0x00}},
+    {0x000100, 2, {0xc4, 0x80, 0x00, 0x00}},
+    {0x000200, 2, {0xc8, 0x80, 0x00, 0x00}},
+    {0x000400, 2, {0xd0, 0x80, 0x00, 0x00}},
+    {0x000800, 3, {0xe0, 0xa0, 0x80, 0x00}},
+    {0x001000, 3, {0xe1, 0x80, 0x80, 0x00}},
+    {0x002000, 3, {0xe2, 0x80, 0x80, 0x00}},
+    {0x004000, 3, {0xe4, 0x80, 0x80, 0x00}},
+    {0x008000, 3, {0xe8, 0x80, 0x80, 0x00}},
+    {0x010000, 4, {0xf0, 0x90, 0x80, 0x80}},
+    {0x020000, 4, {0xf0, 0xa0, 0x80, 0x80}},
+    {0x040000, 4, {0xf1, 0x80, 0x80, 0x80}},
+    {0x080000, 4, {0xf2, 0x80, 0x80, 0x80}},
+    {0x100000, 4, {0xf4, 0x80, 0x80, 0x80}}
+};
+
+int utf8_verify_test() {
+    CS64UTF8 utf8_data[8] = {0};
+    CS64Size characterByteSize = 0;
+    unsigned index;
+
+    index = 0;
+    while(index < sizeof(expectedValues) / sizeof(expectedValues[0])) {
+        CS64UniChar character = cs64_ini_utf_8_read(expectedValues[index].utf8Buffer, expectedValues[index].length, &characterByteSize);
+
+        if(character != expectedValues[index].unicodePoint || expectedValues[index].length != characterByteSize) {
+            printf("UTF-8 Verification: cs64_ini_utf_8_read did not decode 0x%x character with length %i properly. Instead it got 0x%x with length %i\n", character, characterByteSize, expectedValues[index].unicodePoint, expectedValues[index].length);
+
+            return 1;
+        }
+
+        index++;
+    }
+
+    return 0;
 }
