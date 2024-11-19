@@ -1,6 +1,10 @@
 #ifndef CS64_INI_LIBRARY_H
 #define CS64_INI_LIBRARY_H
 
+#if !defined(CS64_INI_MALLOC) || !defined(CS64_INI_FREE)
+    #include <stdlib.h>
+#endif
+
 #ifndef CS64_INI_MALLOC
     #define CS64_INI_MALLOC(size) malloc(size)
 #endif
