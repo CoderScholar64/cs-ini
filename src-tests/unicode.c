@@ -75,6 +75,7 @@ int invalid_ascii_test() {
         }
         c++;
     }
+    return 0;
 }
 
 int invalid_utf8_byte_test() {
