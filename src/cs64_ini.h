@@ -22,14 +22,19 @@ typedef struct {
     CS64Offset       byteLength;
 } CS64INIToken;
 
+#ifndef CS64_INI_TOKEN_AMOUNT
+    #define CS64_INI_TOKEN_AMOUNT 512
+#endif
+
 typedef struct CS64INITokenArrayList {
     struct CS64INITokenArrayList *pNext;
-    CS64INIToken tokens[512];
+    CS64INIToken tokens[CS64_INI_TOKEN_AMOUNT];
 } CS64INITokenArrayList;
 
-typedef struct CS64INITokenData {
-    CS64INITokenArrayList firstPage;
+typedef struct {
     CS64Size tokenAmount;
+    CS64INITokenArrayList *pLastPage;
+    CS64INITokenArrayList  firstPage;
 } CS64INITokenData;
 
 typedef enum {
