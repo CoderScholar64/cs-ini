@@ -13,28 +13,36 @@
     #define CS64_INI_TOKEN_AMOUNT 512
 #endif
 
-#ifdef UINT8_MAX
-    typedef uint8_t  CS64UTF8;
-#else
-    #error uint8_t is required for CS64UTF8.
+#ifndef CS64UTF8
+    #ifdef UINT8_MAX
+        #define CS64UTF8 uint8_t
+    #else
+        #error uint8_t is required for CS64UTF8.
+    #endif
 #endif
 
-#ifdef UINT32_MAX
-    typedef uint32_t CS64UniChar;
-#else
-    #error uint32_t is required for CS64UniChar.
+#ifndef CS64UniChar
+    #ifdef UINT32_MAX
+        #define CS64UniChar uint32_t
+    #else
+        #error uint32_t is required for CS64UniChar.
+    #endif
 #endif
 
-#ifdef SIZE_MAX
-    typedef size_t   CS64Size;
-#else
-    #error size_t is required for CS64Size.
+#ifndef CS64Size
+    #ifdef SIZE_MAX
+        #define CS64Size size_t
+    #else
+        #error size_t is required for CS64Size.
+    #endif
 #endif
 
-#ifdef SIZE_MAX
-    typedef size_t   CS64Offset;
-#else
-    #error size_t is required for CS64Offset.
+#ifndef CS64Offset
+    #ifdef SIZE_MAX
+        #define CS64Offset size_t
+    #else
+        #error size_t is required for CS64Offset.
+    #endif
 #endif
 
 typedef enum {
