@@ -37,6 +37,12 @@ typedef struct {
     CS64INITokenArrayList  firstPage;
 } CS64INITokenData;
 
+CS64INITokenData* cs64_ini_token_data_alloc();
+void cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
+CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
+CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex);
+void cs64_ini_token_data_free(CS64INITokenData *pData);
+
 typedef enum {
     CS64_INI_MAX_CODE            = 0x10ffff,
     CS64_INI_MAX_CODE_AMOUNT     = 0x110000,
