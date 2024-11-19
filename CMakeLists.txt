@@ -13,3 +13,6 @@ add_test(NAME simple_test COMMAND $<TARGET_FILE:simple_test>)
 
 add_executable(unicode_test src-tests/unicode.c)
 add_test(NAME unicode_test COMMAND $<TARGET_FILE:unicode_test>)
+
+add_executable(token_storage_test src-tests/token_storage.c)
+add_test(NAME token_storage_test COMMAND $<TARGET_FILE:token_storage_test>)

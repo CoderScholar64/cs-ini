@@ -25,7 +25,7 @@
     #ifdef UINT8_MAX
         #define CS64UTF8 uint8_t
     #else
-        #error uint8_t is required for CS64UTF8. Include stdlib.h if available.
+        #error uint8_t is required for CS64UTF8. Include stdint.h and/or stddef.h if available.
     #endif
 #endif
 
@@ -33,7 +33,7 @@
     #ifdef UINT32_MAX
         #define CS64UniChar uint32_t
     #else
-        #error uint32_t is required for CS64UniChar. Include stdlib.h if available.
+        #error uint32_t is required for CS64UniChar. Include stdint.h and/or stddef.h if available.
     #endif
 #endif
 
@@ -41,7 +41,7 @@
     #ifdef SIZE_MAX
         #define CS64Size size_t
     #else
-        #error size_t is required for CS64Size. Include stddef.h if available.
+        #error size_t is required for CS64Size. Include stdint.h and/or stddef.h if available.
     #endif
 #endif
 
@@ -49,7 +49,7 @@
     #ifdef SIZE_MAX
         #define CS64Offset size_t
     #else
-        #error size_t is required for CS64Offset. Include stddef.h if available.
+        #error size_t is required for CS64Offset. Include stdint.h and/or stddef.h if available.
     #endif
 #endif
 
