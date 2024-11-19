@@ -77,7 +77,7 @@ typedef struct {
 } CS64INITokenData;
 
 CS64INITokenData* cs64_ini_token_data_alloc();
-void cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
+int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
 CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
 CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex);
 void cs64_ini_token_data_free(CS64INITokenData *pData);
@@ -279,6 +279,95 @@ int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64Un
     }
     else
         return -1; // character is too big for this algorithm.
+}
+
+// ### Token Storage
+
+CS64INITokenData* cs64_ini_token_data_alloc() {
+    CS64INITokenData *pData = CS64_INI_MALLOC(sizeof(CS64INITokenData));
+
+    if(pData != NULL) {
+        pData->tokenAmount = 0;
+        pData->pLastPage = &pData->firstPage;
+        return pData;
+    }
+    else
+        return NULL;
+}
+
+int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token) {
+    if( pData->tokenAmount < CS64_INI_TOKEN_AMOUNT ) {
+
+        if((pData->tokenAmount + 1) == CS64_INI_TOKEN_AMOUNT) {
+            pData->firstPage.pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
+
+            if(pData->firstPage.pNext == NULL)
+                return 0;
+
+            pData->pLastPage = pData->firstPage.pNext;
+            pData->pLastPage->pNext = NULL;
+        }
+
+        pData->firstPage.tokens[pData->tokenAmount] = token;
+        pData->tokenAmount++;
+    }
+    else {
+        if(((pData->tokenAmount + 1) % CS64_INI_TOKEN_AMOUNT) == 0) {
+            pData->pLastPage->pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
+
+            if(pData->pLastPage->pNext == NULL)
+                return 0;
+        }
+
+        pData->pLastPage->tokens[pData->tokenAmount % CS64_INI_TOKEN_AMOUNT] = token;
+        pData->tokenAmount++;
+
+        if(pData->pLastPage->pNext != NULL) {
+            pData->pLastPage = pData->pLastPage->pNext;
+            pData->pLastPage->pNext = NULL;
+        }
+    }
+
+    return 1;
+}
+
+CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData) {
+    if(pData->tokenAmount == 0)
+        return NULL;
+
+    return &pData->pLastPage->tokens[(pData->tokenAmount - 1) % CS64_INI_TOKEN_AMOUNT];
+}
+
+CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex) {
+    if(pData->tokenAmount >= tokenIndex)
+        return NULL; // Out of bounds!
+
+    CS64Size tokenArrayPageIndex = tokenIndex / CS64_INI_TOKEN_AMOUNT;
+    CS64Size tokenPageIndex      = tokenIndex % CS64_INI_TOKEN_AMOUNT;
+
+    if(tokenArrayPageIndex == 0)
+        return &pData->firstPage.tokens[tokenPageIndex];
+
+    CS64INITokenArrayList *pCurrentPage = pData->firstPage.pNext;
+    while(tokenArrayPageIndex != 0) {
+        pCurrentPage = pCurrentPage->pNext;
+        tokenArrayPageIndex--;
+    }
+
+    return &pCurrentPage->tokens[tokenPageIndex];
+}
+
+void cs64_ini_token_data_free(CS64INITokenData *pData) {
+    CS64INITokenArrayList *pCurrentPage = pData->firstPage.pNext;
+    CS64INITokenArrayList *pNextPage;
+
+    while(pCurrentPage != NULL) {
+        pNextPage = pCurrentPage->pNext;
+        CS64_INI_FREE(pCurrentPage);
+        pCurrentPage = pNextPage;
+    }
+
+    CS64_INI_FREE(pData);
 }
 
 #endif // CS64_INI_LIBRARY_IMP
