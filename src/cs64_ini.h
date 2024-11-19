@@ -4,6 +4,23 @@
 typedef uint8_t  CS64UTF8;
 typedef uint32_t CS64UniChar;
 typedef size_t   CS64Size;
+typedef size_t   CS64Offset;
+
+typedef enum {
+    // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
+    CS64_INI_TOKEN_ENTRY,         // VALUE DELEMETER
+    CS64_INI_TOKEN_VALUE,         // VALUE can be qouted
+    CS64_INI_TOKEN_COMMENT,       // COMMENT_START *Every character except CS64_INI_TOKEN_END
+    CS64_INI_TOKEN_END,           // New Line
+    CS64_INI_TOKEN_SECTION_START, // Start of section
+    CS64_INI_TOKEN_SECTION_END    // End of section
+} CS64INITokenType;
+
+typedef struct {
+    CS64INITokenType type;
+    CS64Offset       index;
+    CS64Offset       byteLength;
+} CS64INIToken;
 
 typedef enum {
     CS64_INI_MAX_CODE            = 0x10ffff,
