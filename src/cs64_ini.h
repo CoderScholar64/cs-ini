@@ -17,6 +17,10 @@
     #define CS64_INI_TOKEN_AMOUNT 512
 #endif
 
+#if CS64_INI_TOKEN_AMOUNT < 4
+    #error CS64_INI_TOKEN_AMOUNT should be more than 4. Reason: the implementation for storing tokens might break at 1 and would definitely break at zero.
+#endif
+
 #ifndef CS64UTF8
     #ifdef UINT8_MAX
         #define CS64UTF8 uint8_t
