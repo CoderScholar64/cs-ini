@@ -1,10 +1,41 @@
 #ifndef CS64_INI_LIBRARY_H
 #define CS64_INI_LIBRARY_H
 
-typedef uint8_t  CS64UTF8;
-typedef uint32_t CS64UniChar;
-typedef size_t   CS64Size;
-typedef size_t   CS64Offset;
+#ifndef CS64_INI_MALLOC
+    #define CS64_INI_MALLOC(size) malloc(size)
+#endif
+
+#ifndef CS64_INI_FREE
+    #define CS64_INI_FREE(pointer) free(pointer)
+#endif
+
+#ifndef CS64_INI_TOKEN_AMOUNT
+    #define CS64_INI_TOKEN_AMOUNT 512
+#endif
+
+#ifdef UINT8_MAX
+    typedef uint8_t  CS64UTF8;
+#else
+    #error uint8_t is required for CS64UTF8.
+#endif
+
+#ifdef UINT32_MAX
+    typedef uint32_t CS64UniChar;
+#else
+    #error uint32_t is required for CS64UniChar.
+#endif
+
+#ifdef SIZE_MAX
+    typedef size_t   CS64Size;
+#else
+    #error size_t is required for CS64Size.
+#endif
+
+#ifdef SIZE_MAX
+    typedef size_t   CS64Offset;
+#else
+    #error size_t is required for CS64Offset.
+#endif
 
 typedef enum {
     // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
@@ -21,10 +52,6 @@ typedef struct {
     CS64Offset       index;
     CS64Offset       byteLength;
 } CS64INIToken;
-
-#ifndef CS64_INI_TOKEN_AMOUNT
-    #define CS64_INI_TOKEN_AMOUNT 512
-#endif
 
 typedef struct CS64INITokenArrayList {
     struct CS64INITokenArrayList *pNext;
