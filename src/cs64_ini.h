@@ -22,6 +22,16 @@ typedef struct {
     CS64Offset       byteLength;
 } CS64INIToken;
 
+typedef struct CS64INITokenArrayList {
+    struct CS64INITokenArrayList *pNext;
+    CS64INIToken tokens[512];
+} CS64INITokenArrayList;
+
+typedef struct CS64INITokenData {
+    CS64INITokenArrayList firstPage;
+    CS64Size tokenAmount;
+} CS64INITokenData;
+
 typedef enum {
     CS64_INI_MAX_CODE            = 0x10ffff,
     CS64_INI_MAX_CODE_AMOUNT     = 0x110000,
