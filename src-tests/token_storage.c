@@ -128,8 +128,8 @@ int fill_element_test() {
             return 1;
         }
 
-        unsigned tokenIndex = 0;
         int appendResult;
+        unsigned tokenIndex = 0;
         while(tokenIndex < length) {
             CS64INIToken *pToken = cs64_ini_token_data_get_token(pTokenData, tokenIndex);
 
@@ -185,11 +185,29 @@ int fill_element_test() {
             tokenIndex++;
         }
 
+        tokenIndex = 0;
+        while(tokenIndex < length) {
+            CS64INIToken *pToken = cs64_ini_token_data_get_token(pTokenData, tokenIndex);
+
+            if(pToken == NULL) {
+                printf("Error fill_element_test %i: pToken for cs64_ini_token_data_get_token(%i) is not supposed to be empty.\n", length, tokenIndex);
+                return 8;
+            }
+
+            if(memcmp(&tokens[tokenIndex], pToken, sizeof(tokens[tokenIndex])) != 0) {
+                printf("Error fill_element_test %i: memory did not match at index %i.\n", length, tokenIndex);
+                printf("Token %i %i %i.\n", tokens[tokenIndex].type, tokens[tokenIndex].index, tokens[tokenIndex].byteLength);
+                printf("Token %i %i %i.\n",            pToken->type,            pToken->index,            pToken->byteLength);
+                return 9;
+            }
+            tokenIndex++;
+        }
+
         cs64_ini_token_data_free(pTokenData);
 
         if(pointerTrackAmount != 0) {
             printf("Error fill_element_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
-            return 19;
+            return 10;
         }
 
         length++;
