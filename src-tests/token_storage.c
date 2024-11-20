@@ -24,7 +24,6 @@ unsigned pointerTrackAmount = 0;
 int disableTestMalloc = 0;
 
 int empty_alloc_test();
-int invalid_alloc_test();
 
 int main() {
     int testResult;
