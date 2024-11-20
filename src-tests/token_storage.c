@@ -77,32 +77,22 @@ int empty_alloc_test() {
         return 6;
     }
 
-    pToken = cs64_ini_token_data_get_token(pTokenData, 0);
+    unsigned a = 0;
+    while(a < 12) {
+        pToken = cs64_ini_token_data_get_token(pTokenData, a);
 
-    if(pToken != NULL) {
-        printf("Error empty_alloc_test: pToken for cs64_ini_token_data_get_token(0) is supposed to be empty not %p.\n", pToken);
-        return 7;
-    }
-
-    pToken = cs64_ini_token_data_get_token(pTokenData, 1);
-
-    if(pToken != NULL) {
-        printf("Error empty_alloc_test: pToken for cs64_ini_token_data_get_token(1) is supposed to be empty not %p.\n", pToken);
-        return 8;
-    }
-
-    pToken = cs64_ini_token_data_get_token(pTokenData, 2);
-
-    if(pToken != NULL) {
-        printf("Error empty_alloc_test: pToken for cs64_ini_token_data_get_token(2) is supposed to be empty not %p.\n", pToken);
-        return 9;
+        if(pToken != NULL) {
+            printf("Error empty_alloc_test: pToken for cs64_ini_token_data_get_token(%i) is supposed to be empty not %p.\n", a, pToken);
+            return 7 + a;
+        }
+        a++;
     }
 
     cs64_ini_token_data_free(pTokenData);
 
     if(pointerTrackAmount != 0) {
         printf("Error empty_alloc_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
-        return 10;
+        return 19;
     }
 
     return 0;
