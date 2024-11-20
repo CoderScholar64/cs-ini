@@ -345,7 +345,7 @@ CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData) {
 }
 
 CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex) {
-    if(pData->tokenAmount >= tokenIndex)
+    if(pData->tokenAmount <= tokenIndex)
         return NULL; // Out of bounds!
 
     CS64Size tokenArrayPageIndex = tokenIndex / CS64_INI_TOKEN_AMOUNT;
