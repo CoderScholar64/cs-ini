@@ -118,6 +118,83 @@ int fill_element_test() {
         {CS64_INI_TOKEN_END,           51,  1}
     };
 
+    unsigned length = 1;
+    while(length < sizeof(tokens) / sizeof(tokens[0])) {
+        disableTestMalloc = 0;
+        CS64INITokenData *pTokenData = cs64_ini_token_data_alloc();
+
+        if(pTokenData == NULL) {
+            printf("Error fill_element_test: pTokenData failed to allocate! There is a very slight chance that the program ran out of memory.\n");
+            return 1;
+        }
+
+        unsigned tokenIndex = 0;
+        int appendResult;
+        while(tokenIndex < length) {
+            CS64INIToken *pToken = cs64_ini_token_data_get_token(pTokenData, tokenIndex);
+
+            if(pToken != NULL) {
+                printf("Error fill_element_test %i: pToken for cs64_ini_token_data_get_token(%i) is supposed to be empty not %p.\n", length, tokenIndex, pToken);
+                return 2;
+            }
+
+            if(tokenIndex != 0 && ((tokenIndex + 1) % CS64_INI_TOKEN_AMOUNT) == 0) {
+                // First disable memory case with cs64_ini_token_data_append_token to see if it returns false and does nothing.
+                disableTestMalloc = 1;
+                appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
+
+                if(appendResult) {
+                    printf("Error fill_element_test %i: pToken for cs64_ini_token_data_append_token(tokens[%i]) no allocation case failed.\n", length, tokenIndex);
+                    return 3;
+                }
+
+                // Actually add the token.
+                disableTestMalloc = 0;
+                appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
+
+                if(!appendResult) {
+                    printf("Error fill_element_test %i: pToken for cs64_ini_token_data_append_token(tokens[%i]) allocation case success.\n", length, tokenIndex);
+                    return 4;
+                }
+            }
+            else {
+                // Actually add the token.
+                disableTestMalloc = 1;
+                appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
+
+                if(!appendResult) {
+                    printf("Error fill_element_test %i: pToken for cs64_ini_token_data_append_token(tokens[%i]) normal case failure.\n", length, tokenIndex);
+                    return 5;
+                }
+            }
+
+            pToken = cs64_ini_token_data_get_token(pTokenData, tokenIndex);
+
+            if(pToken == NULL) {
+                printf("Error fill_element_test %i: pToken for cs64_ini_token_data_get_token(%i) is not supposed to be empty.\n", length, tokenIndex);
+                return 6;
+            }
+
+            CS64INIToken *pLastToken = cs64_ini_token_data_last_token(pTokenData);
+
+            if(pToken != pLastToken) {
+                printf("Error fill_element_test %i: pToken for cs64_ini_token_data_last_token(%i) is %p != %p.\n", length, tokenIndex, pToken, pLastToken);
+                return 7;
+            }
+
+            tokenIndex++;
+        }
+
+        cs64_ini_token_data_free(pTokenData);
+
+        if(pointerTrackAmount != 0) {
+            printf("Error fill_element_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
+            return 19;
+        }
+
+        length++;
+    }
+
     return 0;
 }
 
