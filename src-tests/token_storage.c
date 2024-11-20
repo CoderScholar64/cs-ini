@@ -13,8 +13,9 @@ void test_free(void *pointer);
 #define CS64_INI_LIBRARY_IMP
 #include "cs64_ini.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define TACKER_ARRAY_LIMIT 64
 
@@ -86,6 +87,8 @@ void *test_malloc(size_t size) {
     printf("Log: Allocating pointer of size 0x%x", size);
     void *pointer = malloc(size);
     printf(". Address %p\n", pointer);
+
+    memset(pointer, 0x5c, size);
 
     if(pointer == NULL) {
         printf("Error: Pointer for size 0x%x cannot be allocated!\n", size);
