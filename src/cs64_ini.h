@@ -55,7 +55,7 @@
 
 typedef enum {
     // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
-    CS64_INI_TOKEN_ENTRY,         // VALUE DELEMETER
+    CS64_INI_TOKEN_DELEMETER,     // VALUE DELEMETER
     CS64_INI_TOKEN_VALUE,         // VALUE can be qouted
     CS64_INI_TOKEN_COMMENT,       // COMMENT_START *Every character except CS64_INI_TOKEN_END
     CS64_INI_TOKEN_END,           // New Line

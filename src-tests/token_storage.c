@@ -104,17 +104,17 @@ int empty_alloc_test() {
 
 int fill_element_test() {
     CS64INIToken tokens[12] = {
-        {CS64_INI_TOKEN_ENTRY,          0, 12},
-        {CS64_INI_TOKEN_VALUE,         12,  5},
-        {CS64_INI_TOKEN_COMMENT,       16,  4},
+        {CS64_INI_TOKEN_VALUE,          0, 12},
+        {CS64_INI_TOKEN_DELEMETER,     12,  1},
+        {CS64_INI_TOKEN_VALUE,         13,  7},
         {CS64_INI_TOKEN_END,           20,  1},
         {CS64_INI_TOKEN_SECTION_START, 21,  1}, // 4
         {CS64_INI_TOKEN_VALUE,         22,  6},
         {CS64_INI_TOKEN_SECTION_END,   28,  1},
         {CS64_INI_TOKEN_END,           29,  1},
-        {CS64_INI_TOKEN_ENTRY,         30,  6}, // 8
-        {CS64_INI_TOKEN_VALUE,         36,  4},
-        {CS64_INI_TOKEN_COMMENT,       41, 10},
+        {CS64_INI_TOKEN_VALUE,         30,  6}, // 8
+        {CS64_INI_TOKEN_DELEMETER,     36,  1},
+        {CS64_INI_TOKEN_VALUE,         37, 14},
         {CS64_INI_TOKEN_END,           51,  1}
     };
 
