@@ -303,35 +303,34 @@ CS64INITokenData* cs64_ini_token_data_alloc() {
 
 int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token) {
     if( pData->tokenAmount < CS64_INI_TOKEN_AMOUNT ) {
-
-        if((pData->tokenAmount + 1) == CS64_INI_TOKEN_AMOUNT) {
-            pData->firstPage.pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
-
-            if(pData->firstPage.pNext == NULL)
-                return 0;
-
-            pData->pLastPage = pData->firstPage.pNext;
-            pData->pLastPage->pNext = NULL;
-        }
-
         pData->firstPage.tokens[pData->tokenAmount] = token;
         pData->tokenAmount++;
     }
+    else if(pData->tokenAmount == CS64_INI_TOKEN_AMOUNT) {
+        pData->firstPage.pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
+
+        if(pData->firstPage.pNext == NULL)
+            return 0;
+
+        pData->pLastPage = pData->firstPage.pNext;
+        pData->pLastPage->pNext = NULL;
+
+        pData->pLastPage->tokens[pData->tokenAmount % CS64_INI_TOKEN_AMOUNT] = token;
+        pData->tokenAmount++;
+    }
     else {
-        if(((pData->tokenAmount + 1) % CS64_INI_TOKEN_AMOUNT) == 0) {
+        if((pData->tokenAmount % CS64_INI_TOKEN_AMOUNT) == 0) {
             pData->pLastPage->pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
 
             if(pData->pLastPage->pNext == NULL)
                 return 0;
+
+            pData->pLastPage = pData->pLastPage->pNext;
+            pData->pLastPage->pNext = NULL;
         }
 
         pData->pLastPage->tokens[pData->tokenAmount % CS64_INI_TOKEN_AMOUNT] = token;
         pData->tokenAmount++;
-
-        if(pData->pLastPage->pNext != NULL) {
-            pData->pLastPage = pData->pLastPage->pNext;
-            pData->pLastPage->pNext = NULL;
-        }
     }
 
     return 1;
@@ -354,7 +353,7 @@ CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size to
     if(tokenArrayPageIndex == 0)
         return &pData->firstPage.tokens[tokenPageIndex];
 
-    CS64INITokenArrayList *pCurrentPage = pData->firstPage.pNext;
+    CS64INITokenArrayList *pCurrentPage = &pData->firstPage;
     while(tokenArrayPageIndex != 0) {
         pCurrentPage = pCurrentPage->pNext;
         tokenArrayPageIndex--;

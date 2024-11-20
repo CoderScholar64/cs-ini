@@ -138,7 +138,7 @@ int fill_element_test() {
                 return 2;
             }
 
-            if(tokenIndex != 0 && ((tokenIndex + 1) % CS64_INI_TOKEN_AMOUNT) == 0) {
+            if(tokenIndex != 0 && (tokenIndex % CS64_INI_TOKEN_AMOUNT) == 0) {
                 // First disable memory case with cs64_ini_token_data_append_token to see if it returns false and does nothing.
                 disableTestMalloc = 1;
                 appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
@@ -178,7 +178,7 @@ int fill_element_test() {
             CS64INIToken *pLastToken = cs64_ini_token_data_last_token(pTokenData);
 
             if(pToken != pLastToken) {
-                printf("Error fill_element_test %i: pToken for cs64_ini_token_data_last_token(%i) is %p != %p.\n", length, tokenIndex, pToken, pLastToken);
+                printf("Error fill_element_test %i: pToken for cs64_ini_token_data_last_token(%i) is pToken %p != pLastToken %p.\n", length, tokenIndex, pToken, pLastToken);
                 return 7;
             }
 
