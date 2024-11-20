@@ -13,4 +13,5 @@ A yet another header only library for ini in C89. **INCOMPLETE**
 * Custom Library Function Aliasing.
 * UTF-8 Encoding/Decoding Support.
 * Unit Test for ASCII and UTF-8.
+* Unit Test for Lexer Storage.
 * Linked Lists each containing an array with a fixed amount which holds the tokens.
