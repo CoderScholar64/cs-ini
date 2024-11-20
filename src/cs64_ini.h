@@ -293,6 +293,8 @@ CS64INITokenData* cs64_ini_token_data_alloc() {
     if(pData != NULL) {
         pData->tokenAmount = 0;
         pData->pLastPage = &pData->firstPage;
+        pData->firstPage.pNext = NULL;
+
         return pData;
     }
     else
