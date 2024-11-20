@@ -304,15 +304,6 @@ CS64INITokenData* cs64_ini_token_data_alloc() {
 int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token) {
     if( pData->tokenAmount < CS64_INI_TOKEN_AMOUNT ) {
     }
-    else if(pData->tokenAmount == CS64_INI_TOKEN_AMOUNT) {
-        pData->firstPage.pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
-
-        if(pData->firstPage.pNext == NULL)
-            return 0;
-
-        pData->pLastPage = pData->firstPage.pNext;
-        pData->pLastPage->pNext = NULL;
-    }
     else if((pData->tokenAmount % CS64_INI_TOKEN_AMOUNT) == 0) {
         pData->pLastPage->pNext = CS64_INI_MALLOC(sizeof(CS64INITokenArrayList));
 
