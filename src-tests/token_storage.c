@@ -24,11 +24,16 @@ unsigned pointerTrackAmount = 0;
 int disableTestMalloc = 0;
 
 int empty_alloc_test();
+int fill_element_test();
 
 int main() {
     int testResult;
 
     testResult = empty_alloc_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = fill_element_test();
     if(testResult != 0)
         return testResult;
 
@@ -93,6 +98,25 @@ int empty_alloc_test() {
         printf("Error empty_alloc_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
         return 19;
     }
+
+    return 0;
+}
+
+int fill_element_test() {
+    CS64INIToken tokens[12] = {
+        {CS64_INI_TOKEN_ENTRY,          0, 12},
+        {CS64_INI_TOKEN_VALUE,         12,  5},
+        {CS64_INI_TOKEN_COMMENT,       16,  4},
+        {CS64_INI_TOKEN_END,           20,  1},
+        {CS64_INI_TOKEN_SECTION_START, 21,  1}, // 4
+        {CS64_INI_TOKEN_VALUE,         22,  6},
+        {CS64_INI_TOKEN_SECTION_END,   28,  1},
+        {CS64_INI_TOKEN_END,           29,  1},
+        {CS64_INI_TOKEN_ENTRY,         30,  6}, // 8
+        {CS64_INI_TOKEN_VALUE,         36,  4},
+        {CS64_INI_TOKEN_COMMENT,       41, 10},
+        {CS64_INI_TOKEN_END,           51,  1}
+    };
 
     return 0;
 }
