@@ -14,7 +14,7 @@
 #endif
 
 #ifndef CS64_INI_TOKEN_AMOUNT
-    #define CS64_INI_TOKEN_AMOUNT 128
+    #define CS64_INI_TOKEN_AMOUNT 338
 #endif
 
 #if CS64_INI_TOKEN_AMOUNT < 4
