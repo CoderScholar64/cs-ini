@@ -14,7 +14,7 @@
 #endif
 
 #ifndef CS64_INI_TOKEN_AMOUNT
-    #define CS64_INI_TOKEN_AMOUNT 512
+    #define CS64_INI_TOKEN_AMOUNT 128
 #endif
 
 #if CS64_INI_TOKEN_AMOUNT < 4
@@ -55,7 +55,7 @@
 
 typedef enum {
     // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
-    CS64_INI_TOKEN_DELEMETER,     // VALUE DELEMETER
+    CS64_INI_TOKEN_DELEMETER,     // DELEMETER
     CS64_INI_TOKEN_VALUE,         // VALUE can be qouted
     CS64_INI_TOKEN_COMMENT,       // COMMENT_START *Every character except CS64_INI_TOKEN_END
     CS64_INI_TOKEN_END,           // New Line
@@ -80,12 +80,6 @@ typedef struct {
     CS64INITokenArrayList  firstPage;
 } CS64INITokenData;
 
-CS64INITokenData* cs64_ini_token_data_alloc();
-int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
-CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
-CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex);
-void cs64_ini_token_data_free(CS64INITokenData *pData);
-
 typedef enum {
     CS64_INI_MAX_CODE            = 0x10ffff,
     CS64_INI_MAX_CODE_AMOUNT     = 0x110000,
@@ -99,6 +93,15 @@ typedef enum {
     CS64_INI_BAD_CONTINUE_BYTE_2 = 0x110008,
     CS64_INI_BAD_CONTINUE_BYTE_3 = 0x110009
 } CS64UniCharCode;
+
+CS64INITokenData* cs64_ini_token_data_alloc();
+int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
+CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
+CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex);
+void cs64_ini_token_data_free(CS64INITokenData *pData);
+
+// CS64INIToken cs64_ini_token_merge(const CS64INIToken *const pLastToken, const CS64INIToken *const pNextToken); // TODO Make tokens mergable.
+CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 
 /**
  * This function reads an ASCII value.
@@ -355,6 +358,22 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
     }
 
     CS64_INI_FREE(pData);
+}
+
+// ### Lexer
+
+CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
+    CS64INITokenData *pTokenStorage = cs64_ini_token_data_alloc();
+
+    // Memory safety!
+    if(pTokenStorage == NULL)
+        return NULL;
+
+    CS64Size UTF8Offset = 0;
+
+    while(UTF8Offset < UTF8ByteSize) {
+        UTF8Offset++; // Placeholder
+    }
 }
 
 #endif // CS64_INI_LIBRARY_IMP
