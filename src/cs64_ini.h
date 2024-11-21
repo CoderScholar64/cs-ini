@@ -391,9 +391,17 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
         return NULL;
 
     CS64Size UTF8Offset = 0;
+    CS64Size characterSize;
+    CS64UniChar character;
 
     while(UTF8Offset < UTF8ByteSize) {
-        UTF8Offset++; // Placeholder
+        character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+
+        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+        if(characterSize == 0)
+            break;
+
+        UTF8Offset += characterSize;
     }
 }
 
