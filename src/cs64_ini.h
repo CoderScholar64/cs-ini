@@ -482,7 +482,11 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
         if(characterSize == 0)
             break;
 
-        // TODO Add whitespace handling.
+        // Skip whitespace.
+        if(cs64_ini_is_whitespace(character)) {
+            UTF8Offset += characterSize;
+            continue;
+        }
 
         if(character == CS64_INI_END) {
             token.type       = CS64_INI_TOKEN_END;
