@@ -53,6 +53,27 @@
     #endif
 #endif
 
+// Infulenced from rini another ini parsing library from raysan5.
+#ifndef CS64_INI_COMMENT
+    #define CS64_INI_COMMENT       ((CS64UniChar)';')
+#endif
+
+#ifndef CS64_INI_DELEMETER
+    #define CS64_INI_DELEMETER     ((CS64UniChar)'=')
+#endif
+
+#ifndef CS64_INI_END
+    #define CS64_INI_END           ((CS64UniChar)'\n')
+#endif
+
+#ifndef CS64_INI_SECTION_BEGIN
+    #define CS64_INI_SECTION_BEGIN ((CS64UniChar)'[')
+#endif
+
+#ifndef CS64_INI_SECTION_END
+    #define CS64_INI_SECTION_END   ((CS64UniChar)']')
+#endif
+
 typedef enum {
     // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
     CS64_INI_TOKEN_DELEMETER,     // DELEMETER
