@@ -122,6 +122,7 @@ CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size to
 void cs64_ini_token_data_free(CS64INITokenData *pData);
 
 // CS64INIToken cs64_ini_token_merge(const CS64INIToken *const pLastToken, const CS64INIToken *const pNextToken); // TODO Make tokens mergable.
+CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 
 /**
@@ -382,6 +383,32 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
 }
 
 // ### Lexer
+
+CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
+    CS64Size characterSize;
+    CS64UniChar character;
+    CS64INIToken token = {CS64_INI_TOKEN_COMMENT, UTF8Offset, 0};
+
+    while(UTF8Offset < UTF8ByteSize) {
+        character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+
+        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+        if(characterSize == 0)
+            return token;
+
+        if(character == CS64_INI_END) {
+            token.byteLength = UTF8Offset - token.index;
+            return token;
+        }
+
+        UTF8Offset += characterSize;
+    }
+
+    if(UTF8Offset == UTF8ByteSize)
+        token.byteLength = UTF8Offset - token.index;
+
+    return token;
+}
 
 CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
     CS64INITokenData *pTokenStorage = cs64_ini_token_data_alloc();
