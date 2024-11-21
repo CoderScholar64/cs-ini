@@ -447,25 +447,14 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             token.byteLength = characterSize;
         }
         else if(character == CS64_INI_COMMENT) {
-            // This probably needs its own function!
-            token.type       = CS64_INI_TOKEN_COMMENT;
-            token.index      = UTF8Offset;
-            token.byteLength = 0;
+            token = cs64_ini_tokenize_comment(pUTF8Data, UTF8ByteSize, UTF8Offset);
 
-            UTF8Offset += characterSize;
+            // If byte length is zero then tokenization had failed.
+            if(token.byteLength == 0)
+                break;
 
-            while(UTF8Offset < UTF8ByteSize && characterSize != 0 && token.byteLength == 0) {
-                character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
-
-                // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-                if(characterSize == 0)
-                    break;
-
-                if(character == CS64_INI_END)
-                    token.byteLength = UTF8Offset - token.byteLength;
-                else
-                    UTF8Offset += characterSize;
-            }
+            UTF8Offset += token.byteLength;
+            characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
         }
         else if(character == CS64_INI_DELEMETER) {
             token.type       = CS64_INI_TOKEN_DELEMETER;
