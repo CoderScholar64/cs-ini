@@ -393,6 +393,7 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
     CS64Size UTF8Offset = 0;
     CS64Size characterSize;
     CS64UniChar character;
+    CS64INIToken token;
 
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
@@ -400,6 +401,43 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
         if(characterSize == 0)
             break;
+
+        // TODO Add whitespace handling.
+
+        if(character == CS64_INI_END) {
+            token.type       = CS64_INI_TOKEN_END;
+            token.index      = UTF8Offset;
+            token.byteLength = characterSize;
+        }
+        else if(character == CS64_INI_SECTION_BEGIN) {
+            token.type       = CS64_INI_TOKEN_SECTION_START;
+            token.index      = UTF8Offset;
+            token.byteLength = characterSize;
+        }
+        else if(character == CS64_INI_SECTION_END) {
+            token.type       = CS64_INI_TOKEN_SECTION_END;
+            token.index      = UTF8Offset;
+            token.byteLength = characterSize;
+        }
+        else if(character == CS64_INI_COMMENT) {
+            // TODO Handle comment.
+            break;
+        }
+        else if(character == CS64_INI_DELEMETER) {
+            token.type       = CS64_INI_TOKEN_DELEMETER;
+            token.index      = UTF8Offset;
+            token.byteLength = characterSize;
+        }
+        else if(0) { // is INI value
+            // TODO Handle value.
+            break;
+        }
+        else {
+            break; // Unrecognized token
+        }
+
+        if(!cs64_ini_token_data_append_token(pTokenStorage, token))
+            break; // Handle error!
 
         UTF8Offset += characterSize;
     }
