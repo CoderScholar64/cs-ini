@@ -74,6 +74,14 @@
     #define CS64_INI_SECTION_END   ((CS64UniChar)']')
 #endif
 
+#ifndef CS64_INI_VALUE_SLASH
+    #define CS64_INI_VALUE_SLASH   ((CS64UniChar)'\\')
+#endif
+
+#ifndef CS64_INI_VALUE_QUOTE
+    #define CS64_INI_VALUE_QUOTE   ((CS64UniChar)'"')
+#endif
+
 typedef enum {
     // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
     CS64_INI_TOKEN_DELEMETER,     // DELEMETER
@@ -450,6 +458,41 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
     return token;
 }
 
+CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
+    CS64Size characterSize;
+    CS64UniChar character;
+    CS64INIToken token = {CS64_INI_TOKEN_VALUE, UTF8Offset, 0};
+
+    CS64UniChar quote = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+
+    // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+    if(characterSize == 0)
+        return token; // This should not happen, but if it does it will not crash.
+
+    UTF8Offset += characterSize;
+
+    while(UTF8Offset < UTF8ByteSize) {
+        character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+
+        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+        if(characterSize == 0)
+            return token;
+
+        if(character == CS64_INI_END) {
+            // Increment line count.
+        }
+
+        UTF8Offset += characterSize;
+
+        if(character == CS64_INI_VALUE_QUOTE)
+            break;
+    }
+
+    token.byteLength = UTF8Offset - token.index;
+
+    return token;
+}
+
 CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
     CS64INITokenData *pTokenStorage = cs64_ini_token_data_alloc();
 
@@ -498,6 +541,16 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             token.type       = CS64_INI_TOKEN_DELEMETER;
             token.index      = UTF8Offset;
             token.byteLength = characterSize;
+        }
+        else if(character == CS64_INI_VALUE_QUOTE) {
+            token = cs64_ini_tokenize_value_quote(pUTF8Data, UTF8ByteSize, UTF8Offset);
+
+            // If byte length is zero then tokenization had failed.
+            if(token.byteLength == 0)
+                break;
+
+            UTF8Offset += token.byteLength;
+            characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
         }
         else if(cs64_ini_is_whitespace(character)) { // Skip whitespace.
             UTF8Offset += characterSize;
