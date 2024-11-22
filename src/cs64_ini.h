@@ -392,6 +392,36 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
 
 // ### Lexer
 
+int cs64_ini_is_used_ini_character(CS64UniChar character) {
+    // WARNING Never remove this function! It can detect naming conflicts.
+    switch(character) {
+        case CS64_INI_COMMENT:
+        case CS64_INI_DELEMETER:
+        case CS64_INI_END:
+        case CS64_INI_SECTION_BEGIN:
+        case CS64_INI_SECTION_END:
+        case CS64_INI_VALUE_SLASH:
+        case CS64_INI_VALUE_QUOTE:
+            return 0; // No Control characters allowed.
+        default:
+            return 1;
+    }
+}
+
+int cs64_ini_is_value(CS64UniChar character) {
+    if(cs64_ini_is_used_ini_character(character))
+        return 0;
+    else if(cs64_ini_is_whitespace(character))
+        return 0;
+    else if(character > 0x20 && character < 0x07f)
+        return 1;
+    else if(character > 0xa0 && character < 0x0ad)
+        return 1;
+    else if(character > 0xad && character < 0x100)
+        return 1;
+    return 0;
+}
+
 int cs64_ini_is_whitespace(CS64UniChar character) {
     // Check for whitespace characters
     switch(character) {
@@ -445,6 +475,32 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
             return token;
 
         if(character == CS64_INI_END) {
+            token.byteLength = UTF8Offset - token.index;
+            return token;
+        }
+
+        UTF8Offset += characterSize;
+    }
+
+    if(UTF8Offset == UTF8ByteSize)
+        token.byteLength = UTF8Offset - token.index;
+
+    return token;
+}
+
+CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
+    CS64Size characterSize;
+    CS64UniChar character;
+    CS64INIToken token = {CS64_INI_TOKEN_VALUE, UTF8Offset, 0};
+
+    while(UTF8Offset < UTF8ByteSize) {
+        character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+
+        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+        if(characterSize == 0)
+            return token;
+
+        if(!cs64_ini_is_value(character)) {
             token.byteLength = UTF8Offset - token.index;
             return token;
         }
@@ -569,9 +625,15 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             UTF8Offset += characterSize;
             continue;
         }
-        else if(0) { // is INI value
-            // TODO Handle value.
-            break;
+        else if(cs64_ini_is_value(character)) {
+            token = cs64_ini_tokenize_value(pUTF8Data, UTF8ByteSize, UTF8Offset);
+
+            // If byte length is zero then tokenization had failed.
+            if(token.byteLength == 0)
+                break;
+
+            UTF8Offset += token.byteLength;
+            characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
         }
         else {
             break; // Unrecognized token
