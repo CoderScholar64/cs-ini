@@ -385,19 +385,6 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
 // ### Lexer
 
 int cs64_ini_is_whitespace(CS64UniChar character) {
-    // First check if the characters are not used characters.
-    // This way 0x0A or CS64_INI_END would not be treated like a whitespace. Which is what you want.
-    switch(character) {
-        case CS64_INI_COMMENT:
-        case CS64_INI_DELEMETER:
-        case CS64_INI_END:
-        case CS64_INI_SECTION_BEGIN:
-        case CS64_INI_SECTION_END:
-            return 0; // Whitespace cannot be keys.
-        default:
-            // Do nothing for the rest
-    }
-
     // Check for whitespace characters
     switch(character) {
         case 0x0009:
@@ -482,12 +469,6 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
         if(characterSize == 0)
             break;
 
-        // Skip whitespace.
-        if(cs64_ini_is_whitespace(character)) {
-            UTF8Offset += characterSize;
-            continue;
-        }
-
         if(character == CS64_INI_END) {
             token.type       = CS64_INI_TOKEN_END;
             token.index      = UTF8Offset;
@@ -517,6 +498,10 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             token.type       = CS64_INI_TOKEN_DELEMETER;
             token.index      = UTF8Offset;
             token.byteLength = characterSize;
+        }
+        else if(cs64_ini_is_whitespace(character)) { // Skip whitespace.
+            UTF8Offset += characterSize;
+            continue;
         }
         else if(0) { // is INI value
             // TODO Handle value.
