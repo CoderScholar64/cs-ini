@@ -477,7 +477,7 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
 
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
         if(characterSize == 0)
-            return token;
+            return token; // NOTE: Invalid Character Error.
 
         if(character == CS64_INI_END) {
             token.byteLength = UTF8Offset - token.index;
@@ -489,6 +489,7 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
 
     if(UTF8Offset == UTF8ByteSize)
         token.byteLength = UTF8Offset - token.index;
+    else {} // NOTE: Unknown error type.
 
     return token;
 }
@@ -503,7 +504,7 @@ CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size U
 
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
         if(characterSize == 0)
-            return token;
+            return token; // NOTE: Invalid Character Error.
 
         if(!cs64_ini_is_character_value(character)) {
             token.byteLength = UTF8Offset - token.index;
@@ -515,6 +516,7 @@ CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size U
 
     if(UTF8Offset == UTF8ByteSize)
         token.byteLength = UTF8Offset - token.index;
+    else {} // NOTE: Unknown error type.
 
     return token;
 }
@@ -528,7 +530,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
 
     // Before doing anything check the characterSize to detect ASCII/UTF-8 error
     if(characterSize == 0)
-        return token; // This should not happen, but if it does it will not crash.
+        return token; // NOTE: Invalid Character Error.
 
     UTF8Offset += characterSize;
 
@@ -539,7 +541,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
 
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
         if(characterSize == 0)
-            return token;
+            return token; // NOTE: Invalid Character Error.
 
         if(character == CS64_INI_END) {
             // Increment line count.
@@ -560,7 +562,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
     }
 
     if(character != CS64_INI_VALUE_QUOTE)
-        return token;
+        return token; // NOTE: Expected Quote Error.
 
     token.byteLength = UTF8Offset - token.index;
 
