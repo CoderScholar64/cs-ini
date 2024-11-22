@@ -83,6 +83,28 @@
 #endif
 
 typedef enum {
+    CS64_INI_MAX_CODE            = 0x10ffff,
+    CS64_INI_MAX_CODE_AMOUNT     = 0x110000,
+    CS64_INI_BAD_NOT_ASCII       = 0x110001,
+    CS64_INI_BAD_NOT_UTF_8       = 0x110002,
+    CS64_INI_BAD_OVERLONG        = 0x110003,
+    CS64_INI_BAD_LACK_SPACE      = 0x110004,
+    CS64_INI_BAD_TOO_BIG         = 0x110005,
+    CS64_INI_BAD_CONTINUE_BYTE_0 = 0x110006,
+    CS64_INI_BAD_CONTINUE_BYTE_1 = 0x110007,
+    CS64_INI_BAD_CONTINUE_BYTE_2 = 0x110008,
+    CS64_INI_BAD_CONTINUE_BYTE_3 = 0x110009
+} CS64UniCharCode;
+
+typedef enum {
+    CS64_INI_LEXER_SUCCESS              = 0,
+    CS64_INI_LEXER_NO_MEMORY_ERROR      = 1,
+    CS64_INI_LEXER_ENCODING_ERROR       = 2,
+    CS64_INI_LEXER_EXPECTED_ERROR       = 3,
+    CS64_INI_LEXER_UNHANDLED_CHAR_ERROR = 4
+} CS64INILexerState;
+
+typedef enum {
     // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
     CS64_INI_TOKEN_DELEMETER,     // DELEMETER
     CS64_INI_TOKEN_VALUE,         // VALUE can be qouted
@@ -108,20 +130,6 @@ typedef struct {
     CS64INITokenArrayList *pLastPage;
     CS64INITokenArrayList  firstPage;
 } CS64INITokenData;
-
-typedef enum {
-    CS64_INI_MAX_CODE            = 0x10ffff,
-    CS64_INI_MAX_CODE_AMOUNT     = 0x110000,
-    CS64_INI_BAD_NOT_ASCII       = 0x110001,
-    CS64_INI_BAD_NOT_UTF_8       = 0x110002,
-    CS64_INI_BAD_OVERLONG        = 0x110003,
-    CS64_INI_BAD_LACK_SPACE      = 0x110004,
-    CS64_INI_BAD_TOO_BIG         = 0x110005,
-    CS64_INI_BAD_CONTINUE_BYTE_0 = 0x110006,
-    CS64_INI_BAD_CONTINUE_BYTE_1 = 0x110007,
-    CS64_INI_BAD_CONTINUE_BYTE_2 = 0x110008,
-    CS64_INI_BAD_CONTINUE_BYTE_3 = 0x110009
-} CS64UniCharCode;
 
 CS64INITokenData* cs64_ini_token_data_alloc();
 int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
