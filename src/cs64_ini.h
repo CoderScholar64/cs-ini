@@ -471,6 +471,8 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
 
     UTF8Offset += characterSize;
 
+    int noSlash = 1;
+
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
@@ -484,9 +486,20 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
 
         UTF8Offset += characterSize;
 
-        if(character == CS64_INI_VALUE_QUOTE)
-            break;
+        if(noSlash) {
+            if(character == CS64_INI_VALUE_QUOTE)
+                break;
+            else if(character == CS64_INI_VALUE_SLASH) {
+                noSlash = 0;
+            }
+        }
+        else {
+            noSlash = 1;
+        }
     }
+
+    if(character != CS64_INI_VALUE_QUOTE)
+        return token;
 
     token.byteLength = UTF8Offset - token.index;
 
