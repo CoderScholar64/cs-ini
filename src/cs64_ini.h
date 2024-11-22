@@ -130,7 +130,12 @@ CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size to
 void cs64_ini_token_data_free(CS64INITokenData *pData);
 
 // CS64INIToken cs64_ini_token_merge(const CS64INIToken *const pLastToken, const CS64INIToken *const pNextToken); // TODO Make tokens mergable.
+int cs64_ini_is_character_used(CS64UniChar character);
+int cs64_ini_is_character_value(CS64UniChar character);
+int cs64_ini_is_character_whitespace(CS64UniChar character);
 CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
+CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
+CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 
 /**
@@ -392,7 +397,7 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
 
 // ### Lexer
 
-int cs64_ini_is_used_ini_character(CS64UniChar character) {
+int cs64_ini_is_character_used(CS64UniChar character) {
     // WARNING Never remove this function! It can detect naming conflicts.
     switch(character) {
         case CS64_INI_COMMENT:
@@ -408,10 +413,10 @@ int cs64_ini_is_used_ini_character(CS64UniChar character) {
     }
 }
 
-int cs64_ini_is_value(CS64UniChar character) {
-    if(cs64_ini_is_used_ini_character(character))
+int cs64_ini_is_character_value(CS64UniChar character) {
+    if(cs64_ini_is_character_used(character))
         return 0;
-    else if(cs64_ini_is_whitespace(character))
+    else if(cs64_ini_is_character_whitespace(character))
         return 0;
     else if(character > 0x20 && character < 0x07f)
         return 1;
@@ -422,7 +427,7 @@ int cs64_ini_is_value(CS64UniChar character) {
     return 0;
 }
 
-int cs64_ini_is_whitespace(CS64UniChar character) {
+int cs64_ini_is_character_whitespace(CS64UniChar character) {
     // Check for whitespace characters
     switch(character) {
         case 0x0009:
@@ -500,7 +505,7 @@ CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size U
         if(characterSize == 0)
             return token;
 
-        if(!cs64_ini_is_value(character)) {
+        if(!cs64_ini_is_character_value(character)) {
             token.byteLength = UTF8Offset - token.index;
             return token;
         }
@@ -621,11 +626,11 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             UTF8Offset += token.byteLength;
             characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
         }
-        else if(cs64_ini_is_whitespace(character)) { // Skip whitespace.
+        else if(cs64_ini_is_character_whitespace(character)) { // Skip whitespace.
             UTF8Offset += characterSize;
             continue;
         }
-        else if(cs64_ini_is_value(character)) {
+        else if(cs64_ini_is_character_value(character)) {
             token = cs64_ini_tokenize_value(pUTF8Data, UTF8ByteSize, UTF8Offset);
 
             // If byte length is zero then tokenization had failed.
