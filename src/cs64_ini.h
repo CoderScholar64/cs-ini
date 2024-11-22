@@ -574,7 +574,7 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
 
     // Memory safety!
     if(pTokenStorage == NULL)
-        return NULL;
+        return NULL; // NOTE: Generic out of memory exception.
 
     CS64Size UTF8Offset = 0;
     CS64Size characterSize;
@@ -586,7 +586,7 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
 
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
         if(characterSize == 0)
-            break;
+            break; // NOTE: Invalid Character Error.
 
         if(character == CS64_INI_END) {
             token.type       = CS64_INI_TOKEN_END;
@@ -643,14 +643,16 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
         }
         else {
-            break; // Unrecognized token
+            break; // NOTE: Valid ASCII or UTF-8, but unhandled character Error.
         }
 
         if(!cs64_ini_token_data_append_token(pTokenStorage, token))
-            break; // Handle error!
+            break; // NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error.
 
         UTF8Offset += characterSize;
     }
+
+    return pTokenStorage;
 }
 
 #endif // CS64_INI_LIBRARY_IMP
