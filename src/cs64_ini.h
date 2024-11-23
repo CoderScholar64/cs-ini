@@ -527,6 +527,7 @@ CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UT
             return token;
         }
 
+        pResult->linePosition++;
         UTF8Offset += characterSize;
     }
 
