@@ -507,7 +507,7 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
         if(characterSize == 0)
             return token; // NOTE: Invalid Character Error.
 
-        if(character == CS64_INI_END) {
+        if(character == ((CS64UniChar)'\n')) {
             token.byteLength = UTF8Offset - token.index;
             return token;
         }
@@ -571,7 +571,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
         if(characterSize == 0)
             return token; // NOTE: Invalid Character Error.
 
-        if(character == CS64_INI_END) {
+        if(character == ((CS64UniChar)'\n')) {
             // Increment line count.
         }
 
