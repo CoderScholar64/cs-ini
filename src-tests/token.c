@@ -26,6 +26,7 @@ int mallocPagesLeft = 0;
 int empty_alloc_test();
 int fill_element_test();
 int used_character_test();
+int whitespace_character_test();
 
 int main() {
     int testResult;
@@ -39,6 +40,10 @@ int main() {
         return testResult;
 
     testResult = used_character_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = whitespace_character_test();
     if(testResult != 0)
         return testResult;
 
@@ -246,7 +251,7 @@ int used_character_test() {
                 break;
             default:
                 if(cs64_ini_is_character_used(c)) {
-                    printf("Error used_character_test: character 0x%x is not an opcode, but cs64_ini_is_character_used failed.\n", c);
+                    printf("Error used_character_test: character 0x%x is not an opcode, but cs64_ini_is_character_used return true.\n", c);
                     return 1;
                 }
         }
@@ -282,6 +287,83 @@ int used_character_test() {
         return 8;
     }
 
+    return 0;
+}
+
+int whitespace_character_test() {
+    CS64UniChar c = 0;
+
+    while(c < 0x1000) {
+        switch(c) {
+            case 0x0009:
+            case 0x000a:
+            case 0x000b:
+            case 0x000c:
+            case 0x000d:
+            case 0x0020:
+            case 0x0085:
+            case 0x00a0:
+            case 0x1680:
+            case 0x180e:
+            case 0x2000:
+            case 0x2001:
+            case 0x2002:
+            case 0x2003:
+            case 0x2004:
+            case 0x2005:
+            case 0x2006:
+            case 0x2007:
+            case 0x2008:
+            case 0x2009:
+            case 0x200a:
+            case 0x200b:
+            case 0x200c:
+            case 0x200d:
+            case 0x2028:
+            case 0x2029:
+            case 0x202f:
+            case 0x205f:
+            case 0x2060:
+            case 0x3000:
+            case 0xfeff:
+                break;
+            default:
+                if(cs64_ini_is_character_whitespace(c)) {
+                    printf("Error whitespace_character_test: character 0x%x is not whitespace, but cs64_ini_is_character_whitespace returned true.\n", c);
+                    return 1;
+                }
+        }
+        c++;
+    }
+
+    if(!cs64_ini_is_character_whitespace(0x000a)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0x0a.\n");
+        return 2;
+    }
+    if(!cs64_ini_is_character_whitespace(0x000b)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0x0b.\n");
+        return 3;
+    }
+    if(!cs64_ini_is_character_whitespace(0x000c)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0x0c.\n");
+        return 4;
+    }
+    if(!cs64_ini_is_character_whitespace(0x000d)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0x0d.\n");
+        return 5;
+    }
+    if(!cs64_ini_is_character_whitespace(0x0020)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0x20.\n");
+        return 6;
+    }
+    if(!cs64_ini_is_character_whitespace(0x0085)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0x85.\n");
+        return 7;
+    }
+    if(!cs64_ini_is_character_whitespace(0x00a0)) {
+        printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0xa0.\n");
+        return 8;
+    }
     return 0;
 }
 
