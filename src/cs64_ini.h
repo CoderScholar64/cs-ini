@@ -131,6 +131,25 @@ typedef struct {
     CS64INITokenArrayList  firstPage;
 } CS64INITokenData;
 
+typedef struct {
+    CS64INILexerState state;
+    CS64Size lineCount; // the number of lines that has been processed.
+    CS64Size linePosition; // in the amount of unicode points not bytes. Useful for lexer errors.
+    CS64INITokenData *pTokenStorage;
+    union {
+        struct {
+            CS64UTF8 badBytes[4];
+        } encoding;
+        struct {
+            CS64UniChar expected;
+            CS64UniChar result;
+        } expected;
+        struct {
+            CS64UniChar unhandled;
+        } unhandled;
+    } status;
+} CS64INITokenResult;
+
 CS64INITokenData* cs64_ini_token_data_alloc();
 int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
 CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
