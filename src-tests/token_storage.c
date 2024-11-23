@@ -194,7 +194,7 @@ int fill_element_test() {
                 return 8;
             }
 
-            if(memcmp(&tokens[tokenIndex], pToken, sizeof(tokens[0])) != 0) {
+            if(tokens[tokenIndex].type != pToken->type || tokens[tokenIndex].index != pToken->index || tokens[tokenIndex].byteLength != pToken->byteLength) {
                 printf("Error fill_element_test %i: memory did not match at index %i.\n", length, tokenIndex);
 
                 unsigned x = 0;
@@ -202,7 +202,7 @@ int fill_element_test() {
                     printf("%02x ", ((unsigned char*)&tokens[tokenIndex])[x]);
                     x++;
                 }
-                printf("\nToken %i %zu %zu.\n", tokens[tokenIndex].type, tokens[tokenIndex].index, tokens[tokenIndex].byteLength);x = 0;
+                printf("\nTokens[%u] %i %zu %zu.\n", tokenIndex, tokens[tokenIndex].type, tokens[tokenIndex].index, tokens[tokenIndex].byteLength);x = 0;
                 while(x < sizeof(tokens[0])) {
                     printf("%02x ", ((unsigned char*)pToken)[x]);
                     x++;
