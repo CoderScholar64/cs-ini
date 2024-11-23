@@ -28,6 +28,7 @@ int fill_element_test();
 int used_character_test();
 int whitespace_character_test();
 int value_character_test();
+int comment_token_test();
 
 int main() {
     int testResult;
@@ -49,6 +50,10 @@ int main() {
         return testResult;
 
     testResult = value_character_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = comment_token_test();
     if(testResult != 0)
         return testResult;
 
@@ -447,6 +452,52 @@ int value_character_test() {
     }
 
     return 0;
+}
+
+int comment_token_test() {
+    CS64INITokenResult tokenResult = {0};
+
+    CS64UTF8 validCase1[][0x10] = {
+        ";",
+        ";\n",
+        "; \n;",
+        "; =[]\\\"",
+        "; \n\n",
+        "; \nBlabla\n",
+        "; ;;;\nBlabla\n",
+    };
+    CS64INIToken validCase1Tokens[] = {
+        {CS64_INI_TOKEN_COMMENT, 0, 1},
+        {CS64_INI_TOKEN_COMMENT, 0, 1},
+        {CS64_INI_TOKEN_COMMENT, 0, 2},
+        {CS64_INI_TOKEN_COMMENT, 0, 7},
+        {CS64_INI_TOKEN_COMMENT, 0, 2},
+        {CS64_INI_TOKEN_COMMENT, 0, 2},
+        {CS64_INI_TOKEN_COMMENT, 0, 5}
+    };
+
+    unsigned i = 0;
+    while(i < sizeof(validCase1) / sizeof(validCase1[0])) {
+        tokenResult.state         = CS64_INI_LEXER_SUCCESS;
+        tokenResult.lineCount     = 0;
+        tokenResult.linePosition  = 0;
+        tokenResult.pTokenStorage = NULL;
+
+        CS64Size length = strlen(validCase1[i]);
+        CS64INIToken token = cs64_ini_tokenize_comment(&tokenResult, validCase1[i], length, 0);
+
+        printf("linePosition = %zu\n", tokenResult.linePosition);
+
+        i++;
+    }
+
+    /*
+    printf("validCase1Tokens = {");
+        printf("\n{CS64_INI_TOKEN_COMMENT, %zu, %zu},", token.index, token.byteLength);
+    printf("\n};\n");
+    */
+
+    return 1;
 }
 
 void *test_malloc(size_t size) {
