@@ -161,9 +161,9 @@ void cs64_ini_token_data_free(CS64INITokenData *pData);
 int cs64_ini_is_character_used(CS64UniChar character);
 int cs64_ini_is_character_value(CS64UniChar character);
 int cs64_ini_is_character_whitespace(CS64UniChar character);
-CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
-CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
-CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
+CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
+CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
+CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 
 /**
@@ -495,7 +495,23 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
     }
 }
 
-CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
+#define INVALID_CHARACTER_TEST(pResult, ret)\
+    if(characterSize == 0) {\
+        (pResult)->state = CS64_INI_LEXER_ENCODING_ERROR;\
+        (pResult)->status.encoding.badByteAmount = UTF8ByteSize - UTF8Offset;\
+        \
+        if((pResult)->status.encoding.badByteAmount > sizeof((pResult)->status.encoding.badBytes) / sizeof((pResult)->status.encoding.badBytes[0]))\
+            (pResult)->status.encoding.badByteAmount = sizeof((pResult)->status.encoding.badBytes) / sizeof((pResult)->status.encoding.badBytes[0]);\
+        \
+        CS64Size count = 0;\
+        while(count < (pResult)->status.encoding.badByteAmount) {\
+            (pResult)->status.encoding.badBytes[count] = pUTF8Data[UTF8Offset + count];\
+            count++;\
+        }\
+        return ret; /* NOTE: Invalid Character Error. */\
+    }
+
+CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
     CS64Size characterSize;
     CS64UniChar character;
     CS64INIToken token = {CS64_INI_TOKEN_COMMENT, UTF8Offset, 0};
@@ -503,9 +519,8 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-        if(characterSize == 0)
-            return token; // NOTE: Invalid Character Error.
+        // Check the characterSize to detect ASCII/UTF-8 error
+        INVALID_CHARACTER_TEST(pResult, token)
 
         if(character == ((CS64UniChar)'\n')) {
             token.byteLength = UTF8Offset - token.index;
@@ -517,12 +532,11 @@ CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size
 
     if(UTF8Offset == UTF8ByteSize)
         token.byteLength = UTF8Offset - token.index;
-    else {} // NOTE: Unknown error type.
 
     return token;
 }
 
-CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
+CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
     CS64Size characterSize;
     CS64UniChar character;
     CS64INIToken token = {CS64_INI_TOKEN_VALUE, UTF8Offset, 0};
@@ -530,9 +544,8 @@ CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size U
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-        if(characterSize == 0)
-            return token; // NOTE: Invalid Character Error.
+        // Check the characterSize to detect ASCII/UTF-8 error
+        INVALID_CHARACTER_TEST(pResult, token)
 
         if(!cs64_ini_is_character_value(character)) {
             token.byteLength = UTF8Offset - token.index;
@@ -544,12 +557,11 @@ CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size U
 
     if(UTF8Offset == UTF8ByteSize)
         token.byteLength = UTF8Offset - token.index;
-    else {} // NOTE: Unknown error type.
 
     return token;
 }
 
-CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
+CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
     CS64Size characterSize;
     CS64UniChar character;
     CS64INIToken token = {CS64_INI_TOKEN_VALUE, UTF8Offset, 0};
@@ -557,8 +569,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
     CS64UniChar quote = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
     // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-    if(characterSize == 0)
-        return token; // NOTE: Invalid Character Error.
+    INVALID_CHARACTER_TEST(pResult, token)
 
     UTF8Offset += characterSize;
 
@@ -567,13 +578,8 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-        if(characterSize == 0)
-            return token; // NOTE: Invalid Character Error.
-
-        if(character == ((CS64UniChar)'\n')) {
-            // Increment line count.
-        }
+        // Check the characterSize to detect ASCII/UTF-8 error
+        INVALID_CHARACTER_TEST(pResult, token)
 
         UTF8Offset += characterSize;
 
@@ -587,10 +593,21 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
         else {
             noSlash = 1;
         }
+
+        if(character == ((CS64UniChar)'\n')) {
+            pResult->lineCount++;
+            pResult->linePosition = 0;
+        }
+        else
+            pResult->linePosition++;
     }
 
-    if(character != CS64_INI_VALUE_QUOTE)
+    if(character != CS64_INI_VALUE_QUOTE) {
+        pResult->state = CS64_INI_LEXER_EXPECTED_ERROR;
+        pResult->status.expected.expected = CS64_INI_VALUE_QUOTE;
+        pResult->status.expected.result = character;
         return token; // NOTE: Expected Quote Error.
+    }
 
     token.byteLength = UTF8Offset - token.index;
 
@@ -620,20 +637,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-        if(characterSize == 0) {
-            result.state = CS64_INI_LEXER_ENCODING_ERROR;
-            result.status.encoding.badByteAmount = UTF8ByteSize - UTF8Offset;
-
-            if(result.status.encoding.badByteAmount > sizeof(result.status.encoding.badBytes) / sizeof(result.status.encoding.badBytes[0]))
-                result.status.encoding.badByteAmount = sizeof(result.status.encoding.badBytes) / sizeof(result.status.encoding.badBytes[0]);
-
-            CS64Size count = 0;
-            while(count < result.status.encoding.badByteAmount) {
-                result.status.encoding.badBytes[count] = pUTF8Data[UTF8Offset + count];
-                count++;
-            }
-            return result; // NOTE: Invalid Character Error.
-        }
+        INVALID_CHARACTER_TEST(&result, result)
 
         if(character == CS64_INI_END) {
             token.type       = CS64_INI_TOKEN_END;
@@ -651,7 +655,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             token.byteLength = characterSize;
         }
         else if(character == CS64_INI_COMMENT) {
-            token = cs64_ini_tokenize_comment(pUTF8Data, UTF8ByteSize, UTF8Offset);
+            token = cs64_ini_tokenize_comment(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
 
             // If byte length is zero then tokenization had failed.
             if(token.byteLength == 0)
@@ -666,7 +670,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             token.byteLength = characterSize;
         }
         else if(character == CS64_INI_VALUE_QUOTE) {
-            token = cs64_ini_tokenize_value_quote(pUTF8Data, UTF8ByteSize, UTF8Offset);
+            token = cs64_ini_tokenize_value_quote(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
 
             // If byte length is zero then tokenization had failed.
             if(token.byteLength == 0)
@@ -680,7 +684,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             continue;
         }
         else if(cs64_ini_is_character_value(character)) {
-            token = cs64_ini_tokenize_value(pUTF8Data, UTF8ByteSize, UTF8Offset);
+            token = cs64_ini_tokenize_value(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
 
             // If byte length is zero then tokenization had failed.
             if(token.byteLength == 0)
@@ -712,5 +716,6 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
     return result;
 }
+#undef INVALID_CHARACTER_TEST
 
 #endif // CS64_INI_LIBRARY_IMP
