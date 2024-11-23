@@ -522,6 +522,70 @@ int comment_token_test() {
         i++;
     }
 
+
+    CS64UTF8 validCase2[][0x18] = {
+        "w;",
+        "wh;\n",
+        "whe; \n;",
+        "wher; =[]\\\"",
+        "where; \n\n",
+        "wherei; \nBlabla\n",
+        "whereis; ;;;\nBlabla\n",
+    };
+    CS64INIToken validCase2Tokens[] = {
+        {CS64_INI_TOKEN_COMMENT, 1, 1},
+        {CS64_INI_TOKEN_COMMENT, 2, 1},
+        {CS64_INI_TOKEN_COMMENT, 3, 2},
+        {CS64_INI_TOKEN_COMMENT, 4, 7},
+        {CS64_INI_TOKEN_COMMENT, 5, 2},
+        {CS64_INI_TOKEN_COMMENT, 6, 2},
+        {CS64_INI_TOKEN_COMMENT, 7, 5}
+    };
+    CS64Size validCase2linePositions[] = {
+        1 + 1,
+        1 + 2,
+        2 + 3,
+        7 + 4,
+        2 + 5,
+        2 + 6,
+        5 + 7
+    };
+
+    i = 0;
+    while(i < sizeof(validCase2) / sizeof(validCase2[0])) {
+        tokenResult.state         = CS64_INI_LEXER_SUCCESS;
+        tokenResult.lineCount     = 0;
+        tokenResult.linePosition  = i + 1;
+        tokenResult.pTokenStorage = NULL;
+
+        CS64Size length = strlen(validCase2[i]);
+        CS64INIToken token = cs64_ini_tokenize_comment(&tokenResult, validCase2[i], length, i + 1);
+
+        if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
+            printf("Error comment_token_test Valid Case 2 Index %u. State expected CS64_INI_LEXER_SUCCESS got %u\n", i, tokenResult.state);
+            return 1;
+        }
+
+        if(tokenResult.lineCount != 0) {
+            printf("Error comment_token_test Valid Case 2 Index %u. Line Count expected 0 got %zu\n", i, tokenResult.lineCount);
+            return 2;
+        }
+
+        if(tokenResult.linePosition != validCase2linePositions[i]) {
+            printf("Error comment_token_test Valid Case 2 Index %u. Line Count expected %zu got %zu\n", i, validCase2linePositions[i], tokenResult.linePosition);
+            return 3;
+        }
+
+        if(token.type != validCase2Tokens[i].type || token.index != validCase2Tokens[i].index || token.byteLength != validCase2Tokens[i].byteLength) {
+            printf("Error comment_token_test Valid Case 2 Index %u. Tokens do not match.\n", i);
+            printf("Expected %i %zu %zu.\n", validCase2Tokens[i].type, validCase2Tokens[i].index, validCase2Tokens[i].byteLength);
+            printf("Returned %i %zu %zu.\n", token.type, token.index, token.byteLength);
+            return 4;
+        }
+
+        i++;
+    }
+
     /*
     printf("validCase1Tokens = {");
         printf("\n{CS64_INI_TOKEN_COMMENT, %zu, %zu},", token.index, token.byteLength);
