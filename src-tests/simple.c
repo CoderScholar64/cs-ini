@@ -32,6 +32,6 @@ int main() {
         pUTF8_data_head += characterByteSize;
         utf8_data_size  -= characterByteSize;
     }
-    printf("\nutf8_data_size = %i\n", utf8_data_size);
+    printf("\nutf8_data_size = %zu\n", utf8_data_size);
     return 0;
 }

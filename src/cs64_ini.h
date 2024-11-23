@@ -566,7 +566,8 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     CS64UniChar character;
     CS64INIToken token = {CS64_INI_TOKEN_VALUE, UTF8Offset, 0};
 
-    CS64UniChar quote = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+    const CS64UniChar quote = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
+    character = quote;
 
     // Before doing anything check the characterSize to detect ASCII/UTF-8 error
     INVALID_CHARACTER_TEST(pResult, token)
@@ -584,7 +585,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
         UTF8Offset += characterSize;
 
         if(noSlash) {
-            if(character == CS64_INI_VALUE_QUOTE)
+            if(character == quote)
                 break;
             else if(character == CS64_INI_VALUE_SLASH) {
                 noSlash = 0;

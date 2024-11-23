@@ -68,7 +68,7 @@ int invalid_ascii_test() {
             return 1;
         }
         else if(characterByteSize != 0) {
-            printf("Invalid ASCII: characterByteSize 0x%x should be 0x%x\n", characterByteSize, 0);
+            printf("Invalid ASCII: characterByteSize 0x%zx should be 0x%x\n", characterByteSize, 0);
             printf("Input: 0x%02x", ascii_byte);
 
             return 2;
@@ -90,7 +90,7 @@ int invalid_utf8_byte_test() {
         character = cs64_ini_utf_8_read(&invalidUTF8values[i], 1, &characterByteSize);
 
         if(character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
-            printf("Invalid Unicode Test: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", invalidUTF8values[i], character, characterByteSize);
+            printf("Invalid Unicode Test: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%zx\n", invalidUTF8values[i], character, characterByteSize);
 
             return 1;
         }
@@ -116,7 +116,7 @@ int invalid_utf8_byte_test() {
 
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
         if(character <= CS64_INI_MAX_CODE || characterByteSize != 0) {
-            printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", invalidUTF8values[i], character, characterByteSize);
+            printf("Invalid Unicode Test Two Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%zx\n", invalidUTF8values[i], character, characterByteSize);
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
 
             return 3;
@@ -140,7 +140,7 @@ int invalid_utf8_byte_test() {
 
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
             if(character <= CS64_INI_MAX_CODE || characterByteSize != 0) {
-                printf("Invalid Unicode Test Three Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", invalidUTF8values[i], character, characterByteSize);
+                printf("Invalid Unicode Test Three Byte Case: cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%zx\n", invalidUTF8values[i], character, characterByteSize);
                 print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
 
                 return 5;
@@ -166,7 +166,7 @@ int invalid_utf8_byte_test() {
 
             character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
             if(character <= CS64_INI_MAX_CODE || characterByteSize != 0) {
-                printf("Invalid Unicode Test Four Byte Case (%i): cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", characterByteSize, m, invalidUTF8values[i], character);
+                printf("Invalid Unicode Test Four Byte Case (%zx): cs64_ini_utf_8_read code 0x%x failed to produce CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", characterByteSize, m, invalidUTF8values[i], character);
                 print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
 
                 return 7;
@@ -193,7 +193,7 @@ int invalid_utf8_invalid_continuous_test() {
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);
 
         if(character != CS64_INI_BAD_CONTINUE_BYTE_0 || characterByteSize != 0) {
-            printf("Invalid Utf8 Invalid Continuous Test Start of character case: cs64_ini_utf_8_read code 0x%x is not CS64_INI_BAD_CONTINUE_BYTE_0, but instead produced 0x%x. Byte size 0x%x\n", utf8_data[0], character, characterByteSize);
+            printf("Invalid Utf8 Invalid Continuous Test Start of character case: cs64_ini_utf_8_read code 0x%x is not CS64_INI_BAD_CONTINUE_BYTE_0, but instead produced 0x%x. Byte size 0x%zx\n", utf8_data[0], character, characterByteSize);
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
 
             return 1;
@@ -210,7 +210,7 @@ int invalid_utf8_invalid_continuous_test() {
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
 \
         if((character != VALUE && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
-            printf("Invalid UTF-8 Invalid Continuous " #NAME " 0b00XXXXXX: cs64_ini_utf_8_read did not produce " #VALUE " or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", character, characterByteSize);\
+            printf("Invalid UTF-8 Invalid Continuous " #NAME " 0b00XXXXXX: cs64_ini_utf_8_read did not produce " #VALUE " or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%zx\n", character, characterByteSize);\
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));\
 \
             return 2;\
@@ -221,7 +221,7 @@ int invalid_utf8_invalid_continuous_test() {
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
 \
         if((character != VALUE && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
-            printf("Invalid UTF-8 Invalid Continuous " #NAME " 0b01XXXXXX: cs64_ini_utf_8_read did not produce " #VALUE " or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", character, characterByteSize);\
+            printf("Invalid UTF-8 Invalid Continuous " #NAME " 0b01XXXXXX: cs64_ini_utf_8_read did not produce " #VALUE " or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%zx\n", character, characterByteSize);\
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));\
 \
             return 3;\
@@ -232,7 +232,7 @@ int invalid_utf8_invalid_continuous_test() {
         character = cs64_ini_utf_8_read(utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]), &characterByteSize);\
 \
         if((character != VALUE && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {\
-            printf("Invalid UTF-8 Invalid Continuous " #NAME " 0b11XXXXXX: cs64_ini_utf_8_read did not produce " #VALUE " or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%x\n", character, characterByteSize);\
+            printf("Invalid UTF-8 Invalid Continuous " #NAME " 0b11XXXXXX: cs64_ini_utf_8_read did not produce " #VALUE " or CS64_INI_BAD_NOT_UTF_8, but instead produced 0x%x. Byte size 0x%zx\n", character, characterByteSize);\
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));\
 \
             return 4;\
@@ -336,14 +336,14 @@ int invalid_utf8_overlong_test() {
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 2, &characterByteSize);
 
         if(number != 0x80) {
-            if(character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
-                printf("Invalid UTF-8 Overlong Two Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            if((character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
+                printf("Invalid UTF-8 Overlong Two Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
                 print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
                 return 1;
             }
         }
         else if(character != 0x80 || characterByteSize != 2) {
-            printf("Invalid UTF-8 Overlong Two Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            printf("Invalid UTF-8 Overlong Two Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
             return 2;
         }
@@ -361,14 +361,14 @@ int invalid_utf8_overlong_test() {
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 3, &characterByteSize);
 
         if(number != 0x800) {
-            if(character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
-                printf("Invalid UTF-8 Overlong Three Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            if((character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
+                printf("Invalid UTF-8 Overlong Three Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
                 print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
                 return 3;
             }
         }
         else if(character != 0x800 || characterByteSize != 3) {
-            printf("Invalid UTF-8 Overlong Three Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            printf("Invalid UTF-8 Overlong Three Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
             return 4;
         }
@@ -387,14 +387,14 @@ int invalid_utf8_overlong_test() {
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 4, &characterByteSize);
 
         if(number != 0x10000) {
-            if(character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
-                printf("Invalid UTF-8 Overlong Four Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            if((character != CS64_INI_BAD_OVERLONG && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
+                printf("Invalid UTF-8 Overlong Four Byte: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
                 print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
                 return 5;
             }
         }
         else if(character != 0x10000 || characterByteSize != 4) {
-            printf("Invalid UTF-8 Overlong Four Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            printf("Invalid UTF-8 Overlong Four Byte Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
             return 6;
         }
@@ -419,14 +419,14 @@ int invalid_utf8_oversize_test() {
         CS64UniChar character = cs64_ini_utf_8_read(utf8_data, 4, &characterByteSize);
 
         if(number != 0x10ffff) {
-            if(character != CS64_INI_BAD_TOO_BIG && character != CS64_INI_BAD_NOT_UTF_8 || characterByteSize != 0) {
-                printf("Invalid UTF-8 Oversize: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            if((character != CS64_INI_BAD_TOO_BIG && character != CS64_INI_BAD_NOT_UTF_8) || characterByteSize != 0) {
+                printf("Invalid UTF-8 Oversize: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
                 print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
                 return 1;
             }
         }
         else if(character != 0x10ffff || characterByteSize != 4) {
-            printf("Invalid UTF-8 Oversize Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %i\n", number, character, characterByteSize);
+            printf("Invalid UTF-8 Oversize Correct Case: cs64_ini_utf_8_read failed for unicode char 0x%x produced 0x%x with length %zu\n", number, character, characterByteSize);
             print_bytes("Bytes", utf8_data, sizeof(utf8_data) / sizeof(utf8_data[0]));
             return 2;
         }
@@ -480,7 +480,7 @@ int reencoding_test() {
         CS64UniChar character = cs64_ini_ascii_read(utf8_data, 0, &characterByteSize);
 
         if(character != CS64_INI_BAD_LACK_SPACE || characterByteSize != 0) {
-            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %i) returned %i failed to fail length 0 of unicode. Length %i\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
+            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %zu) returned %i failed to fail length 0 of unicode. Length %zu\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
 
             return 4;
         }
@@ -488,7 +488,7 @@ int reencoding_test() {
         character = cs64_ini_ascii_read(utf8_data, 1, &characterByteSize);
 
         if(character != c || characterByteSize != 1) {
-            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %i) returned %i failed length 1 of unicode. Length %i\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
+            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %zu) returned %i failed length 1 of unicode. Length %zu\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
 
             return 5;
         }
@@ -496,7 +496,7 @@ int reencoding_test() {
         character = cs64_ini_ascii_read(utf8_data, 2, &characterByteSize);
 
         if(character != c || characterByteSize != 1) {
-            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %i) returned %i failed length 1 of unicode. Length %i\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
+            printf("ASCII no memory case: cs64_ini_ascii_read(0x%x, %i, %zu) returned %i failed length 1 of unicode. Length %zu\n", utf8_data[0], 0, characterByteSize, character, characterByteSize);
 
             return 6;
         }
@@ -606,7 +606,7 @@ int utf8_verify_test() {
         CS64UniChar character = cs64_ini_utf_8_read(expectedValues[index].utf8Buffer, expectedValues[index].length, &length);
 
         if(character != expectedValues[index].unicodePoint || expectedValues[index].length != length) {
-            printf("UTF-8 Verification Problem: cs64_ini_utf_8_read did not decode 0x%x character with length %i properly. Instead it got 0x%x with length %i\n", character, length, expectedValues[index].unicodePoint, expectedValues[index].length);
+            printf("UTF-8 Verification Problem: cs64_ini_utf_8_read did not decode 0x%x character with length %zu properly. Instead it got 0x%x with length %i\n", character, length, expectedValues[index].unicodePoint, expectedValues[index].length);
 
             return 1;
         }
@@ -616,7 +616,7 @@ int utf8_verify_test() {
             character = cs64_ini_utf_8_read(expectedValues[index].utf8Buffer, expectedValues[index].length - (1 + underMemIndex), &length);
 
             if(character != CS64_INI_BAD_LACK_SPACE || length != 0) {
-                printf("UTF-8 Verification Size Check: cs64_ini_utf_8_read did not handle 0x%x character with length %i properly. Instead it got error code 0x%x with length %i\n", character, length, expectedValues[index].unicodePoint, expectedValues[index].length);
+                printf("UTF-8 Verification Size Check: cs64_ini_utf_8_read did not handle 0x%x character with length %zu properly. Instead it got error code 0x%x with length %i\n", character, length, expectedValues[index].unicodePoint, expectedValues[index].length);
 
                 return 2;
             }
@@ -631,7 +631,7 @@ int utf8_verify_test() {
             utf8_data[3] != expectedValues[index].utf8Buffer[3] ||
             expectedValues[index].length != length)
         {
-            printf("UTF-8 Verification Problem: cs64_ini_utf_8_write did not produce expected bytes with length of %i.\n", length, expectedValues[index].unicodePoint, expectedValues[index].length);
+            printf("UTF-8 Verification Problem: cs64_ini_utf_8_write did not produce expected bytes (%zu, %u) with length of %u.\n", length, expectedValues[index].unicodePoint, expectedValues[index].length);
             print_bytes("Expected Bytes", expectedValues[index].utf8Buffer, expectedValues[index].length);
             print_bytes("Decoded  Bytes", utf8_data, length);
 
@@ -643,7 +643,7 @@ int utf8_verify_test() {
             length = cs64_ini_utf_8_write(utf8_data, expectedValues[index].length - (1 + underMemIndex), expectedValues[index].unicodePoint);
 
             if(length != 0) {
-                printf("UTF-8 Verification Size Check: cs64_ini_utf_8_write did not handle 0x%x character with length %i properly. It got a length of %i\n",  expectedValues[index].unicodePoint, expectedValues[index].length - (1 + underMemIndex), length);
+                printf("UTF-8 Verification Size Check: cs64_ini_utf_8_write did not handle 0x%x character with length %i properly. It got a length of %zu\n",  expectedValues[index].unicodePoint, expectedValues[index].length - (1 + underMemIndex), length);
 
                 return 4;
             }

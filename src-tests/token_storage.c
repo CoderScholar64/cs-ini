@@ -60,7 +60,7 @@ int empty_alloc_test() {
     }
 
     if(pTokenData->tokenAmount != 0) {
-        printf("Error empty_alloc_test: expected 0, but go pTokenData->tokenAmount %i.\n", pTokenData->tokenAmount);
+        printf("Error empty_alloc_test: expected 0, but go pTokenData->tokenAmount %zu.\n", pTokenData->tokenAmount);
         return 3;
     }
 
@@ -196,8 +196,8 @@ int fill_element_test() {
 
             if(memcmp(&tokens[tokenIndex], pToken, sizeof(tokens[tokenIndex])) != 0) {
                 printf("Error fill_element_test %i: memory did not match at index %i.\n", length, tokenIndex);
-                printf("Token %i %i %i.\n", tokens[tokenIndex].type, tokens[tokenIndex].index, tokens[tokenIndex].byteLength);
-                printf("Token %i %i %i.\n",            pToken->type,            pToken->index,            pToken->byteLength);
+                printf("Token %i %zu %zu.\n", tokens[tokenIndex].type, tokens[tokenIndex].index, tokens[tokenIndex].byteLength);
+                printf("Token %i %zu %zu.\n",            pToken->type,            pToken->index,            pToken->byteLength);
                 return 9;
             }
             tokenIndex++;
@@ -220,14 +220,14 @@ void *test_malloc(size_t size) {
     if(disableTestMalloc)
         return NULL;
 
-    printf("Log: Allocating pointer of size 0x%x", size);
+    printf("Log: Allocating pointer of size 0x%zx", size);
     void *pointer = malloc(size);
     printf(". Address %p\n", pointer);
 
     memset(pointer, 0x5c, size);
 
     if(pointer == NULL) {
-        printf("Error: Pointer for size 0x%x cannot be allocated!\n", size);
+        printf("Error: Pointer for size 0x%zx cannot be allocated!\n", size);
         exit(EXIT_FAILURE); // Out of memory
     }
 
