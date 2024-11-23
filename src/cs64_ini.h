@@ -138,6 +138,7 @@ typedef struct {
     CS64INITokenData *pTokenStorage;
     union {
         struct {
+            unsigned badByteAmount;
             CS64UTF8 badBytes[4];
         } encoding;
         struct {
@@ -163,7 +164,7 @@ int cs64_ini_is_character_whitespace(CS64UniChar character);
 CS64INIToken cs64_ini_tokenize_comment(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INIToken cs64_ini_tokenize_value(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
-CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
+CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 
 /**
  * This function reads an ASCII value.
@@ -596,12 +597,19 @@ CS64INIToken cs64_ini_tokenize_value_quote(const CS64UTF8 *const pUTF8Data, CS64
     return token;
 }
 
-CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
-    CS64INITokenData *pTokenStorage = cs64_ini_token_data_alloc();
+CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
+    CS64INITokenResult result;
+    result.state = CS64_INI_LEXER_SUCCESS;
+    result.lineCount = 0;
+    result.linePosition = 0;
+    result.pTokenStorage = cs64_ini_token_data_alloc();
 
     // Memory safety!
-    if(pTokenStorage == NULL)
-        return NULL; // NOTE: Generic out of memory exception.
+    if(result.pTokenStorage == NULL) {
+        result.state = CS64_INI_LEXER_NO_MEMORY_ERROR;
+        return result; // NOTE: Generic out of memory exception.
+    }
+    result.lineCount++;
 
     CS64Size UTF8Offset = 0;
     CS64Size characterSize;
@@ -612,8 +620,20 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
         // Before doing anything check the characterSize to detect ASCII/UTF-8 error
-        if(characterSize == 0)
-            break; // NOTE: Invalid Character Error.
+        if(characterSize == 0) {
+            result.state = CS64_INI_LEXER_ENCODING_ERROR;
+            result.status.encoding.badByteAmount = UTF8ByteSize - UTF8Offset;
+
+            if(result.status.encoding.badByteAmount > sizeof(result.status.encoding.badBytes) / sizeof(result.status.encoding.badBytes[0]))
+                result.status.encoding.badByteAmount = sizeof(result.status.encoding.badBytes) / sizeof(result.status.encoding.badBytes[0]);
+
+            CS64Size count = 0;
+            while(count < result.status.encoding.badByteAmount) {
+                result.status.encoding.badBytes[count] = pUTF8Data[UTF8Offset + count];
+                count++;
+            }
+            return result; // NOTE: Invalid Character Error.
+        }
 
         if(character == CS64_INI_END) {
             token.type       = CS64_INI_TOKEN_END;
@@ -670,16 +690,20 @@ CS64INITokenData* cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8B
             characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
         }
         else {
-            break; // NOTE: Valid ASCII or UTF-8, but unhandled character Error.
+            result.state = CS64_INI_LEXER_UNHANDLED_CHAR_ERROR;
+            result.status.unhandled.unhandled = character;
+            return result; // NOTE: Valid ASCII or UTF-8, but unhandled character Error.
         }
 
-        if(!cs64_ini_token_data_append_token(pTokenStorage, token))
-            break; // NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error.
+        if(!cs64_ini_token_data_append_token(result.pTokenStorage, token)) {
+            result.state = CS64_INI_LEXER_NO_MEMORY_ERROR;
+            return result; // NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error.
+        }
 
         UTF8Offset += characterSize;
     }
 
-    return pTokenStorage;
+    return result;
 }
 
 #endif // CS64_INI_LIBRARY_IMP
