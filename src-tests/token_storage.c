@@ -21,7 +21,7 @@ void test_free(void *pointer);
 
 void *pPointerTrackArray[TACKER_ARRAY_LIMIT];
 unsigned pointerTrackAmount = 0;
-int disableTestMalloc = 0;
+int mallocPagesLeft = 0;
 
 int empty_alloc_test();
 int fill_element_test();
@@ -41,7 +41,7 @@ int main() {
 }
 
 int empty_alloc_test() {
-    disableTestMalloc = 1;
+    mallocPagesLeft = 0;
 
     CS64INITokenData *pTokenData = cs64_ini_token_data_alloc();
 
@@ -50,7 +50,7 @@ int empty_alloc_test() {
         return 1;
     }
 
-    disableTestMalloc = 0;
+    mallocPagesLeft = 1;
 
     pTokenData = cs64_ini_token_data_alloc();
 
@@ -120,7 +120,7 @@ int fill_element_test() {
 
     unsigned length = 1;
     while(length < sizeof(tokens) / sizeof(tokens[0])) {
-        disableTestMalloc = 0;
+        mallocPagesLeft = 1;
         CS64INITokenData *pTokenData = cs64_ini_token_data_alloc();
 
         if(pTokenData == NULL) {
@@ -140,7 +140,7 @@ int fill_element_test() {
 
             if(tokenIndex != 0 && (tokenIndex % CS64_INI_TOKEN_AMOUNT) == 0) {
                 // First disable memory case with cs64_ini_token_data_append_token to see if it returns false and does nothing.
-                disableTestMalloc = 1;
+                mallocPagesLeft = 0;
                 appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
 
                 if(appendResult) {
@@ -149,7 +149,7 @@ int fill_element_test() {
                 }
 
                 // Actually add the token.
-                disableTestMalloc = 0;
+                mallocPagesLeft = 1;
                 appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
 
                 if(!appendResult) {
@@ -159,7 +159,7 @@ int fill_element_test() {
             }
             else {
                 // Actually add the token.
-                disableTestMalloc = 1;
+                mallocPagesLeft = 0;
                 appendResult = cs64_ini_token_data_append_token(pTokenData, tokens[tokenIndex]);
 
                 if(!appendResult) {
@@ -227,8 +227,9 @@ int fill_element_test() {
 }
 
 void *test_malloc(size_t size) {
-    if(disableTestMalloc)
+    if(mallocPagesLeft <= 0)
         return NULL;
+    mallocPagesLeft--;
 
     printf("Log: Allocating pointer of size 0x%zx", size);
     void *pointer = malloc(size);
