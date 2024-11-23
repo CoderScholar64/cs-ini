@@ -27,6 +27,7 @@ int empty_alloc_test();
 int fill_element_test();
 int used_character_test();
 int whitespace_character_test();
+int value_character_test();
 
 int main() {
     int testResult;
@@ -44,6 +45,10 @@ int main() {
         return testResult;
 
     testResult = whitespace_character_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = value_character_test();
     if(testResult != 0)
         return testResult;
 
@@ -364,6 +369,83 @@ int whitespace_character_test() {
         printf("Error whitespace_character_test: cs64_ini_is_character_whitespace failed to detect 0xa0.\n");
         return 8;
     }
+    return 0;
+}
+
+int value_character_test() {
+    char characters[0x200] = {0};
+
+    CS64UniChar c = 0x20;
+
+    while(c < 0x7f) {
+        if(cs64_ini_is_character_whitespace(c) || cs64_ini_is_character_used(c)) {
+            c++;
+            continue;
+        }
+
+        characters[c] = 1;
+        c++;
+    }
+
+    c = 0xa0;
+    while(c < 0x100) {
+        if(cs64_ini_is_character_whitespace(c) || cs64_ini_is_character_used(c)) {
+            c++;
+            continue;
+        }
+
+        characters[c] = 1;
+        c++;
+    }
+
+    characters[0xad] = 0;
+
+    c = 0;
+    while(c < sizeof(characters) / sizeof(characters[0])) {
+        if(characters[c]) {
+            if(!cs64_ini_is_character_value(c)) {
+                printf("Error value_character_test: cs64_ini_is_character_value returned false for 0x%02x.\n", c);
+                return 1;
+            }
+        }
+        else {
+            if( cs64_ini_is_character_value(c)) {
+                printf("Error value_character_test: cs64_ini_is_character_value returned true for 0x%02x.\n", c);
+                return 2;
+            }
+        }
+        c++;
+    }
+
+    if(cs64_ini_is_character_value(CS64_INI_COMMENT)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_COMMENT.\n");
+        return 3;
+    }
+    if(cs64_ini_is_character_value(CS64_INI_DELEMETER)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_DELEMETER.\n");
+        return 4;
+    }
+    if(cs64_ini_is_character_value(CS64_INI_END)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_END.\n");
+        return 5;
+    }
+    if(cs64_ini_is_character_value(CS64_INI_SECTION_BEGIN)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_SECTION_BEGIN.\n");
+        return 6;
+    }
+    if(cs64_ini_is_character_value(CS64_INI_SECTION_END)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_SECTION_END.\n");
+        return 7;
+    }
+    if(cs64_ini_is_character_value(CS64_INI_VALUE_SLASH)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_VALUE_SLASH.\n");
+        return 8;
+    }
+    if(cs64_ini_is_character_value(CS64_INI_VALUE_QUOTE)) {
+        printf("Error used_character_test: cs64_ini_is_character_value should not return true for CS64_INI_VALUE_QUOTE.\n");
+        return 9;
+    }
+
     return 0;
 }
 
