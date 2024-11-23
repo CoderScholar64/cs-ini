@@ -700,6 +700,13 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             return result; // NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error.
         }
 
+        if(character == ((CS64UniChar)'\n')) {
+            result.lineCount++;
+            result.linePosition = 0;
+        }
+        else
+            result.linePosition++;
+
         UTF8Offset += characterSize;
     }
 
