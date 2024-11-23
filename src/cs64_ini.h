@@ -435,9 +435,9 @@ int cs64_ini_is_character_used(CS64UniChar character) {
         case CS64_INI_SECTION_END:
         case CS64_INI_VALUE_SLASH:
         case CS64_INI_VALUE_QUOTE:
-            return 0; // No Control characters allowed.
-        default:
             return 1;
+        default:
+            return 0;
     }
 }
 
