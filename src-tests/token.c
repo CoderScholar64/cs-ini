@@ -25,6 +25,7 @@ int mallocPagesLeft = 0;
 
 int empty_alloc_test();
 int fill_element_test();
+int used_character_test();
 
 int main() {
     int testResult;
@@ -34,6 +35,10 @@ int main() {
         return testResult;
 
     testResult = fill_element_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = used_character_test();
     if(testResult != 0)
         return testResult;
 
@@ -221,6 +226,60 @@ int fill_element_test() {
         }
 
         length++;
+    }
+
+    return 0;
+}
+
+int used_character_test() {
+    CS64UniChar c = 0;
+
+    while(c < 0x1000) {
+        switch(c) {
+            case CS64_INI_COMMENT:
+            case CS64_INI_DELEMETER:
+            case CS64_INI_END:
+            case CS64_INI_SECTION_BEGIN:
+            case CS64_INI_SECTION_END:
+            case CS64_INI_VALUE_SLASH:
+            case CS64_INI_VALUE_QUOTE:
+                break;
+            default:
+                if(cs64_ini_is_character_used(c)) {
+                    printf("Error used_character_test: character 0x%x is not an opcode, but cs64_ini_is_character_used failed.\n", c);
+                    return 1;
+                }
+        }
+        c++;
+    }
+
+    if(!cs64_ini_is_character_used(CS64_INI_COMMENT)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_COMMENT.\n");
+        return 2;
+    }
+    if(!cs64_ini_is_character_used(CS64_INI_DELEMETER)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_DELEMETER.\n");
+        return 3;
+    }
+    if(!cs64_ini_is_character_used(CS64_INI_END)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_END.\n");
+        return 4;
+    }
+    if(!cs64_ini_is_character_used(CS64_INI_SECTION_BEGIN)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_SECTION_BEGIN.\n");
+        return 5;
+    }
+    if(!cs64_ini_is_character_used(CS64_INI_SECTION_END)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_SECTION_END.\n");
+        return 6;
+    }
+    if(!cs64_ini_is_character_used(CS64_INI_VALUE_SLASH)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_VALUE_SLASH.\n");
+        return 7;
+    }
+    if(!cs64_ini_is_character_used(CS64_INI_VALUE_QUOTE)) {
+        printf("Error used_character_test: cs64_ini_is_character_used failed to detect CS64_INI_VALUE_QUOTE.\n");
+        return 8;
     }
 
     return 0;
