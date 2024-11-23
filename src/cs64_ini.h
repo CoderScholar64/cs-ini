@@ -53,7 +53,7 @@
     #endif
 #endif
 
-// Infulenced from rini another ini parsing library from raysan5.
+/* Infulenced from rini another ini parsing library from raysan5. */
 #ifndef CS64_INI_COMMENT
     #define CS64_INI_COMMENT       ((CS64UniChar)';')
 #endif
@@ -105,13 +105,13 @@ typedef enum {
 } CS64INILexerState;
 
 typedef enum {
-    // CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways.
-    CS64_INI_TOKEN_DELEMETER,     // DELEMETER
-    CS64_INI_TOKEN_VALUE,         // VALUE can be qouted
-    CS64_INI_TOKEN_COMMENT,       // COMMENT_START *Every character except CS64_INI_TOKEN_END
-    CS64_INI_TOKEN_END,           // New Line
-    CS64_INI_TOKEN_SECTION_START, // Start of section
-    CS64_INI_TOKEN_SECTION_END    // End of section
+    /* CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways. */
+    CS64_INI_TOKEN_DELEMETER,     /* DELEMETER */
+    CS64_INI_TOKEN_VALUE,         /* VALUE can be qouted */
+    CS64_INI_TOKEN_COMMENT,       /* COMMENT_START *Every character except CS64_INI_TOKEN_END */
+    CS64_INI_TOKEN_END,           /* New Line */
+    CS64_INI_TOKEN_SECTION_START, /* Start of section */
+    CS64_INI_TOKEN_SECTION_END    /* End of section */
 } CS64INITokenType;
 
 typedef struct {
@@ -133,8 +133,8 @@ typedef struct {
 
 typedef struct {
     CS64INILexerState state;
-    CS64Size lineCount; // the number of lines that has been processed.
-    CS64Size linePosition; // in the amount of unicode points not bytes. Useful for lexer errors.
+    CS64Size lineCount; /* the number of lines that has been processed. */
+    CS64Size linePosition; /* in the amount of unicode points not bytes. Useful for lexer errors. */
     CS64INITokenData *pTokenStorage;
     union {
         struct {
@@ -157,7 +157,7 @@ CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
 CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex);
 void cs64_ini_token_data_free(CS64INITokenData *pData);
 
-// CS64INIToken cs64_ini_token_merge(const CS64INIToken *const pLastToken, const CS64INIToken *const pNextToken); // TODO Make tokens mergable.
+/* CS64INIToken cs64_ini_token_merge(const CS64INIToken *const pLastToken, const CS64INIToken *const pNextToken); */ /* TODO Make tokens mergable. */
 int cs64_ini_is_character_used(CS64UniChar character);
 int cs64_ini_is_character_value(CS64UniChar character);
 int cs64_ini_is_character_whitespace(CS64UniChar character);
@@ -194,23 +194,23 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
  */
 int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character);
 
-#endif // CS64_INI_LIBRARY_H
+#endif /* CS64_INI_LIBRARY_H */
 
 #ifdef CS64_INI_LIBRARY_IMP
 
-// ### TEXT HANDLING SECTION ###
+ /* ### TEXT HANDLING SECTION ### */
 
 CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
     if(remainingDataSize == 0) {
-        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+        *pCharacterByteSize = 0; /* Indicate that the loop calling this function should end. */
         return CS64_INI_BAD_LACK_SPACE;
     }
     else if(*pDataHead >= 0x80) {
-        *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+        *pCharacterByteSize = 0; /* Indicate that the loop calling this function should end. */
         return CS64_INI_BAD_NOT_ASCII;
     }
 
-    *pCharacterByteSize = 1; // Indicate that there are more bytes to be read.
+    *pCharacterByteSize = 1; /* Indicate that there are more bytes to be read. */
     return *pDataHead;
 }
 
@@ -229,7 +229,7 @@ CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remain
 CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
     CS64UniChar result;
 
-    *pCharacterByteSize = 0; // Indicate that the loop calling this function should end.
+    *pCharacterByteSize = 0; /* Indicate that the loop calling this function should end. */
 
     if(remainingDataSize == 0)
         return CS64_INI_BAD_LACK_SPACE;
@@ -244,7 +244,7 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     else if(IS_UTF_2_BYTE(pDataHead[0])) {
         if(remainingDataSize < 2)
             return CS64_INI_BAD_LACK_SPACE;
-        else if(!IS_CHAR_CONTINUATION(pDataHead[1])) // Check if byte is continuous.
+        else if(!IS_CHAR_CONTINUATION(pDataHead[1])) /* Check if byte is continuous. */
             return CS64_INI_BAD_CONTINUE_BYTE_1;
 
         result  = ((pDataHead[0] & 0b00011111) << 6);
@@ -257,11 +257,11 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     else if(IS_UTF_3_BYTE(pDataHead[0])) {
         if(remainingDataSize < 3)
             return CS64_INI_BAD_LACK_SPACE;
-        else if(!IS_CHAR_CONTINUATION(pDataHead[1])) // Check if byte is continuous.
+        else if(!IS_CHAR_CONTINUATION(pDataHead[1])) /* Check if byte is continuous. */
             return CS64_INI_BAD_CONTINUE_BYTE_1;
-        else if(!IS_CHAR_CONTINUATION(pDataHead[2])) // Check if byte is continuous.
+        else if(!IS_CHAR_CONTINUATION(pDataHead[2])) /* Check if byte is continuous. */
             return CS64_INI_BAD_CONTINUE_BYTE_2;
-        else if(IS_UTF_OVERLONG_3_BYTE(pDataHead[0], pDataHead[1])) // Check for overlong error.
+        else if(IS_UTF_OVERLONG_3_BYTE(pDataHead[0], pDataHead[1])) /* Check for overlong error. */
             return CS64_INI_BAD_OVERLONG;
 
         result  = ((pDataHead[0] & 0b00001111) << 12);
@@ -275,15 +275,15 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     else if(IS_UTF_4_BYTE(pDataHead[0])) {
         if(remainingDataSize < 4)
             return CS64_INI_BAD_LACK_SPACE;
-        else if(!IS_CHAR_CONTINUATION(pDataHead[1])) // Check if byte is continuous.
+        else if(!IS_CHAR_CONTINUATION(pDataHead[1])) /* Check if byte is continuous. */
             return CS64_INI_BAD_CONTINUE_BYTE_1;
-        else if(!IS_CHAR_CONTINUATION(pDataHead[2])) // Check if byte is continuous.
+        else if(!IS_CHAR_CONTINUATION(pDataHead[2])) /* Check if byte is continuous. */
             return CS64_INI_BAD_CONTINUE_BYTE_2;
-        else if(!IS_CHAR_CONTINUATION(pDataHead[3])) // Check if byte is continuous.
+        else if(!IS_CHAR_CONTINUATION(pDataHead[3])) /* Check if byte is continuous. */
             return CS64_INI_BAD_CONTINUE_BYTE_3;
-        else if(IS_UTF_OVERLONG_4_BYTE(pDataHead[0], pDataHead[1])) // Check for overlong error.
+        else if(IS_UTF_OVERLONG_4_BYTE(pDataHead[0], pDataHead[1])) /* Check for overlong error. */
             return CS64_INI_BAD_OVERLONG;
-        else if(IS_UTF_OVERSIZED(pDataHead[0], pDataHead[1])) // Check for over-size case.
+        else if(IS_UTF_OVERSIZED(pDataHead[0], pDataHead[1])) /* Check for over-size case. */
             return CS64_INI_BAD_TOO_BIG;
 
         result  = ((pDataHead[0] & 0b00000111) << 18);
@@ -299,7 +299,7 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     return CS64_INI_BAD_NOT_UTF_8;
 }
 
-// Clean up Macros!
+/* Clean up Macros! */
 #undef CHECK_NEVER_BYTE
 #undef IS_CHAR_CONTINUATION
 #undef IS_UTF_1_BYTE
@@ -313,45 +313,45 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
 #undef IS_UTF_OVERSIZED
 
 int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64UniChar character) {
-    if(character < 0x80) { // ASCII range. UTF-8 1 Byte Case.
+    if(character < 0x80) { /* ASCII range. UTF-8 1 Byte Case. */
         if(remainingDataSize < 1)
-            return 0; // Not Enough Space
+            return 0; /* Not Enough Space */
 
         pDataHead[0] = character;
-        return 1; // 1 Byte used.
+        return 1; /* 1 Byte used. */
     }
-    else if(character < 0x800) { // UTF-8 2 Byte Case.
+    else if(character < 0x800) { /* UTF-8 2 Byte Case. */
         if(remainingDataSize < 2)
-            return 0; // Not Enough Space
+            return 0; /* Not Enough Space */
 
         pDataHead[1] = 0b10000000 | (0b00111111 & (character >> 0));
         pDataHead[0] = 0b11000000 | (0b00011111 & (character >> 6));
-        return 2; // 2 Bytes used.
+        return 2; /* 2 Bytes used. */
     }
-    else if(character < 0x10000) { // UTF-8 3 Byte Case.
+    else if(character < 0x10000) { /* UTF-8 3 Byte Case. */
         if(remainingDataSize < 3)
-            return 0; // Not Enough Space
+            return 0; /* Not Enough Space */
 
         pDataHead[2] = 0b10000000 | (0b00111111 & (character >>  0));
         pDataHead[1] = 0b10000000 | (0b00111111 & (character >>  6));
         pDataHead[0] = 0b11100000 | (0b00001111 & (character >> 12));
-        return 3; // 3 Bytes used.
+        return 3; /* 3 Bytes used. */
     }
-    else if(character < 0x110000) { // UTF-8 4 Byte Case.
+    else if(character < 0x110000) { /* UTF-8 4 Byte Case. */
         if(remainingDataSize < 4)
-            return 0; // Not Enough Space
+            return 0; /* Not Enough Space */
 
         pDataHead[3] = 0b10000000 | (0b00111111 & (character >>  0));
         pDataHead[2] = 0b10000000 | (0b00111111 & (character >>  6));
         pDataHead[1] = 0b10000000 | (0b00111111 & (character >> 12));
         pDataHead[0] = 0b11110000 | (0b00000111 & (character >> 18));
-        return 4; // 4 Bytes used.
+        return 4; /* 4 Bytes used. */
     }
     else
-        return -1; // character is too big for this algorithm.
+        return -1; /* character is too big for this algorithm. */
 }
 
-// ### Token Storage
+/* ### Token Storage */
 
 CS64INITokenData* cs64_ini_token_data_alloc() {
     CS64INITokenData *pData = CS64_INI_MALLOC(sizeof(CS64INITokenData));
@@ -393,7 +393,7 @@ CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData) {
 
 CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex) {
     if(pData->tokenAmount <= tokenIndex)
-        return NULL; // Out of bounds!
+        return NULL; /* Out of bounds! */
 
     CS64Size tokenArrayPageIndex = tokenIndex / CS64_INI_TOKEN_AMOUNT;
     CS64Size tokenPageIndex      = tokenIndex % CS64_INI_TOKEN_AMOUNT;
@@ -423,10 +423,10 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
     CS64_INI_FREE(pData);
 }
 
-// ### Lexer
+/* ### Lexer */
 
 int cs64_ini_is_character_used(CS64UniChar character) {
-    // WARNING Never remove this function! It can detect naming conflicts.
+    /* WARNING Never remove this function! It can detect naming conflicts. */
     switch(character) {
         case CS64_INI_COMMENT:
         case CS64_INI_DELEMETER:
@@ -456,7 +456,7 @@ int cs64_ini_is_character_value(CS64UniChar character) {
 }
 
 int cs64_ini_is_character_whitespace(CS64UniChar character) {
-    // Check for whitespace characters
+    /* Check for whitespace characters */
     switch(character) {
         case 0x0009:
         case 0x000a:
@@ -489,9 +489,9 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
         case 0x2060:
         case 0x3000:
         case 0xFEFF:
-            return 1; // This is whitespace!
+            return 1; /* This is whitespace! */
         default:
-            return 0;// Not whitespace
+            return 0; /* Not whitespace */
     }
 }
 
@@ -519,7 +519,7 @@ CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UT
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Check the characterSize to detect ASCII/UTF-8 error
+        /* Check the characterSize to detect ASCII/UTF-8 error */
         INVALID_CHARACTER_TEST(pResult, token)
 
         if(character == ((CS64UniChar)'\n')) {
@@ -544,7 +544,7 @@ CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Check the characterSize to detect ASCII/UTF-8 error
+        /* Check the characterSize to detect ASCII/UTF-8 error */
         INVALID_CHARACTER_TEST(pResult, token)
 
         if(!cs64_ini_is_character_value(character)) {
@@ -569,7 +569,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     const CS64UniChar quote = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
     character = quote;
 
-    // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+    /* Before doing anything check the characterSize to detect ASCII/UTF-8 error */
     INVALID_CHARACTER_TEST(pResult, token)
 
     UTF8Offset += characterSize;
@@ -579,7 +579,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Check the characterSize to detect ASCII/UTF-8 error
+        /* Check the characterSize to detect ASCII/UTF-8 error */
         INVALID_CHARACTER_TEST(pResult, token)
 
         UTF8Offset += characterSize;
@@ -607,7 +607,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
         pResult->state = CS64_INI_LEXER_EXPECTED_ERROR;
         pResult->status.expected.expected = CS64_INI_VALUE_QUOTE;
         pResult->status.expected.result = character;
-        return token; // NOTE: Expected Quote Error.
+        return token; /* NOTE: Expected Quote Error. */
     }
 
     token.byteLength = UTF8Offset - token.index;
@@ -622,10 +622,10 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
     result.linePosition = 0;
     result.pTokenStorage = cs64_ini_token_data_alloc();
 
-    // Memory safety!
+    /* Memory safety! */
     if(result.pTokenStorage == NULL) {
         result.state = CS64_INI_LEXER_NO_MEMORY_ERROR;
-        return result; // NOTE: Generic out of memory exception.
+        return result; /* NOTE: Generic out of memory exception. */
     }
     result.lineCount++;
 
@@ -637,7 +637,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
-        // Before doing anything check the characterSize to detect ASCII/UTF-8 error
+        /* Before doing anything check the characterSize to detect ASCII/UTF-8 error */
         INVALID_CHARACTER_TEST(&result, result)
 
         if(character == CS64_INI_END) {
@@ -658,12 +658,12 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
         else if(character == CS64_INI_COMMENT) {
             token = cs64_ini_tokenize_comment(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
 
-            // If byte length is zero then tokenization had failed.
+            /* If byte length is zero then tokenization had failed. */
             if(token.byteLength == 0)
                 break;
 
             UTF8Offset += token.byteLength;
-            characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
+            characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
         }
         else if(character == CS64_INI_DELEMETER) {
             token.type       = CS64_INI_TOKEN_DELEMETER;
@@ -673,36 +673,36 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
         else if(character == CS64_INI_VALUE_QUOTE) {
             token = cs64_ini_tokenize_value_quote(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
 
-            // If byte length is zero then tokenization had failed.
+            /* If byte length is zero then tokenization had failed. */
             if(token.byteLength == 0)
                 break;
 
             UTF8Offset += token.byteLength;
-            characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
+            characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
         }
-        else if(cs64_ini_is_character_whitespace(character)) { // Skip whitespace.
+        else if(cs64_ini_is_character_whitespace(character)) { /* Skip whitespace. */
             UTF8Offset += characterSize;
             continue;
         }
         else if(cs64_ini_is_character_value(character)) {
             token = cs64_ini_tokenize_value(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
 
-            // If byte length is zero then tokenization had failed.
+            /* If byte length is zero then tokenization had failed. */
             if(token.byteLength == 0)
                 break;
 
             UTF8Offset += token.byteLength;
-            characterSize = 0; // Do not advance the position so CS64_INI_TOKEN_END can properly be produced.
+            characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
         }
         else {
             result.state = CS64_INI_LEXER_UNHANDLED_CHAR_ERROR;
             result.status.unhandled.unhandled = character;
-            return result; // NOTE: Valid ASCII or UTF-8, but unhandled character Error.
+            return result; /* NOTE: Valid ASCII or UTF-8, but unhandled character Error. */
         }
 
         if(!cs64_ini_token_data_append_token(result.pTokenStorage, token)) {
             result.state = CS64_INI_LEXER_NO_MEMORY_ERROR;
-            return result; // NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error.
+            return result; /* NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error. */
         }
 
         if(character == ((CS64UniChar)'\n')) {
@@ -719,4 +719,4 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 }
 #undef INVALID_CHARACTER_TEST
 
-#endif // CS64_INI_LIBRARY_IMP
+#endif /* CS64_INI_LIBRARY_IMP */
