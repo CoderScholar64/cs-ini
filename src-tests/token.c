@@ -1209,11 +1209,15 @@ int lexer_test() {
 
     if(tokenResult.state != CS64_INI_LEXER_NO_MEMORY_ERROR || tokenResult.lineCount != 0 || tokenResult.linePosition != 0) {
         printf("Error lexer_test cs64_ini_lexer was supposed to return CS64_INI_LEXER_NO_MEMORY_ERROR but got %u. Line number %zu. Column %zu\n", tokenResult.state, tokenResult.lineCount, tokenResult.linePosition);
+        if(tokenResult.pTokenStorage != NULL)
+            cs64_ini_token_data_free(tokenResult.pTokenStorage);
         return 1;
     }
+    if(tokenResult.pTokenStorage != NULL)
+        cs64_ini_token_data_free(tokenResult.pTokenStorage);
 
     if(pointerTrackAmount != 0) {
-        printf("Error lexer_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
+        printf("Error lexer_test Outright fail case: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
         return 2;
     }
 
@@ -1223,10 +1227,12 @@ int lexer_test() {
 
     if(tokenResult.state != CS64_INI_LEXER_NO_MEMORY_ERROR || tokenResult.lineCount != 1 || tokenResult.linePosition != 4) {
         printf("Error lexer_test cs64_ini_lexer was supposed to return CS64_INI_LEXER_NO_MEMORY_ERROR but got %u. Line number %zu. Column %zu\n", tokenResult.state, tokenResult.lineCount, tokenResult.linePosition);
-        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        if(tokenResult.pTokenStorage != NULL)
+            cs64_ini_token_data_free(tokenResult.pTokenStorage);
         return 3;
     }
-    cs64_ini_token_data_free(tokenResult.pTokenStorage);
+    if(tokenResult.pTokenStorage != NULL)
+        cs64_ini_token_data_free(tokenResult.pTokenStorage);
 
     if(pointerTrackAmount != 0) {
         printf("Error lexer_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
