@@ -1239,6 +1239,33 @@ int lexer_test() {
         return 4;
     }
 
+    mallocPagesLeft = 6;
+
+    // Now for the real test
+    CS64UTF8 fileData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n; Comment\n\"key2\" = value; Comment";
+    CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
+
+    tokenResult = cs64_ini_lexer(fileData, fileDataSize);
+
+    if(tokenResult.state != 50){
+        printf("Error lexer_test: fileData did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", tokenResult.state);
+
+        CS64Size tokenIndex = 0;
+
+        CS64INIToken *pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+        while(pToken != 0) {
+            printf("Token %i %zu %zu. %.*s\n", pToken->type, pToken->index, pToken->byteLength, pToken->byteLength, &fileData[pToken->index]);
+            tokenIndex++;
+            pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+        }
+
+        if(tokenResult.pTokenStorage != NULL)
+            cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        return 5;
+    }
+    if(tokenResult.pTokenStorage != NULL)
+        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+
     return 0;
 }
 
