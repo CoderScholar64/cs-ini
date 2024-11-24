@@ -554,6 +554,13 @@ CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8
         }
 
         UTF8Offset += characterSize;
+
+        if(character == ((CS64UniChar)'\n')) {
+            pResult->lineCount++;
+            pResult->linePosition = 0;
+        }
+        else
+            pResult->linePosition++;
     }
 
     if(UTF8Offset == UTF8ByteSize)
