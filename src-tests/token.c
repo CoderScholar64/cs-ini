@@ -1244,17 +1244,44 @@ int lexer_test() {
     // Now for the real test
     CS64UTF8 fileData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n\n\n; Comment\n\"key2\" = value value2\"\tvalue3\"; Comment";
     CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
+    CS64INIToken expectedFileDataTokens[] = {
+        {CS64_INI_TOKEN_COMMENT, 0, 1},
+        {CS64_INI_TOKEN_END, 1, 2},
+        {CS64_INI_TOKEN_VALUE, 3, 3},
+        {CS64_INI_TOKEN_DELEMETER, 7, 1},
+        {CS64_INI_TOKEN_VALUE, 9, 5},
+        {CS64_INI_TOKEN_COMMENT, 14, 11},
+        {CS64_INI_TOKEN_END, 25, 1},
+        {CS64_INI_TOKEN_SECTION_START, 26, 1},
+        {CS64_INI_TOKEN_VALUE, 27, 7},
+        {CS64_INI_TOKEN_SECTION_END, 34, 1},
+        {CS64_INI_TOKEN_COMMENT, 36, 9},
+        {CS64_INI_TOKEN_END, 45, 1},
+        {CS64_INI_TOKEN_VALUE, 46, 3},
+        {CS64_INI_TOKEN_DELEMETER, 50, 1},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 52, 7},
+        {CS64_INI_TOKEN_COMMENT, 59, 9},
+        {CS64_INI_TOKEN_END, 68, 3},
+        {CS64_INI_TOKEN_COMMENT, 71, 9},
+        {CS64_INI_TOKEN_END, 80, 1},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 81, 6},
+        {CS64_INI_TOKEN_DELEMETER, 88, 1},
+        {CS64_INI_TOKEN_VALUE, 90, 12},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 102, 9},
+        {CS64_INI_TOKEN_COMMENT, 111, 9},
+        {CS64_INI_TOKEN_END, 120, 0}
+    };
 
     tokenResult = cs64_ini_lexer(fileData, fileDataSize);
 
-    if(tokenResult.state != 50){
+    if(tokenResult.state != CS64_INI_LEXER_SUCCESS){
         printf("Error lexer_test: fileData did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", tokenResult.state);
 
         CS64Size tokenIndex = 0;
 
         CS64INIToken *pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
-        while(pToken != 0) {
-            printf("Token %i %zu %zu. %.*s\n", pToken->type, pToken->index, pToken->byteLength, pToken->byteLength, &fileData[pToken->index]);
+        while(pToken != NULL) {
+            printf("%i %zu %zu\n", pToken->type, pToken->index, pToken->byteLength);
             tokenIndex++;
             pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
         }
@@ -1262,6 +1289,20 @@ int lexer_test() {
         if(tokenResult.pTokenStorage != NULL)
             cs64_ini_token_data_free(tokenResult.pTokenStorage);
         return 5;
+    }
+
+    CS64Size tokenIndex = 0;
+    CS64INIToken *pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+    while(pToken != NULL) {
+        if(expectedFileDataTokens[tokenIndex].type != pToken->type || expectedFileDataTokens[tokenIndex].index != pToken->index || expectedFileDataTokens[tokenIndex].byteLength != pToken->byteLength) {
+            printf("Expected %i %zu %zu\n", expectedFileDataTokens[tokenIndex].type, expectedFileDataTokens[tokenIndex].index, expectedFileDataTokens[tokenIndex].byteLength);
+            printf("Returned %i %zu %zu\n", pToken->type, pToken->index, pToken->byteLength);
+            if(tokenResult.pTokenStorage != NULL)
+                cs64_ini_token_data_free(tokenResult.pTokenStorage);
+            return 6;
+        }
+        tokenIndex++;
+        pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
     }
     if(tokenResult.pTokenStorage != NULL)
         cs64_ini_token_data_free(tokenResult.pTokenStorage);
