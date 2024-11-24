@@ -166,6 +166,7 @@ CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UT
 CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
+void cs64_ini_lexer_free(CS64INITokenResult *pResult);
 
 /**
  * This function reads an ASCII value.
@@ -742,5 +743,10 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
     return result;
 }
 #undef INVALID_CHARACTER_TEST
+
+void cs64_ini_lexer_free(CS64INITokenResult *pData) {
+    if(pData->pTokenStorage != NULL)
+        cs64_ini_token_data_free(pData->pTokenStorage);
+}
 
 #endif /* CS64_INI_LIBRARY_IMP */

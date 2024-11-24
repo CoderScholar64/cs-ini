@@ -1209,12 +1209,10 @@ int lexer_test() {
 
     if(tokenResult.state != CS64_INI_LEXER_NO_MEMORY_ERROR || tokenResult.lineCount != 0 || tokenResult.linePosition != 0) {
         printf("Error lexer_test cs64_ini_lexer was supposed to return CS64_INI_LEXER_NO_MEMORY_ERROR but got %u. Line number %zu. Column %zu\n", tokenResult.state, tokenResult.lineCount, tokenResult.linePosition);
-        if(tokenResult.pTokenStorage != NULL)
-            cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        cs64_ini_lexer_free(&tokenResult);
         return 1;
     }
-    if(tokenResult.pTokenStorage != NULL)
-        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+    cs64_ini_lexer_free(&tokenResult);
 
     if(pointerTrackAmount != 0) {
         printf("Error lexer_test Outright fail case: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
@@ -1227,12 +1225,10 @@ int lexer_test() {
 
     if(tokenResult.state != CS64_INI_LEXER_NO_MEMORY_ERROR || tokenResult.lineCount != 1 || tokenResult.linePosition != 4) {
         printf("Error lexer_test cs64_ini_lexer was supposed to return CS64_INI_LEXER_NO_MEMORY_ERROR but got %u. Line number %zu. Column %zu\n", tokenResult.state, tokenResult.lineCount, tokenResult.linePosition);
-        if(tokenResult.pTokenStorage != NULL)
-            cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        cs64_ini_lexer_free(&tokenResult);
         return 3;
     }
-    if(tokenResult.pTokenStorage != NULL)
-        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+    cs64_ini_lexer_free(&tokenResult);
 
     if(pointerTrackAmount != 0) {
         printf("Error lexer_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
@@ -1286,8 +1282,8 @@ int lexer_test() {
             pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
         }
 
-        if(tokenResult.pTokenStorage != NULL)
-            cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        cs64_ini_lexer_free(&tokenResult);
+
         return 5;
     }
 
@@ -1297,15 +1293,13 @@ int lexer_test() {
         if(expectedFileDataTokens[tokenIndex].type != pToken->type || expectedFileDataTokens[tokenIndex].index != pToken->index || expectedFileDataTokens[tokenIndex].byteLength != pToken->byteLength) {
             printf("Expected %i %zu %zu\n", expectedFileDataTokens[tokenIndex].type, expectedFileDataTokens[tokenIndex].index, expectedFileDataTokens[tokenIndex].byteLength);
             printf("Returned %i %zu %zu\n", pToken->type, pToken->index, pToken->byteLength);
-            if(tokenResult.pTokenStorage != NULL)
-                cs64_ini_token_data_free(tokenResult.pTokenStorage);
+            cs64_ini_lexer_free(&tokenResult);
             return 6;
         }
         tokenIndex++;
         pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
     }
-    if(tokenResult.pTokenStorage != NULL)
-        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+    cs64_ini_lexer_free(&tokenResult);
 
     mallocPagesLeft = 7;
 
@@ -1319,8 +1313,7 @@ int lexer_test() {
             printf("Error lexer_test: fileBadQuoteData produced CS64_INI_LEXER_EXPECTED_ERROR, but expected 0x%x while 0x%x.\n", tokenResult.status.expected.expected, tokenResult.status.expected.result);
             printf("    Line Count = %zu; Column = %zu\n", tokenResult.lineCount, tokenResult.linePosition);
 
-            if(tokenResult.pTokenStorage != NULL)
-                cs64_ini_token_data_free(tokenResult.pTokenStorage);
+            cs64_ini_lexer_free(&tokenResult);
 
             return 7;
         }
@@ -1337,13 +1330,11 @@ int lexer_test() {
             pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
         }
 
-        if(tokenResult.pTokenStorage != NULL)
-            cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        cs64_ini_lexer_free(&tokenResult);
 
         return 8;
     }
-    if(tokenResult.pTokenStorage != NULL)
-        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+    cs64_ini_lexer_free(&tokenResult);
 
     return 0;
 }
