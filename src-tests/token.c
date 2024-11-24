@@ -505,7 +505,7 @@ int comment_token_test() {
         tokenResult.linePosition  = 0;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(validCase1[i]);
+        CS64Size length = strlen((char*)validCase1[i]);
         CS64INIToken token = cs64_ini_tokenize_comment(&tokenResult, validCase1[i], length, 0);
 
         if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
@@ -569,7 +569,7 @@ int comment_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(validCase2[i]);
+        CS64Size length = strlen((char*)validCase2[i]);
         CS64INIToken token = cs64_ini_tokenize_comment(&tokenResult, validCase2[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
@@ -632,7 +632,7 @@ int comment_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(encodingErrorCase[i]);
+        CS64Size length = strlen((char*)encodingErrorCase[i]);
         CS64INIToken token = cs64_ini_tokenize_comment(&tokenResult, encodingErrorCase[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_ENCODING_ERROR) {
@@ -688,8 +688,8 @@ int value_token_test() {
         {CS64_INI_TOKEN_VALUE, 0, 4},
         {CS64_INI_TOKEN_VALUE, 0, 5},
         {CS64_INI_TOKEN_VALUE, 0, 6},
-        {CS64_INI_TOKEN_VALUE, 0, 7},
-        {CS64_INI_TOKEN_VALUE, 0, 8}
+        {CS64_INI_TOKEN_VALUE, 0, 8},
+        {CS64_INI_TOKEN_VALUE, 0, 9}
     };
     CS64Size validCase1linePositions[] = {
         2,
@@ -698,7 +698,7 @@ int value_token_test() {
         5,
         6,
         8,
-        13
+        9
     };
 
     unsigned i = 0;
@@ -708,7 +708,7 @@ int value_token_test() {
         tokenResult.linePosition  = 0;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(validCase1[i]);
+        CS64Size length = strlen((char*)validCase1[i]);
         CS64INIToken token = cs64_ini_tokenize_value(&tokenResult, validCase1[i], length, 0);
 
         if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
@@ -717,7 +717,7 @@ int value_token_test() {
         }
 
         if(tokenResult.lineCount != 0) {
-            printf("Error quote_value_token_test Valid Case 1 Index %u. Line Count expected %zu got %zu\n", i, 0, tokenResult.lineCount);
+            printf("Error quote_value_token_test Valid Case 1 Index %u. Line Count expected %u got %zu\n", i, 0, tokenResult.lineCount);
             return 2;
         }
 
@@ -781,7 +781,7 @@ int value_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(validCase2[i]);
+        CS64Size length = strlen((char*)validCase2[i]);
         CS64INIToken token = cs64_ini_tokenize_value(&tokenResult, validCase2[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
@@ -853,7 +853,7 @@ int value_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(encodingErrorCase[i]);
+        CS64Size length = strlen((char*)encodingErrorCase[i]);
         CS64INIToken token = cs64_ini_tokenize_value(&tokenResult, encodingErrorCase[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_ENCODING_ERROR) {
@@ -939,7 +939,7 @@ int quote_value_token_test() {
         tokenResult.linePosition  = 0;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(validCase1[i]);
+        CS64Size length = strlen((char*)validCase1[i]);
         CS64INIToken token = cs64_ini_tokenize_value_quote(&tokenResult, validCase1[i], length, 0);
 
         if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
@@ -1012,7 +1012,7 @@ int quote_value_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(validCase2[i]);
+        CS64Size length = strlen((char*)validCase2[i]);
         CS64INIToken token = cs64_ini_tokenize_value_quote(&tokenResult, validCase2[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
@@ -1084,7 +1084,7 @@ int quote_value_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(encodingErrorCase[i]);
+        CS64Size length = strlen((char*)encodingErrorCase[i]);
         CS64INIToken token = cs64_ini_tokenize_value_quote(&tokenResult, encodingErrorCase[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_ENCODING_ERROR) {
@@ -1162,7 +1162,7 @@ int quote_value_token_test() {
         tokenResult.linePosition  = i + 1;
         tokenResult.pTokenStorage = NULL;
 
-        CS64Size length = strlen(badEndErrorCase[i]);
+        CS64Size length = strlen((char*)badEndErrorCase[i]);
         CS64INIToken token = cs64_ini_tokenize_value_quote(&tokenResult, badEndErrorCase[i], length, i + 1);
 
         if(tokenResult.state != CS64_INI_LEXER_EXPECTED_ERROR) {
@@ -1178,9 +1178,9 @@ int quote_value_token_test() {
         else {
             if( tokenResult.status.expected.result == badEndErrorCase[i][length - 1] ) {
                 if(tokenResult.status.expected.result != tokenResult.status.expected.expected)
-                    printf("Error quote_value_token_test Bad End Case Index %u. Expected 0x%zx not 0x%zx.\n", i, tokenResult.status.expected.expected, tokenResult.status.expected.result);
+                    printf("Error quote_value_token_test Bad End Case Index %u. Expected 0x%x not 0x%x.\n", i, tokenResult.status.expected.expected, tokenResult.status.expected.result);
                 else
-                    printf("Error quote_value_token_test Bad End Case Index %u. 0x%zx has been escaped. Thus the string is not completed.\n", i, tokenResult.status.expected.expected);
+                    printf("Error quote_value_token_test Bad End Case Index %u. 0x%x has been escaped. Thus the string is not completed.\n", i, tokenResult.status.expected.expected);
             }
         }
 
