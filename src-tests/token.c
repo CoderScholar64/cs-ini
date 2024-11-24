@@ -1239,7 +1239,7 @@ int lexer_test() {
         return 4;
     }
 
-    mallocPagesLeft = 6;
+    mallocPagesLeft = 7;
 
     // Now for the real test
     CS64UTF8 fileData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n; Comment\n\"key2\" = value; Comment";
