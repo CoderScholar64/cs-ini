@@ -1459,13 +1459,13 @@ int lexer_test() {
 
     CS64Size expectedUnhandledColumns[] = {
         0,
+        2,
+        7,
+        9,
         1,
-        6,
-        7, // Should be eight
-        0,
-        4,
         5,
-        11
+        7,
+        13
     };
 
     i = 0;
