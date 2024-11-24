@@ -894,13 +894,13 @@ int quote_value_token_test() {
         "' ;;;\nBlabla\n'",
     };
     CS64INIToken validCase1Tokens[] = {
-        {CS64_INI_TOKEN_VALUE, 0, 2},
-        {CS64_INI_TOKEN_VALUE, 0, 3},
-        {CS64_INI_TOKEN_VALUE, 0, 2},
-        {CS64_INI_TOKEN_VALUE, 0, 9},
-        {CS64_INI_TOKEN_VALUE, 0, 4},
-        {CS64_INI_TOKEN_VALUE, 0, 10},
-        {CS64_INI_TOKEN_VALUE, 0, 14}
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 2},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 3},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 2},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 9},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 4},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 10},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 0, 14}
     };
     CS64Size validCase1linePositions[] = {
         2,
@@ -967,13 +967,13 @@ int quote_value_token_test() {
         "whereis\" \\\";\"Blabla\n",
     };
     CS64INIToken validCase2Tokens[] = {
-        {CS64_INI_TOKEN_VALUE, 1, 2},
-        {CS64_INI_TOKEN_VALUE, 2, 3},
-        {CS64_INI_TOKEN_VALUE, 3, 4},
-        {CS64_INI_TOKEN_VALUE, 4, 8},
-        {CS64_INI_TOKEN_VALUE, 5, 3},
-        {CS64_INI_TOKEN_VALUE, 6, 3},
-        {CS64_INI_TOKEN_VALUE, 7, 6}
+        {CS64_INI_TOKEN_QUOTE_VALUE, 1, 2},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 2, 3},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 3, 4},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 4, 8},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 5, 3},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 6, 3},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 7, 6}
     };
     CS64Size validCase2linePositions[] = {
         3,
@@ -1039,13 +1039,13 @@ int quote_value_token_test() {
         "whereis\"\n;\n\xff\"Blabla\n",
     };
     CS64INIToken encodingErrorCaseTokens[] = {
-        {CS64_INI_TOKEN_VALUE, 1, 0},
-        {CS64_INI_TOKEN_VALUE, 2, 0},
-        {CS64_INI_TOKEN_VALUE, 3, 0},
-        {CS64_INI_TOKEN_VALUE, 4, 0},
-        {CS64_INI_TOKEN_VALUE, 5, 0},
-        {CS64_INI_TOKEN_VALUE, 6, 0},
-        {CS64_INI_TOKEN_VALUE, 7, 0}
+        {CS64_INI_TOKEN_QUOTE_VALUE, 1, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 2, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 3, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 4, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 5, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 6, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 7, 0}
     };
     CS64Size encodingErrorCaseLinePositions[] = {
         2,
@@ -1117,13 +1117,13 @@ int quote_value_token_test() {
         "whereis\"\n;\n\\\"Blabla",
     };
     CS64INIToken badEndErrorCaseTokens[] = {
-        {CS64_INI_TOKEN_VALUE, 1, 0},
-        {CS64_INI_TOKEN_VALUE, 2, 0},
-        {CS64_INI_TOKEN_VALUE, 3, 0},
-        {CS64_INI_TOKEN_VALUE, 4, 0},
-        {CS64_INI_TOKEN_VALUE, 5, 0},
-        {CS64_INI_TOKEN_VALUE, 6, 0},
-        {CS64_INI_TOKEN_VALUE, 7, 0}
+        {CS64_INI_TOKEN_QUOTE_VALUE, 1, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 2, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 3, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 4, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 5, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 6, 0},
+        {CS64_INI_TOKEN_QUOTE_VALUE, 7, 0}
     };
     CS64Size badEndErrorCaseLinePositions[] = {
         5,

@@ -107,7 +107,8 @@ typedef enum {
 typedef enum {
     /* CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways. */
     CS64_INI_TOKEN_DELEMETER,     /* DELEMETER */
-    CS64_INI_TOKEN_VALUE,         /* VALUE can be qouted */
+    CS64_INI_TOKEN_VALUE,         /* VALUE */
+    CS64_INI_TOKEN_QUOTE_VALUE,   /* VALUE in quotes */
     CS64_INI_TOKEN_COMMENT,       /* COMMENT_START *Every character except CS64_INI_TOKEN_END */
     CS64_INI_TOKEN_END,           /* New Line */
     CS64_INI_TOKEN_SECTION_START, /* Start of section */
@@ -572,7 +573,7 @@ CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8
 CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
     CS64Size characterSize;
     CS64UniChar character;
-    CS64INIToken token = {CS64_INI_TOKEN_VALUE, UTF8Offset, 0};
+    CS64INIToken token = {CS64_INI_TOKEN_QUOTE_VALUE, UTF8Offset, 0};
 
     const CS64UniChar quote = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
     character = quote;
