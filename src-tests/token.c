@@ -817,22 +817,13 @@ int value_token_test() {
         {CS64_INI_TOKEN_VALUE, 7, 0}
     };
     CS64Size encodingErrorCaseLinePositions[] = {
-        2,
-        3,
-        5,
-        5,
-        0,
-        7,
-        0
-    };
-    CS64Size encodingErrorCaseLineCount[] = {
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        2
+         2,
+         4,
+         6,
+         8,
+        10,
+        12,
+        14
     };
 
     i = 0;
@@ -856,8 +847,8 @@ int value_token_test() {
             }
         }
 
-        if(tokenResult.lineCount != encodingErrorCaseLineCount[i]) {
-            printf("Error value_token_test Invalid Case Index %u. Line Count expected %zu got %zu\n", i, encodingErrorCaseLineCount[i], tokenResult.lineCount);
+        if(tokenResult.lineCount != 0) {
+            printf("Error value_token_test Invalid Case Index %u. Line Count expected %u got %zu\n", i, 0, tokenResult.lineCount);
             return 10;
         }
 
