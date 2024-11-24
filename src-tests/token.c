@@ -34,6 +34,8 @@ int value_character_test();
 int comment_token_test();
 int value_token_test();
 int quote_value_token_test();
+// Lexer Test
+int lexer_test();
 
 int main() {
     int testResult;
@@ -67,6 +69,10 @@ int main() {
         return testResult;
 
     testResult = quote_value_token_test();
+    if(testResult != 0)
+        return testResult;
+
+    testResult = lexer_test();
     if(testResult != 0)
         return testResult;
 
@@ -1192,6 +1198,40 @@ int quote_value_token_test() {
         printf("\n{CS64_INI_TOKEN_COMMENT, %zu, %zu},", token.index, token.byteLength);
     printf("\n};\n");
     */
+
+    return 0;
+}
+
+int lexer_test() {
+    mallocPagesLeft = 0;
+
+    CS64INITokenResult tokenResult = cs64_ini_lexer("", 0);
+
+    if(tokenResult.state != CS64_INI_LEXER_NO_MEMORY_ERROR || tokenResult.lineCount != 0 || tokenResult.linePosition != 0) {
+        printf("Error lexer_test cs64_ini_lexer was supposed to return CS64_INI_LEXER_NO_MEMORY_ERROR but got %u. Line number %zu. Column %zu\n", tokenResult.state, tokenResult.lineCount, tokenResult.linePosition);
+        return 1;
+    }
+
+    if(pointerTrackAmount != 0) {
+        printf("Error lexer_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
+        return 2;
+    }
+
+    mallocPagesLeft = 1;
+
+    tokenResult = cs64_ini_lexer("[][][][][][]", 12);
+
+    if(tokenResult.state != CS64_INI_LEXER_NO_MEMORY_ERROR || tokenResult.lineCount != 1 || tokenResult.linePosition != 4) {
+        printf("Error lexer_test cs64_ini_lexer was supposed to return CS64_INI_LEXER_NO_MEMORY_ERROR but got %u. Line number %zu. Column %zu\n", tokenResult.state, tokenResult.lineCount, tokenResult.linePosition);
+        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        return 3;
+    }
+    cs64_ini_token_data_free(tokenResult.pTokenStorage);
+
+    if(pointerTrackAmount != 0) {
+        printf("Error lexer_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
+        return 4;
+    }
 
     return 0;
 }
