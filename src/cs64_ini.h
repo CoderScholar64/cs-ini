@@ -604,9 +604,9 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
             pResult->linePosition++;
     }
 
-    if(character != CS64_INI_VALUE_QUOTE) {
+    if(character != quote) {
         pResult->state = CS64_INI_LEXER_EXPECTED_ERROR;
-        pResult->status.expected.expected = CS64_INI_VALUE_QUOTE;
+        pResult->status.expected.expected = quote;
         pResult->status.expected.result = character;
         return token; /* NOTE: Expected Quote Error. */
     }
