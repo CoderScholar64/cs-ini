@@ -1315,8 +1315,9 @@ int lexer_test() {
     tokenResult = cs64_ini_lexer(fileBadQuoteData, fileBadQuoteDataSize);
 
     if(tokenResult.state == CS64_INI_LEXER_EXPECTED_ERROR) {
-        if(tokenResult.status.expected.expected != '\"' || tokenResult.status.expected.result != '3') {
+        if(tokenResult.status.expected.expected != '\"' || tokenResult.status.expected.result != '3' || tokenResult.lineCount != 9 || tokenResult.linePosition != 29) {
             printf("Error lexer_test: fileBadQuoteData produced CS64_INI_LEXER_EXPECTED_ERROR, but expected 0x%x while 0x%x.\n", tokenResult.status.expected.expected, tokenResult.status.expected.result);
+            printf("    Line Count = %zu; Column = %zu\n", tokenResult.lineCount, tokenResult.linePosition);
 
             if(tokenResult.pTokenStorage != NULL)
                 cs64_ini_token_data_free(tokenResult.pTokenStorage);
