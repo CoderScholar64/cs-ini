@@ -1342,19 +1342,36 @@ int lexer_test() {
         0,
         2,
         12,
-        32};
+        32,
+        33};
 
     CS64UTF8 expectedBadBytes[][4] = {
         {0xff, 0x53, 0x65, 0x63},
         {0xff, 0x63, 0x74, 0x69},
         {0xff, 0x72, 0x72, 0x75},
-        {0xff, 0x75, 0x65, 0x22}
+        {0xff, 0x75, 0x65, 0x22},
+        {0xff, 0x65, 0x22, 0x00},
+        {0xff, 0x22, 0x00, 0x00},
+        {0xff, 0x00, 0x00, 0x00}
+    };
+
+    CS64Size expectedBadByteLengths[] = {
+        4,
+        4,
+        4,
+        4,
+        3,
+        2,
+        1
     };
 
     CS64Size expectedBadByteLineNumber[] = {
         1,
         1,
         1,
+        3,
+        3,
+        3,
         3
     };
 
@@ -1362,7 +1379,10 @@ int lexer_test() {
         0,
         2,
         13, // 12
-        8 // 9
+        8, // 9
+        9,
+        10,
+        11
     };
 
     unsigned i = 0;
@@ -1382,7 +1402,7 @@ int lexer_test() {
         tokenResult = cs64_ini_lexer(fileToBeBadData, fileToBeBadDataSize);
 
         if(tokenResult.state == CS64_INI_LEXER_ENCODING_ERROR) {
-            if(tokenResult.status.encoding.badByteAmount != 4 ||
+            if(tokenResult.status.encoding.badByteAmount != expectedBadByteLengths[i] ||
                 tokenResult.status.encoding.badBytes[0] != expectedBadBytes[i][0] ||
                 tokenResult.status.encoding.badBytes[1] != expectedBadBytes[i][1] ||
                 tokenResult.status.encoding.badBytes[2] != expectedBadBytes[i][2] ||
