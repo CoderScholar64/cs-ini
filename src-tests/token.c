@@ -1461,7 +1461,7 @@ int lexer_test() {
         0,
         1,
         6,
-        7,
+        7, // Should be eight
         0,
         4,
         5,
