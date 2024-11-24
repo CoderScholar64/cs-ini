@@ -745,7 +745,7 @@ int value_token_test() {
         "0BlablaBla\"Ba",
     };
     CS64INIToken validCase2Tokens[] = {
-        {CS64_INI_TOKEN_VALUE,  7, 2},
+        {CS64_INI_TOKEN_VALUE, 10, 3},
         {CS64_INI_TOKEN_VALUE, 10, 3},
         {CS64_INI_TOKEN_VALUE,  9, 4},
         {CS64_INI_TOKEN_VALUE,  8, 5},
@@ -754,7 +754,7 @@ int value_token_test() {
         {CS64_INI_TOKEN_VALUE,  1, 9}
     };
     CS64Size validCase2linePositions[] = {
-        9,
+        13,
         13,
         13,
         13,
