@@ -817,28 +817,37 @@ int quote_value_token_test() {
         "w'\xff'",
         "wh\"\xff\"\xff",
         "whe\" \xff\";",
-        "wher\"\xff =[]\\\"",
-        "where\" \xff\"\xff\n",
+        "wher\"\xff\n=[]\\\"",
+        "where\"\n\xff\"\xff\n",
         "wherei\"\xff \"Blabla\n",
-        "whereis\" ;;\xff\"Blabla\n",
+        "whereis\"\n;\n\xff\"Blabla\n",
     };
     CS64INIToken invalidCaseTokens[] = {
-        {CS64_INI_TOKEN_COMMENT, 1, 0},
-        {CS64_INI_TOKEN_COMMENT, 2, 0},
-        {CS64_INI_TOKEN_COMMENT, 3, 0},
-        {CS64_INI_TOKEN_COMMENT, 4, 0},
-        {CS64_INI_TOKEN_COMMENT, 5, 0},
-        {CS64_INI_TOKEN_COMMENT, 6, 0},
-        {CS64_INI_TOKEN_COMMENT, 7, 0}
+        {CS64_INI_TOKEN_VALUE, 1, 0},
+        {CS64_INI_TOKEN_VALUE, 2, 0},
+        {CS64_INI_TOKEN_VALUE, 3, 0},
+        {CS64_INI_TOKEN_VALUE, 4, 0},
+        {CS64_INI_TOKEN_VALUE, 5, 0},
+        {CS64_INI_TOKEN_VALUE, 6, 0},
+        {CS64_INI_TOKEN_VALUE, 7, 0}
     };
     CS64Size invalidCaseLinePositions[] = {
         2,
         3,
         5,
         5,
+        0,
         7,
-        7,
-        11
+        0
+    };
+    CS64Size invalidCaseLineCount[] = {
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2
     };
 
     i = 0;
@@ -862,8 +871,8 @@ int quote_value_token_test() {
             }
         }
 
-        if(tokenResult.lineCount != 0) {
-            printf("Error quote_value_token_test Invalid Case Index %u. Line Count expected 0 got %zu\n", i, tokenResult.lineCount);
+        if(tokenResult.lineCount != invalidCaseLineCount[i]) {
+            printf("Error quote_value_token_test Invalid Case Index %u. Line Count expected %zu got %zu\n", i, invalidCaseLineCount[i], tokenResult.lineCount);
             return 10;
         }
 
