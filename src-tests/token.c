@@ -1379,7 +1379,7 @@ int lexer_test() {
         0,
         2,
         13, // 12
-        8, // 9
+        8,  // 9
         9,
         10,
         11
@@ -1446,6 +1446,28 @@ int lexer_test() {
         16,
         22};
 
+    CS64Size expectedUnhandledLineNumber[] = {
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2
+    };
+
+    CS64Size expectedUnhandledColumns[] = {
+        0,
+        1,
+        6,
+        7,
+        0,
+        4,
+        5,
+        11
+    };
+
     i = 0;
     while(i < sizeof(unhandledBytePlacements) / sizeof(unhandledBytePlacements[0])) {
         mallocPagesLeft = 3;
@@ -1458,8 +1480,9 @@ int lexer_test() {
         tokenResult = cs64_ini_lexer(fileUnhandledCharData, fileUnhandledCharDataSize);
 
         if(tokenResult.state == CS64_INI_LEXER_UNHANDLED_CHAR_ERROR) {
-            if( tokenResult.status.unhandled.unhandled != 0x1f ) {
+            if(tokenResult.status.unhandled.unhandled != 0x1f || tokenResult.lineCount != expectedUnhandledLineNumber[i] || tokenResult.linePosition != expectedUnhandledColumns[i]) {
                 printf("Error lexer_test: fileUnhandledCharData %i produced CS64_INI_LEXER_UNHANDLED_CHAR_ERROR, but returned 0x%02x.\n", i, tokenResult.status.unhandled.unhandled);
+                printf("    Line Count = %zu; Column = %zu\n", tokenResult.lineCount, tokenResult.linePosition);
                 return 11;
             }
         }
