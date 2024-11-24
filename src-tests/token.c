@@ -1242,7 +1242,7 @@ int lexer_test() {
     mallocPagesLeft = 7;
 
     // Now for the real test
-    CS64UTF8 fileData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n; Comment\n\"key2\" = value; Comment";
+    CS64UTF8 fileData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n\n\n; Comment\n\"key2\" = value value2\tvalue3; Comment";
     CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
 
     tokenResult = cs64_ini_lexer(fileData, fileDataSize);
