@@ -1319,7 +1319,7 @@ int lexer_test() {
         }
     }
     else {
-        printf("Error lexer_test: fileBadQuoteData did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", tokenResult.state);
+        printf("Error lexer_test: fileBadQuoteData did not produce CS64_INI_LEXER_EXPECTED_ERROR, but returned %u.\n", tokenResult.state);
 
         CS64Size tokenIndex = 0;
 
@@ -1335,6 +1335,86 @@ int lexer_test() {
         return 8;
     }
     cs64_ini_lexer_free(&tokenResult);
+
+    mallocPagesLeft = 3;
+
+    unsigned badBytePlacements[] = {
+        0,
+        2,
+        12,
+        32};
+
+    CS64UTF8 expectedBadBytes[][4] = {
+        {0xff, 0x53, 0x65, 0x63},
+        {0xff, 0x63, 0x74, 0x69},
+        {0xff, 0x72, 0x72, 0x75},
+        {0xff, 0x75, 0x65, 0x22}
+    };
+
+    CS64Size expectedBadByteLineNumber[] = {
+        1,
+        1,
+        1,
+        3
+    };
+
+    CS64Size expectedBadByteColumns[] = {
+        0,
+        2,
+        13, // 12
+        8 // 9
+    };
+
+    unsigned i = 0;
+    while(i < sizeof(badBytePlacements) / sizeof(badBytePlacements[0])) {
+        mallocPagesLeft = 3;
+
+        CS64UTF8 fileToBeBadData[] = "[Section]; Corruption\n\nkey =\t\"value\"";
+        CS64Size fileToBeBadDataSize = sizeof(fileToBeBadData) / sizeof(fileToBeBadData[0]) - 1;
+
+        fileToBeBadData[badBytePlacements[i]] = 0xff;
+
+        tokenResult.status.encoding.badBytes[0] = 0;
+        tokenResult.status.encoding.badBytes[1] = 0;
+        tokenResult.status.encoding.badBytes[2] = 0;
+        tokenResult.status.encoding.badBytes[3] = 0;
+
+        tokenResult = cs64_ini_lexer(fileToBeBadData, fileToBeBadDataSize);
+
+        if(tokenResult.state == CS64_INI_LEXER_ENCODING_ERROR) {
+            if(tokenResult.status.encoding.badByteAmount != 4 ||
+                tokenResult.status.encoding.badBytes[0] != expectedBadBytes[i][0] ||
+                tokenResult.status.encoding.badBytes[1] != expectedBadBytes[i][1] ||
+                tokenResult.status.encoding.badBytes[2] != expectedBadBytes[i][2] ||
+                tokenResult.status.encoding.badBytes[3] != expectedBadBytes[i][3] ||
+                tokenResult.lineCount != expectedBadByteLineNumber[i] || tokenResult.linePosition != expectedBadByteColumns[i]) {
+                printf("Error lexer_test: fileToBeBadData %i produced CS64_INI_LEXER_ENCODING_ERROR, Length %u {0x%x, 0x%x, 0x%x, 0x%x}.\n", i, tokenResult.status.encoding.badByteAmount, tokenResult.status.encoding.badBytes[0], tokenResult.status.encoding.badBytes[1], tokenResult.status.encoding.badBytes[2], tokenResult.status.encoding.badBytes[3]);
+                printf("    Line Count = %zu; Column = %zu\n", tokenResult.lineCount, tokenResult.linePosition);
+
+                cs64_ini_lexer_free(&tokenResult);
+
+                return 9;
+            }
+        }
+        else {
+            printf("Error lexer_test: fileToBeBadData %i did not produce CS64_INI_LEXER_ENCODING_ERROR, but returned %u.\n", badBytePlacements[i], tokenResult.state);
+
+            CS64Size tokenIndex = 0;
+
+            CS64INIToken *pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+            while(pToken != NULL) {
+                printf("%i %zu %zu\n", pToken->type, pToken->index, pToken->byteLength);
+                tokenIndex++;
+                pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+            }
+
+            cs64_ini_lexer_free(&tokenResult);
+
+            return 10;
+        }
+        cs64_ini_lexer_free(&tokenResult);
+        i++;
+    }
 
     return 0;
 }
