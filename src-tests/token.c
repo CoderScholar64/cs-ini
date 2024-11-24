@@ -23,11 +23,14 @@ void *pPointerTrackArray[TACKER_ARRAY_LIMIT];
 unsigned pointerTrackAmount = 0;
 int mallocPagesLeft = 0;
 
+// Data Storage Test
 int empty_alloc_test();
 int fill_element_test();
+// Character Tests
 int used_character_test();
 int whitespace_character_test();
 int value_character_test();
+// Tokenizer Tests
 int comment_token_test();
 int value_token_test();
 int quote_value_token_test();
