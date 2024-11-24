@@ -573,6 +573,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     /* Before doing anything check the characterSize to detect ASCII/UTF-8 error */
     INVALID_CHARACTER_TEST(pResult, token)
 
+    pResult->linePosition++;
     UTF8Offset += characterSize;
 
     int noSlash = 1;
@@ -585,9 +586,17 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
 
         UTF8Offset += characterSize;
 
+        if(character == ((CS64UniChar)'\n')) {
+            pResult->lineCount++;
+            pResult->linePosition = 0;
+        }
+        else
+            pResult->linePosition++;
+
         if(noSlash) {
-            if(character == quote)
+            if(character == quote) {
                 break;
+            }
             else if(character == CS64_INI_VALUE_SLASH) {
                 noSlash = 0;
             }
@@ -595,13 +604,6 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
         else {
             noSlash = 1;
         }
-
-        if(character == ((CS64UniChar)'\n')) {
-            pResult->lineCount++;
-            pResult->linePosition = 0;
-        }
-        else
-            pResult->linePosition++;
     }
 
     if(character != quote) {
