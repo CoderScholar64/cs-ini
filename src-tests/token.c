@@ -1436,7 +1436,36 @@ int lexer_test() {
         i++;
     }
 
-    return 0;
+    unsigned unhandledBytePlacements[] = {
+        0,
+        2,
+        7,
+        9,
+        10,
+        14,
+        16,
+        22};
+
+    i = 0;
+    while(i < sizeof(unhandledBytePlacements) / sizeof(unhandledBytePlacements[0])) {
+        mallocPagesLeft = 3;
+
+        CS64UTF8 fileUnhandledCharData[] = " [ Sect ]\n key = \"val\" ; Comment";
+        CS64Size fileUnhandledCharDataSize = sizeof(fileUnhandledCharData) / sizeof(fileUnhandledCharData[0]) - 1;
+
+        fileUnhandledCharData[unhandledBytePlacements[i]] = 0x1f;
+
+        tokenResult = cs64_ini_lexer(fileUnhandledCharData, fileUnhandledCharDataSize);
+
+        if(tokenResult.state != CS64_INI_LEXER_UNHANDLED_CHAR_ERROR) {
+            printf("Error lexer_test: fileUnhandledCharData %i did not produce CS64_INI_LEXER_UNHANDLED_CHAR_ERROR, but returned %u.\n", unhandledBytePlacements[i], tokenResult.state);
+            return 11;
+        }
+
+        i++;
+    }
+
+    return 1;
 }
 
 void *test_malloc(size_t size) {
