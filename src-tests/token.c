@@ -459,13 +459,14 @@ int value_character_test() {
 int comment_token_test() {
     CS64INITokenResult tokenResult = {0};
 
+    // Bad bytes, but cs64_ini_tokenize_comment is not supposed to read them
     CS64UTF8 validCase1[][0x10] = {
         ";",
         ";\n",
         "; \n;",
         "; =[]\\\"",
-        "; \n\n",
-        "; \nBlabla\n",
+        "; \n\xff\n",
+        "; \nBlabla\xff\n",
         "; ;;;\nBlabla\n",
     };
     CS64INIToken validCase1Tokens[] = {
@@ -508,7 +509,7 @@ int comment_token_test() {
         }
 
         if(tokenResult.linePosition != validCase1linePositions[i]) {
-            printf("Error comment_token_test Valid Case 1 Index %u. Line Count expected %zu got %zu\n", i, validCase1linePositions[i], tokenResult.linePosition);
+            printf("Error comment_token_test Valid Case 1 Index %u. Column expected %zu got %zu\n", i, validCase1linePositions[i], tokenResult.linePosition);
             return 3;
         }
 
@@ -522,14 +523,14 @@ int comment_token_test() {
         i++;
     }
 
-
+    // Bad bytes, but cs64_ini_tokenize_comment is not supposed to read them
     CS64UTF8 validCase2[][0x18] = {
         "w;",
-        "wh;\n",
+        "wh;\n\xff",
         "whe; \n;",
         "wher; =[]\\\"",
-        "where; \n\n",
-        "wherei; \nBlabla\n",
+        "where; \n\xff\n",
+        "wherei; \nBlabla\n\xff",
         "whereis; ;;;\nBlabla\n",
     };
     CS64INIToken validCase2Tokens[] = {
@@ -572,13 +573,82 @@ int comment_token_test() {
         }
 
         if(tokenResult.linePosition != validCase2linePositions[i]) {
-            printf("Error comment_token_test Valid Case 2 Index %u. Line Count expected %zu got %zu\n", i, validCase2linePositions[i], tokenResult.linePosition);
+            printf("Error comment_token_test Valid Case 2 Index %u. Column expected %zu got %zu\n", i, validCase2linePositions[i], tokenResult.linePosition);
             return 3;
         }
 
         if(token.type != validCase2Tokens[i].type || token.index != validCase2Tokens[i].index || token.byteLength != validCase2Tokens[i].byteLength) {
             printf("Error comment_token_test Valid Case 2 Index %u. Tokens do not match.\n", i);
             printf("Expected %i %zu %zu.\n", validCase2Tokens[i].type, validCase2Tokens[i].index, validCase2Tokens[i].byteLength);
+            printf("Returned %i %zu %zu.\n", token.type, token.index, token.byteLength);
+            return 4;
+        }
+
+        i++;
+    }
+
+    CS64UTF8 invalidCase[][0x18] = {
+        "w;\xff",
+        "wh;\xff\n\xff",
+        "whe; \xff\n;",
+        "wher;\xff =[]\\\"",
+        "where; \xff\n\xff\n",
+        "wherei;\xff \nBlabla\n",
+        "whereis; ;;\xff\nBlabla\n",
+    };
+    CS64INIToken invalidCaseTokens[] = {
+        {CS64_INI_TOKEN_COMMENT, 1, 0},
+        {CS64_INI_TOKEN_COMMENT, 2, 0},
+        {CS64_INI_TOKEN_COMMENT, 3, 0},
+        {CS64_INI_TOKEN_COMMENT, 4, 0},
+        {CS64_INI_TOKEN_COMMENT, 5, 0},
+        {CS64_INI_TOKEN_COMMENT, 6, 0},
+        {CS64_INI_TOKEN_COMMENT, 7, 0}
+    };
+    CS64Size invalidCaseLinePositions[] = {
+        2,
+        3,
+        5,
+        5,
+        7,
+        7,
+        11
+    };
+
+    i = 0;
+    while(i < sizeof(invalidCase) / sizeof(invalidCase[0])) {
+        tokenResult.state         = CS64_INI_LEXER_SUCCESS;
+        tokenResult.lineCount     = 0;
+        tokenResult.linePosition  = i + 1;
+        tokenResult.pTokenStorage = NULL;
+
+        CS64Size length = strlen(invalidCase[i]);
+        CS64INIToken token = cs64_ini_tokenize_comment(&tokenResult, invalidCase[i], length, i + 1);
+
+        if(tokenResult.state != CS64_INI_LEXER_ENCODING_ERROR) {
+            printf("Error comment_token_test Invalid Case Index %u. State expected CS64_INI_LEXER_ENCODING_ERROR got %u\n", i, tokenResult.state);
+            return 1;
+        }
+        else {
+            if(tokenResult.status.encoding.badByteAmount == 0 || tokenResult.status.encoding.badBytes[0] != 0xff) {
+                printf("Error comment_token_test Invalid Case Index %u. Length %u Bytes 0x%02x 0x%02x 0x%02x 0x%02x\n", i, tokenResult.status.encoding.badByteAmount, tokenResult.status.encoding.badBytes[0], tokenResult.status.encoding.badBytes[1], tokenResult.status.encoding.badBytes[2], tokenResult.status.encoding.badBytes[3]);
+                return 1;
+            }
+        }
+
+        if(tokenResult.lineCount != 0) {
+            printf("Error comment_token_test Invalid Case Index %u. Line Count expected 0 got %zu\n", i, tokenResult.lineCount);
+            return 2;
+        }
+
+        if(tokenResult.linePosition != invalidCaseLinePositions[i]) {
+            printf("Error comment_token_test Invalid Case Index %u. Column expected %zu got %zu\n", i, invalidCaseLinePositions[i], tokenResult.linePosition);
+            return 3;
+        }
+
+        if(token.type != invalidCaseTokens[i].type || token.index != invalidCaseTokens[i].index || token.byteLength != invalidCaseTokens[i].byteLength) {
+            printf("Error comment_token_test Invalid Case Index %u. Tokens do not match.\n", i);
+            printf("Expected %i %zu %zu.\n", invalidCaseTokens[i].type, invalidCaseTokens[i].index, invalidCaseTokens[i].byteLength);
             printf("Returned %i %zu %zu.\n", token.type, token.index, token.byteLength);
             return 4;
         }
