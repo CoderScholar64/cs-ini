@@ -1274,7 +1274,7 @@ int lexer_test() {
 
     tokenResult = cs64_ini_lexer(fileData, fileDataSize);
 
-    if(tokenResult.state != CS64_INI_LEXER_SUCCESS){
+    if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
         printf("Error lexer_test: fileData did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", tokenResult.state);
 
         CS64Size tokenIndex = 0;
@@ -1303,6 +1303,32 @@ int lexer_test() {
         }
         tokenIndex++;
         pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+    }
+    if(tokenResult.pTokenStorage != NULL)
+        cs64_ini_token_data_free(tokenResult.pTokenStorage);
+
+    mallocPagesLeft = 7;
+
+    CS64UTF8 fileBadQuoteData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n\n\n; Comment\n\"key2\" = value value2\"\tvalue3";
+    CS64Size fileBadQuoteDataSize = sizeof(fileBadQuoteData) / sizeof(fileBadQuoteData[0]) - 1;
+
+    tokenResult = cs64_ini_lexer(fileBadQuoteData, fileBadQuoteDataSize);
+
+    if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
+        printf("Error lexer_test: fileBadQuoteData did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", tokenResult.state);
+
+        CS64Size tokenIndex = 0;
+
+        CS64INIToken *pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+        while(pToken != NULL) {
+            printf("%i %zu %zu\n", pToken->type, pToken->index, pToken->byteLength);
+            tokenIndex++;
+            pToken = cs64_ini_token_data_get_token(tokenResult.pTokenStorage, tokenIndex);
+        }
+
+        if(tokenResult.pTokenStorage != NULL)
+            cs64_ini_token_data_free(tokenResult.pTokenStorage);
+        return 7;
     }
     if(tokenResult.pTokenStorage != NULL)
         cs64_ini_token_data_free(tokenResult.pTokenStorage);
