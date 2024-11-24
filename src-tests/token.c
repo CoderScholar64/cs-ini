@@ -1159,11 +1159,12 @@ int quote_value_token_test() {
             }
         }
         else {
-            if( tokenResult.status.expected.result == badEndErrorCase[i][length - 1] ) {
+            if( tokenResult.status.expected.result != badEndErrorCase[i][length - 1] ) {
                 if(tokenResult.status.expected.result != tokenResult.status.expected.expected)
                     printf("Error quote_value_token_test Bad End Case Index %u. Expected 0x%x not 0x%x.\n", i, tokenResult.status.expected.expected, tokenResult.status.expected.result);
                 else
                     printf("Error quote_value_token_test Bad End Case Index %u. 0x%x has been escaped. Thus the string is not completed.\n", i, tokenResult.status.expected.expected);
+                return 15;
             }
         }
 
