@@ -675,25 +675,34 @@ int quote_value_token_test() {
         "\"; =[]\\\"",
         "' \n'\xff",
         "' \nBlabla'\xff\n",
-        "' ;;;\nBlabla\n\'",
+        "' ;;;\nBlabla\n'",
     };
     CS64INIToken validCase1Tokens[] = {
-        {CS64_INI_TOKEN_COMMENT, 0, 2},
-        {CS64_INI_TOKEN_COMMENT, 0, 3},
-        {CS64_INI_TOKEN_COMMENT, 0, 2},
-        {CS64_INI_TOKEN_COMMENT, 0, 7},
-        {CS64_INI_TOKEN_COMMENT, 0, 2},
-        {CS64_INI_TOKEN_COMMENT, 0, 2},
-        {CS64_INI_TOKEN_COMMENT, 0, 5}
+        {CS64_INI_TOKEN_VALUE, 0, 2},
+        {CS64_INI_TOKEN_VALUE, 0, 3},
+        {CS64_INI_TOKEN_VALUE, 0, 2},
+        {CS64_INI_TOKEN_VALUE, 0, 8},
+        {CS64_INI_TOKEN_VALUE, 0, 4},
+        {CS64_INI_TOKEN_VALUE, 0, 10},
+        {CS64_INI_TOKEN_VALUE, 0, 14}
     };
     CS64Size validCase1linePositions[] = {
-        1,
-        1,
         2,
+        3,
+        2,
+        8,
+        1,
         7,
-        2,
-        2,
-        5
+        1
+    };
+    CS64Size validCase1LineCount[] = {
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        2
     };
 
     unsigned i = 0;
@@ -711,13 +720,13 @@ int quote_value_token_test() {
             return 1;
         }
 
-        if(tokenResult.lineCount != 0) {
-            printf("Error quote_value_token_test Valid Case 1 Index %u. Line Count expected 0 got %zu\n", i, tokenResult.lineCount);
+        if(tokenResult.lineCount != validCase1LineCount[i]) {
+            printf("Error quote_value_token_test Valid Case 1 Index %u. Line Count expected %zu got %zu\n", i, validCase1LineCount[i], tokenResult.lineCount);
             return 2;
         }
 
         if(tokenResult.linePosition != validCase1linePositions[i]) {
-            printf("Error quote_value_token_test Valid Case 1 Index %u. Column expected %zu got %zu\n", i, validCase1linePositions[i], tokenResult.linePosition);
+            printf("Error quote_value_token_test Valid Case 1 Index %u. Column expected %zu got %zu\n%s\n", i, validCase1linePositions[i], tokenResult.linePosition, validCase1[i]);
             return 3;
         }
 
@@ -742,22 +751,31 @@ int quote_value_token_test() {
         "whereis\" ;;;\"Blabla\n",
     };
     CS64INIToken validCase2Tokens[] = {
-        {CS64_INI_TOKEN_COMMENT, 1, 2},
-        {CS64_INI_TOKEN_COMMENT, 2, 3},
-        {CS64_INI_TOKEN_COMMENT, 3, 4},
-        {CS64_INI_TOKEN_COMMENT, 4, 7},
-        {CS64_INI_TOKEN_COMMENT, 5, 2},
-        {CS64_INI_TOKEN_COMMENT, 6, 2},
-        {CS64_INI_TOKEN_COMMENT, 7, 5}
+        {CS64_INI_TOKEN_VALUE, 1, 2},
+        {CS64_INI_TOKEN_VALUE, 2, 3},
+        {CS64_INI_TOKEN_VALUE, 3, 4},
+        {CS64_INI_TOKEN_VALUE, 4, 7},
+        {CS64_INI_TOKEN_VALUE, 5, 3},
+        {CS64_INI_TOKEN_VALUE, 6, 3},
+        {CS64_INI_TOKEN_VALUE, 7, 6}
     };
     CS64Size validCase2linePositions[] = {
-        1 + 1,
-        1 + 2,
-        2 + 3,
+        3,
+        1,
+        1,
         7 + 4,
-        2 + 5,
-        2 + 6,
-        5 + 7
+        3 + 5,
+        3 + 6,
+        6 + 7
+    };
+    CS64Size validCase2LineCount[] = {
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
     };
 
     i = 0;
@@ -775,8 +793,8 @@ int quote_value_token_test() {
             return 5;
         }
 
-        if(tokenResult.lineCount != 0) {
-            printf("Error quote_value_token_test Valid Case 2 Index %u. Line Count expected 0 got %zu\n", i, tokenResult.lineCount);
+        if(tokenResult.lineCount != validCase2LineCount[i]) {
+            printf("Error quote_value_token_test Valid Case 2 Index %u. Line Count expected %zu got %zu\n", i, validCase2LineCount[i], tokenResult.lineCount);
             return 6;
         }
 
