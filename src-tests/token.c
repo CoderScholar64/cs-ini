@@ -1457,9 +1457,15 @@ int lexer_test() {
 
         tokenResult = cs64_ini_lexer(fileUnhandledCharData, fileUnhandledCharDataSize);
 
-        if(tokenResult.state != CS64_INI_LEXER_UNHANDLED_CHAR_ERROR) {
-            printf("Error lexer_test: fileUnhandledCharData %i did not produce CS64_INI_LEXER_UNHANDLED_CHAR_ERROR, but returned %u.\n", unhandledBytePlacements[i], tokenResult.state);
-            return 11;
+        if(tokenResult.state == CS64_INI_LEXER_UNHANDLED_CHAR_ERROR) {
+            if( tokenResult.status.unhandled.unhandled != 0x1f ) {
+                printf("Error lexer_test: fileUnhandledCharData %i produced CS64_INI_LEXER_UNHANDLED_CHAR_ERROR, but returned 0x%02x.\n", i, tokenResult.status.unhandled.unhandled);
+                return 11;
+            }
+        }
+        else {
+            printf("Error lexer_test: fileUnhandledCharData %i did not produce CS64_INI_LEXER_UNHANDLED_CHAR_ERROR, but returned %u.\n", i, tokenResult.state);
+            return 12;
         }
 
         i++;
