@@ -672,7 +672,7 @@ int quote_value_token_test() {
         "''",
         "';'\n",
         "\"\"\n;",
-        "\"; =[]\\\"",
+        "\"; =[]\\\"\"",
         "' \n'\xff",
         "' \nBlabla'\xff\n",
         "' ;;;\nBlabla\n'",
@@ -681,7 +681,7 @@ int quote_value_token_test() {
         {CS64_INI_TOKEN_VALUE, 0, 2},
         {CS64_INI_TOKEN_VALUE, 0, 3},
         {CS64_INI_TOKEN_VALUE, 0, 2},
-        {CS64_INI_TOKEN_VALUE, 0, 8},
+        {CS64_INI_TOKEN_VALUE, 0, 9},
         {CS64_INI_TOKEN_VALUE, 0, 4},
         {CS64_INI_TOKEN_VALUE, 0, 10},
         {CS64_INI_TOKEN_VALUE, 0, 14}
@@ -690,7 +690,7 @@ int quote_value_token_test() {
         2,
         3,
         2,
-        8,
+        9,
         1,
         7,
         1
@@ -745,16 +745,16 @@ int quote_value_token_test() {
         "w''",
         "wh'\n'\xff",
         "whe' \n';",
-        "wher\" =[]\\\"",
+        "wher\" =[]\\\"\"",
         "where\" \"\xff\n",
         "wherei\" \"Blabla\n\xff",
-        "whereis\" ;;;\"Blabla\n",
+        "whereis\" \\\";\"Blabla\n",
     };
     CS64INIToken validCase2Tokens[] = {
         {CS64_INI_TOKEN_VALUE, 1, 2},
         {CS64_INI_TOKEN_VALUE, 2, 3},
         {CS64_INI_TOKEN_VALUE, 3, 4},
-        {CS64_INI_TOKEN_VALUE, 4, 7},
+        {CS64_INI_TOKEN_VALUE, 4, 8},
         {CS64_INI_TOKEN_VALUE, 5, 3},
         {CS64_INI_TOKEN_VALUE, 6, 3},
         {CS64_INI_TOKEN_VALUE, 7, 6}
@@ -763,7 +763,7 @@ int quote_value_token_test() {
         3,
         1,
         1,
-        7 + 4,
+        8 + 4,
         3 + 5,
         3 + 6,
         6 + 7

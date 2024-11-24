@@ -595,7 +595,8 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
 
         if(noSlash) {
             if(character == quote) {
-                break;
+                token.byteLength = UTF8Offset - token.index;
+                return token;
             }
             else if(character == CS64_INI_VALUE_SLASH) {
                 noSlash = 0;
@@ -606,16 +607,10 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
         }
     }
 
-    if(character != quote) {
-        pResult->state = CS64_INI_LEXER_EXPECTED_ERROR;
-        pResult->status.expected.expected = quote;
-        pResult->status.expected.result = character;
-        return token; /* NOTE: Expected Quote Error. */
-    }
-
-    token.byteLength = UTF8Offset - token.index;
-
-    return token;
+    pResult->state = CS64_INI_LEXER_EXPECTED_ERROR;
+    pResult->status.expected.expected = quote;
+    pResult->status.expected.result = character;
+    return token; /* NOTE: Expected Quote Error. */
 }
 
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
