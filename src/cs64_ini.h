@@ -136,6 +136,10 @@ typedef struct {
     CS64INILexerState state;
     CS64Size lineCount; /* the number of lines that has been processed. */
     CS64Size linePosition; /* in the amount of unicode points not bytes. Useful for lexer errors. */
+    /* This is for allocations for the hash tables */
+    CS64Size delimeterCount; /* delimeters count the number of entries that would need to be counted */
+    CS64Size sectionBeginCount; /* sectionBeginCount count the number of sections that would need to be stored. */
+    CS64Size sectionEndCount; /* sectionEndCount count the number of sections that would need to be stored. It is here for extra error detection. */
     CS64INITokenData *pTokenStorage;
     union {
         struct {
@@ -627,6 +631,9 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
     result.state = CS64_INI_LEXER_SUCCESS;
     result.lineCount = 0;
     result.linePosition = 0;
+    result.delimeterCount = 0;
+    result.sectionBeginCount = 0;
+    result.sectionEndCount = 0;
     result.pTokenStorage = cs64_ini_token_data_alloc();
 
     /* Memory safety! */
@@ -656,11 +663,13 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             token.type       = CS64_INI_TOKEN_SECTION_START;
             token.index      = UTF8Offset;
             token.byteLength = characterSize;
+            result.sectionBeginCount++;
         }
         else if(character == CS64_INI_SECTION_END) {
             token.type       = CS64_INI_TOKEN_SECTION_END;
             token.index      = UTF8Offset;
             token.byteLength = characterSize;
+            result.sectionEndCount++;
         }
         else if(character == CS64_INI_COMMENT) {
             token = cs64_ini_tokenize_comment(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
@@ -677,6 +686,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             token.type       = CS64_INI_TOKEN_DELEMETER;
             token.index      = UTF8Offset;
             token.byteLength = characterSize;
+            result.delimeterCount++;
         }
         else if(character == CS64_INI_VALUE_QUOTE) {
             token = cs64_ini_tokenize_value_quote(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
