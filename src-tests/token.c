@@ -1270,8 +1270,11 @@ int lexer_test() {
 
     tokenResult = cs64_ini_lexer(fileData, fileDataSize);
 
-    if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
+    if(tokenResult.state != CS64_INI_LEXER_SUCCESS || tokenResult.delimeterCount != 3 || tokenResult.sectionBeginCount != 1 || tokenResult.sectionEndCount != 1) {
         printf("Error lexer_test: fileData did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", tokenResult.state);
+        printf("    delimeter count %zu.\n", tokenResult.delimeterCount);
+        printf("    section begin count %zu.\n", tokenResult.sectionBeginCount);
+        printf("    section end   count %zu.\n", tokenResult.sectionEndCount);
 
         CS64Size tokenIndex = 0;
 
