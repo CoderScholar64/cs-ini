@@ -1378,9 +1378,9 @@ int lexer_test() {
     CS64Size expectedBadByteColumns[] = {
         0,
         2,
-        13, // 12
-        8,  // 9
+        12,
         9,
+        10,
         10,
         11
     };
@@ -1462,10 +1462,10 @@ int lexer_test() {
         2,
         7,
         9,
-        1,
-        5,
-        7,
-        13
+        0,
+        4,
+        6,
+        12
     };
 
     i = 0;
@@ -1494,7 +1494,7 @@ int lexer_test() {
         i++;
     }
 
-    return 1;
+    return 0;
 }
 
 void *test_malloc(size_t size) {

@@ -671,6 +671,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
             UTF8Offset += token.byteLength;
             characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
+            result.linePosition--;
         }
         else if(character == CS64_INI_DELEMETER) {
             token.type       = CS64_INI_TOKEN_DELEMETER;
@@ -686,8 +687,16 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
             UTF8Offset += token.byteLength;
             characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
+            result.linePosition--;
         }
         else if(cs64_ini_is_character_whitespace(character)) { /* Skip whitespace. */
+            if(character == ((CS64UniChar)'\n')) {
+                result.lineCount++;
+                result.linePosition = 0;
+            }
+            else
+                result.linePosition++;
+
             UTF8Offset += characterSize;
             continue;
         }
@@ -700,6 +709,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
             UTF8Offset += token.byteLength;
             characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
+            result.linePosition--;
         }
         else {
             result.state = CS64_INI_LEXER_UNHANDLED_CHAR_ERROR;
