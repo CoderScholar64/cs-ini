@@ -631,6 +631,17 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     token.index      = UTF8Offset;\
     token.byteLength = characterSize;
 
+#define CALL_TOKEN_FUNCTION(fun)\
+    token = fun(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);\
+\
+    /* If byte length is zero then tokenization had failed. */\
+    if(token.byteLength == 0)\
+        break;\
+\
+    UTF8Offset += token.byteLength;\
+    characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */\
+    result.linePosition--;
+
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
     CS64INITokenResult result;
     result.state = CS64_INI_LEXER_SUCCESS;
@@ -671,30 +682,14 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             result.sectionEndCount++;
         }
         else if(character == CS64_INI_COMMENT) {
-            token = cs64_ini_tokenize_comment(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
-
-            /* If byte length is zero then tokenization had failed. */
-            if(token.byteLength == 0)
-                break;
-
-            UTF8Offset += token.byteLength;
-            characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
-            result.linePosition--;
+            CALL_TOKEN_FUNCTION(cs64_ini_tokenize_comment)
         }
         else if(character == CS64_INI_DELEMETER) {
             SET_TOKEN(CS64_INI_TOKEN_DELEMETER)
             result.delimeterCount++;
         }
         else if(character == CS64_INI_VALUE_QUOTE) {
-            token = cs64_ini_tokenize_value_quote(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
-
-            /* If byte length is zero then tokenization had failed. */
-            if(token.byteLength == 0)
-                break;
-
-            UTF8Offset += token.byteLength;
-            characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
-            result.linePosition--;
+            CALL_TOKEN_FUNCTION(cs64_ini_tokenize_value_quote)
         }
         else if(cs64_ini_is_character_whitespace(character)) { /* Skip whitespace. */
             if(character == ((CS64UniChar)'\n')) {
@@ -708,15 +703,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             continue;
         }
         else if(cs64_ini_is_character_value(character)) {
-            token = cs64_ini_tokenize_value(&result, pUTF8Data, UTF8ByteSize, UTF8Offset);
-
-            /* If byte length is zero then tokenization had failed. */
-            if(token.byteLength == 0)
-                break;
-
-            UTF8Offset += token.byteLength;
-            characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */
-            result.linePosition--;
+            CALL_TOKEN_FUNCTION(cs64_ini_tokenize_value)
         }
         else {
             result.state = CS64_INI_LEXER_UNHANDLED_CHAR_ERROR;
