@@ -494,7 +494,7 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
         case 0x205f:
         case 0x2060:
         case 0x3000:
-        case 0xFEFF:
+        case 0xfeff:
             return 1; /* This is whitespace! */
         default:
             return 0; /* Not whitespace */
@@ -516,6 +516,16 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
         }\
         return ret; /* NOTE: Invalid Character Error. */\
     }
+
+#define ADVANCE_CHARACTER()\
+    UTF8Offset += characterSize;\
+\
+    if(character == ((CS64UniChar)'\n')) {\
+        pResult->lineCount++;\
+        pResult->linePosition = 0;\
+    }\
+    else\
+        pResult->linePosition++;
 
 CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
     CS64Size characterSize;
@@ -559,14 +569,7 @@ CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8
             return token;
         }
 
-        UTF8Offset += characterSize;
-
-        if(character == ((CS64UniChar)'\n')) {
-            pResult->lineCount++;
-            pResult->linePosition = 0;
-        }
-        else
-            pResult->linePosition++;
+        ADVANCE_CHARACTER()
     }
 
     if(UTF8Offset == UTF8ByteSize)
@@ -597,14 +600,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
         /* Check the characterSize to detect ASCII/UTF-8 error */
         INVALID_CHARACTER_TEST(pResult, token)
 
-        UTF8Offset += characterSize;
-
-        if(character == ((CS64UniChar)'\n')) {
-            pResult->lineCount++;
-            pResult->linePosition = 0;
-        }
-        else
-            pResult->linePosition++;
+        ADVANCE_CHARACTER()
 
         if(noSlash) {
             if(character == quote) {
@@ -692,14 +688,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             CALL_TOKEN_FUNCTION(cs64_ini_tokenize_value_quote)
         }
         else if(cs64_ini_is_character_whitespace(character)) { /* Skip whitespace. */
-            if(character == ((CS64UniChar)'\n')) {
-                result.lineCount++;
-                result.linePosition = 0;
-            }
-            else
-                result.linePosition++;
-
-            UTF8Offset += characterSize;
+            ADVANCE_CHARACTER()
             continue;
         }
         else if(cs64_ini_is_character_value(character)) {
@@ -721,14 +710,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             return result; /* NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error. */
         }
 
-        if(character == ((CS64UniChar)'\n')) {
-            result.lineCount++;
-            result.linePosition = 0;
-        }
-        else
-            result.linePosition++;
-
-        UTF8Offset += characterSize;
+        ADVANCE_CHARACTER()
     }
 
     /* Add an end */
@@ -746,6 +728,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
     return result;
 }
+#undef CALL_TOKEN_FUNCTION
 #undef SET_TOKEN
 #undef INVALID_CHARACTER_TEST
 
