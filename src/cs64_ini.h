@@ -728,6 +728,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
     return result;
 }
+#undef ADVANCE_CHARACTER
 #undef CALL_TOKEN_FUNCTION
 #undef SET_TOKEN
 #undef INVALID_CHARACTER_TEST
