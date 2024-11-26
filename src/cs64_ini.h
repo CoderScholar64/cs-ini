@@ -156,6 +156,17 @@ typedef struct {
     } status;
 } CS64INITokenResult;
 
+typedef struct {
+} CS64INIData;
+
+CS64INIData* cs64_ini_data_alloc();
+/*TODO Add save and load functions*/
+void cs64_ini_data_free(CS64INIData* pData);
+
+int cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
+int cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+int cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+
 CS64INITokenData* cs64_ini_token_data_alloc();
 int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
 CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
@@ -517,15 +528,15 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
         return ret; /* NOTE: Invalid Character Error. */\
     }
 
-#define ADVANCE_CHARACTER()\
+#define ADVANCE_CHARACTER(pResult)\
     UTF8Offset += characterSize;\
 \
     if(character == ((CS64UniChar)'\n')) {\
-        pResult->lineCount++;\
-        pResult->linePosition = 0;\
+        (pResult)->lineCount++;\
+        (pResult)->linePosition = 0;\
     }\
     else\
-        pResult->linePosition++;
+        (pResult)->linePosition++;
 
 CS64INIToken cs64_ini_tokenize_comment(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset) {
     CS64Size characterSize;
@@ -569,7 +580,7 @@ CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8
             return token;
         }
 
-        ADVANCE_CHARACTER()
+        ADVANCE_CHARACTER(pResult)
     }
 
     if(UTF8Offset == UTF8ByteSize)
@@ -600,7 +611,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
         /* Check the characterSize to detect ASCII/UTF-8 error */
         INVALID_CHARACTER_TEST(pResult, token)
 
-        ADVANCE_CHARACTER()
+        ADVANCE_CHARACTER(pResult)
 
         if(noSlash) {
             if(character == quote) {
@@ -688,7 +699,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             CALL_TOKEN_FUNCTION(cs64_ini_tokenize_value_quote)
         }
         else if(cs64_ini_is_character_whitespace(character)) { /* Skip whitespace. */
-            ADVANCE_CHARACTER()
+            ADVANCE_CHARACTER(&result)
             continue;
         }
         else if(cs64_ini_is_character_value(character)) {
@@ -710,7 +721,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             return result; /* NOTE: Generic out of memory exception. The program probably somehow ran out of space! Error. */
         }
 
-        ADVANCE_CHARACTER()
+        ADVANCE_CHARACTER(&result)
     }
 
     /* Add an end */
