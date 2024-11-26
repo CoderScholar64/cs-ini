@@ -626,6 +626,11 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     return token; /* NOTE: Expected Quote Error. */
 }
 
+#define SET_TOKEN(t)\
+    token.type       = t;\
+    token.index      = UTF8Offset;\
+    token.byteLength = characterSize;
+
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
     CS64INITokenResult result;
     result.state = CS64_INI_LEXER_SUCCESS;
@@ -655,20 +660,14 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
         INVALID_CHARACTER_TEST(&result, result)
 
         if(character == CS64_INI_END) {
-            token.type       = CS64_INI_TOKEN_END;
-            token.index      = UTF8Offset;
-            token.byteLength = characterSize;
+            SET_TOKEN(CS64_INI_TOKEN_END)
         }
         else if(character == CS64_INI_SECTION_BEGIN) {
-            token.type       = CS64_INI_TOKEN_SECTION_START;
-            token.index      = UTF8Offset;
-            token.byteLength = characterSize;
+            SET_TOKEN(CS64_INI_TOKEN_SECTION_START)
             result.sectionBeginCount++;
         }
         else if(character == CS64_INI_SECTION_END) {
-            token.type       = CS64_INI_TOKEN_SECTION_END;
-            token.index      = UTF8Offset;
-            token.byteLength = characterSize;
+            SET_TOKEN(CS64_INI_TOKEN_SECTION_END)
             result.sectionEndCount++;
         }
         else if(character == CS64_INI_COMMENT) {
@@ -683,9 +682,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
             result.linePosition--;
         }
         else if(character == CS64_INI_DELEMETER) {
-            token.type       = CS64_INI_TOKEN_DELEMETER;
-            token.index      = UTF8Offset;
-            token.byteLength = characterSize;
+            SET_TOKEN(CS64_INI_TOKEN_DELEMETER)
             result.delimeterCount++;
         }
         else if(character == CS64_INI_VALUE_QUOTE) {
@@ -762,6 +759,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
     return result;
 }
+#undef SET_TOKEN
 #undef INVALID_CHARACTER_TEST
 
 void cs64_ini_lexer_free(CS64INITokenResult *pData) {
