@@ -183,7 +183,6 @@ CS64INIToken* cs64_ini_token_data_last_token(CS64INITokenData *pData);
 CS64INIToken* cs64_ini_token_data_get_token(CS64INITokenData *pData, CS64Size tokenIndex);
 void cs64_ini_token_data_free(CS64INITokenData *pData);
 
-/* CS64INIToken cs64_ini_token_merge(const CS64INIToken *const pLastToken, const CS64INIToken *const pNextToken); */ /* TODO Make tokens mergable. */
 int cs64_ini_is_character_used(CS64UniChar character);
 int cs64_ini_is_character_value(CS64UniChar character);
 int cs64_ini_is_character_whitespace(CS64UniChar character);
