@@ -159,13 +159,23 @@ typedef struct {
 typedef struct {
 } CS64INIData;
 
+/* Public functions */
+
 CS64INIData* cs64_ini_data_alloc();
 /*TODO Add save and load functions*/
 void cs64_ini_data_free(CS64INIData* pData);
 
 int cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
-int cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+const CS64UTF8 *const cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
 int cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+
+int cs64_ini_set_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pComment);
+const CS64UTF8 *const cs64_ini_get_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+
+int cs64_ini_set_inline_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pComment);
+const CS64UTF8 *const cs64_ini_get_inline_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+
+/* Private functions */
 
 CS64INITokenData* cs64_ini_token_data_alloc();
 int cs64_ini_token_data_append_token(CS64INITokenData *pData, CS64INIToken token);
