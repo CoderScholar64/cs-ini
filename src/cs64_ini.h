@@ -105,6 +105,18 @@ typedef enum {
 } CS64INILexerState;
 
 typedef enum {
+    CS64_INI_ENTRY_SUCCESS               = 0, /* Anything other than zero, is an error */
+    CS64_INI_ENTRY_ERROR_PROBLEM_NULL    = 1 << 1,
+    CS64_INI_ENTRY_ERROR_PROBLEM_MISSING = 1 << 2,
+    CS64_INI_ENTRY_ERROR_PROBLEM_INVALID = 1 << 3,
+    CS64_INI_ENTRY_ERROR_PROBLEM_TOO_BIG = 1 << 4,
+    CS64_INI_ENTRY_ERROR_DATA            = 1 << 5,
+    CS64_INI_ENTRY_ERROR_SECTION         = 1 << 6,
+    CS64_INI_ENTRY_ERROR_KEY             = 1 << 7,
+    CS64_INI_ENTRY_ERROR_VALUE           = 1 << 8
+} CS64INIEntryStateFlags;
+
+typedef enum {
     /* CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways. */
     CS64_INI_TOKEN_DELEMETER,     /* DELEMETER */
     CS64_INI_TOKEN_VALUE,         /* VALUE */
@@ -165,14 +177,14 @@ CS64INIData* cs64_ini_data_alloc();
 /*TODO Add save and load functions*/
 void cs64_ini_data_free(CS64INIData* pData);
 
-int cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
+CS64INIEntryStateFlags cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
-int cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+CS64INIEntryStateFlags cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
 
-int cs64_ini_set_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pComment);
+CS64INIEntryStateFlags cs64_ini_set_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
 
-int cs64_ini_set_inline_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pComment);
+CS64INIEntryStateFlags cs64_ini_set_inline_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_inline_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
 
 /* Private functions */
