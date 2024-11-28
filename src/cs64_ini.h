@@ -389,7 +389,7 @@ int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64Un
         return -1; /* character is too big for this algorithm. */
 }
 
-/* ### Token Storage */
+/* ### Token Storage ### */
 
 CS64INITokenData* cs64_ini_token_data_alloc() {
     CS64INITokenData *pData = CS64_INI_MALLOC(sizeof(CS64INITokenData));
@@ -461,7 +461,7 @@ void cs64_ini_token_data_free(CS64INITokenData *pData) {
     CS64_INI_FREE(pData);
 }
 
-/* ### Lexer */
+/* ### Lexer ### */
 
 int cs64_ini_is_character_used(CS64UniChar character) {
     /* WARNING Never remove this function! It can detect naming conflicts. */
