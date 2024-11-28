@@ -168,7 +168,43 @@ typedef struct {
     } status;
 } CS64INITokenResult;
 
+typedef struct CS64Value {
+    CS64UniChar name[32];
+    CS64UniChar value[32]; /* This could be a union to hold integers/floats efficiently */
+    struct CS64Value *pNext;
+    struct CS64Value *pPrev;
+} CS64Value;
+
+typedef struct CS64Section {
+    CS64UniChar name[32];
+    struct CS64Section *pNext;
+    struct CS64Section *pPrev;
+    CS64Value *pFirstValue;
+} CS64Section;
+
+typedef enum {
+    CS64_INI_SECTION,
+    CS64_INI_VALUE
+} CS64EntryType;
+
 typedef struct {
+    CS64EntryType entryType;
+    union {
+        CS64Value value;
+        CS64Section section;
+    } entry;
+} CS64INIEntry;
+
+typedef struct {
+    /* Hash Table */
+    CS64INIEntry *pEntries;
+    CS64Size currentEntryAmount;
+    CS64Size entryCapacity;
+    CS64Size entryCapacityUpLimit;
+    CS64Size entryCapacityDownLimit;
+
+    /* Useful for exporting in order. */
+    CS64Section *pFirstSection; /* The first section is always the empty one or the global section. */
 } CS64INIData;
 
 /* Public functions */
