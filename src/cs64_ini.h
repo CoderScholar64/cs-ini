@@ -196,15 +196,19 @@ typedef struct {
 } CS64INIEntry;
 
 typedef struct {
-    /* Hash Table */
     CS64INIEntry *pEntries;
     CS64Size currentEntryAmount;
     CS64Size entryCapacity;
     CS64Size entryCapacityUpLimit;
     CS64Size entryCapacityDownLimit;
+} CS64INIHashTable;
+
+typedef struct {
+    CS64INIHashTable hashTable;
 
     /* Useful for exporting in order. */
     CS64Section *pFirstSection; /* The first section is always the empty one or the global section. */
+    CS64Section *pLastSection;
 } CS64INIData;
 
 /* Public functions */
