@@ -868,7 +868,7 @@ void cs64_ini_lexer_free(CS64INITokenResult *pData) {
 #ifdef CS64_INI_HASH_STANDARD_FUNCTION
 
 CS64Offset cs64_ini_standard_hash_function(CS64UniChar *pString, CS64Size stringLength) {
-    /* This implementation uses the Fowler–Noll–Vo hash algorithm. It cyroptographically secure, but this is just an INI file parser. */
+    /* This implementation uses the Fowler–Noll–Vo hash algorithm. It is NOT cyroptographically secure, but this is just an INI file parser. */
 
     #if CS64_SIZE_MAX > 0xFFFFFFFF
     CS64Offset hash = 0xcbf29ce484222325;
