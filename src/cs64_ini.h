@@ -928,6 +928,11 @@ CS64INIData* cs64_ini_data_alloc() {
     pData->lastCommentSize = 0;
     pData->pLastComment = NULL;
 
+    pData->section.pNext = NULL;
+    pData->section.pLast = NULL;
+    pData->section.pFirstValue = NULL;
+    pData->section.pLastValue  = NULL;
+
     return pData;
 }
 
