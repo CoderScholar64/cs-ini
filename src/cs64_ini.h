@@ -927,6 +927,9 @@ CS64INIData* cs64_ini_data_alloc() {
     while(entryIndex < pData->hashTable.entryCapacity) {
         pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_EMPTY;
 
+        pData->hashTable.pEntries[entryIndex].pComment = NULL;
+        pData->hashTable.pEntries[entryIndex].pInlineComment = NULL;
+
         entryIndex++;
     }
 
