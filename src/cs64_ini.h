@@ -21,6 +21,18 @@
     #error CS64_INI_TOKEN_AMOUNT should be more than 4. Reason: the implementation for storing tokens might break at 1 and would definitely break at zero.
 #endif
 
+#ifndef CS64_INI_IMP_DETAIL_VALUE_NAME_SIZE
+    #define CS64_INI_IMP_DETAIL_VALUE_NAME_SIZE 32
+#endif
+
+#ifndef CS64_INI_IMP_DETAIL_VALUE_STORAGE_SIZE
+    #define CS64_INI_IMP_DETAIL_VALUE_STORAGE_SIZE 32
+#endif
+
+#ifndef CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE
+    #define CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE 32
+#endif
+
 #ifndef CS64UTF8
     #ifdef UINT8_MAX
         #define CS64UTF8 uint8_t
@@ -185,8 +197,8 @@ typedef struct CS64Value {
     CS64ValueHeader header;
     CS64Size nameByteSize;
     CS64Size valueByteSize;
-    CS64UniChar name[32];
-    CS64UniChar value[32]; /* This could be a union to hold integers/floats efficiently */
+    CS64UniChar name[CS64_INI_IMP_DETAIL_VALUE_NAME_SIZE];
+    CS64UniChar value[CS64_INI_IMP_DETAIL_VALUE_STORAGE_SIZE]; /* This could be a union to hold integers/floats efficiently */
 } CS64Value;
 
 typedef struct CS64DynamicValue {
@@ -207,7 +219,7 @@ typedef struct CS64SectionHeader {
 typedef struct CS64Section {
     CS64SectionHeader header;
     CS64Size nameByteSize;
-    CS64UniChar name[32];
+    CS64UniChar name[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
 } CS64Section;
 
 typedef struct CS64DynamicSection {
