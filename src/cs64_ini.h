@@ -242,7 +242,7 @@ typedef struct {
     CS64UniChar *pInlineComment;
     union {
         CS64Value          value;
-        CS64DynamicValue   dynmanicValue;
+        CS64DynamicValue   dynamicValue;
         CS64Section        section;
         CS64DynamicSection dynamicSection;
     } entry;
@@ -923,6 +923,13 @@ CS64INIData* cs64_ini_data_alloc() {
         return NULL; /* Malloc had failed in this case. */
     }
 
+    CS64Offset entryIndex = 0;
+    while(entryIndex < pData->hashTable.entryCapacity) {
+        pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_EMPTY;
+
+        entryIndex++;
+    }
+
     pData->hashTable.currentEntryAmount = 0;
     pData->hashTable.entryCapacityUpLimit = CALC_UPPER_LIMIT(pData->hashTable.entryCapacity);
     CALC_LOWER_LIMIT(pData->hashTable)
@@ -942,8 +949,30 @@ void cs64_ini_data_free(CS64INIData* pData) {
     if(pData == NULL)
         return;
 
-    if(pData->hashTable.pEntries != NULL)
+    if(pData->hashTable.pEntries != NULL) {
+
+        CS64Offset entryIndex = 0;
+        while(entryIndex < pData->hashTable.entryCapacity) {
+            pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_EMPTY;
+
+            if(pData->hashTable.pEntries[entryIndex].pComment != NULL)
+                CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].pComment); /* This also frees pInlineComment */
+
+            switch(pData->hashTable.pEntries[entryIndex].entryType) {
+                case CS64_INI_DYNAMIC_VALUE:
+                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].entry.dynamicValue.pName); /* This also frees pValue */
+                    break;
+                case CS64_INI_DYNAMIC_SECTION:
+                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].entry.dynamicSection.pName);
+                    break;
+                default:
+            }
+
+            entryIndex++;
+        }
+
         CS64_INI_FREE(pData->hashTable.pEntries);
+    }
 
     CS64_INI_FREE(pData);
 }
