@@ -21,12 +21,8 @@
     #error CS64_INI_TOKEN_AMOUNT should be more than 4. Reason: the implementation for storing tokens might break at 1 and would definitely break at zero.
 #endif
 
-#ifndef CS64_INI_IMP_DETAIL_VALUE_NAME_SIZE
-    #define CS64_INI_IMP_DETAIL_VALUE_NAME_SIZE 32
-#endif
-
-#ifndef CS64_INI_IMP_DETAIL_VALUE_STORAGE_SIZE
-    #define CS64_INI_IMP_DETAIL_VALUE_STORAGE_SIZE 32
+#ifndef CS64_INI_IMP_DETAIL_VALUE_SIZE
+    #define CS64_INI_IMP_DETAIL_VALUE_SIZE 32
 #endif
 
 #ifndef CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE
@@ -188,17 +184,18 @@ typedef struct {
     } status;
 } CS64INITokenResult;
 
+struct CS64INIEntry;
+
 typedef struct CS64ValueHeader {
-    struct CS64Value *pNext;
-    struct CS64Value *pPrev;
+    struct CS64INIEntry *pNext; /* Must either be type CS64_INI_VALUE or CS64_INI_DYNAMIC_VALUE */
+    struct CS64INIEntry *pPrev;
 } CS64ValueHeader;
 
 typedef struct CS64Value {
     CS64ValueHeader header;
     CS64Size nameByteSize;
     CS64Size valueByteSize;
-    CS64UniChar name[CS64_INI_IMP_DETAIL_VALUE_NAME_SIZE];
-    CS64UniChar value[CS64_INI_IMP_DETAIL_VALUE_STORAGE_SIZE]; /* This could be a union to hold integers/floats efficiently */
+    CS64UniChar nameValue[CS64_INI_IMP_DETAIL_VALUE_SIZE]; /* This could be a union to hold integers/floats efficiently */
 } CS64Value;
 
 typedef struct CS64DynamicValue {
@@ -210,10 +207,10 @@ typedef struct CS64DynamicValue {
 } CS64DynamicValue;
 
 typedef struct CS64SectionHeader {
-    struct CS64Section *pNext;
-    struct CS64Section *pPrev;
-    CS64Value *pFirstValue;
-    CS64Value *pLastValue;
+    struct CS64INIEntry *pNext; /* Must either be type CS64_INI_SECTION or CS64_INI_DYNAMIC_SECTION */
+    struct CS64INIEntry *pPrev;
+    struct CS64INIEntry *pFirstValue;  /* CS64_INI_VALUE or CS64_INI_DYNAMIC_VALUE */
+    struct CS64INIEntry *pLastValue;
 } CS64SectionHeader;
 
 typedef struct CS64Section {
@@ -242,10 +239,10 @@ typedef struct {
     CS64Size inlineCommentSize;
     CS64UniChar *pInlineComment;
     union {
-        CS64Value value;
-        CS64Section section;
-        CS64Value dynmanicValue;
-        CS64Section dynamicSection;
+        CS64Value          value;
+        CS64DynamicValue   dynmanicValue;
+        CS64Section        section;
+        CS64DynamicSection dynamicSection;
     } entry;
 } CS64INIEntry;
 
@@ -264,8 +261,7 @@ typedef struct {
     CS64UniChar *pLastComment;
 
     /* Useful for exporting in order. */
-    CS64Section *pFirstSection; /* The first section is always the empty one or the global section. */
-    CS64Section *pLastSection;
+    CS64SectionHeader section; /* This holds the "global" section. */
 } CS64INIData;
 
 /* Public functions */
