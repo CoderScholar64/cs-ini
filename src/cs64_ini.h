@@ -895,4 +895,53 @@ CS64Offset cs64_ini_standard_hash_function(CS64UniChar *pString, CS64Size string
 
 #endif
 
+#define INITIAL_CAPACITY 16
+#define P2_LIMIT 512
+#define CALC_UPPER_LIMIT(x) ((x) / 2 + (x) / 4 + (x) / 16)
+#define CALC_P2_LOWER_LIMIT(x) CALC_UPPER_LIMIT((x) / 2)
+#define CALC_LR_LOWER_LIMIT(x) CALC_UPPER_LIMIT((x) - P2_LIMIT)
+#define CALC_LOWER_LIMIT(x)\
+if((x.currentEntryAmount) <= INITIAL_CAPACITY)\
+    x.entryCapacityDownLimit = 0; /* This effectively prevents resizing. INITIAL_CAPACITY is also the minimum capacity. */\
+else if(x.currentEntryAmount > P2_LIMIT)\
+    x.entryCapacityDownLimit = CALC_LR_LOWER_LIMIT(x.currentEntryAmount);\
+else\
+    x.entryCapacityDownLimit = CALC_P2_LOWER_LIMIT(x.currentEntryAmount);
+
+
+CS64INIData* cs64_ini_data_alloc() {
+    CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
+
+    if(pData == NULL) {
+        return NULL; /* Malloc had failed in this case. */
+    }
+
+    pData->hashTable.entryCapacity = INITIAL_CAPACITY;
+
+    pData->hashTable.pEntries = CS64_INI_MALLOC(pData->hashTable.entryCapacity * sizeof(CS64INIEntry));
+
+    if(pData->hashTable.pEntries == NULL) {
+        CS64_INI_FREE(pData);
+        return NULL; /* Malloc had failed in this case. */
+    }
+
+    pData->hashTable.currentEntryAmount = 0;
+    pData->hashTable.entryCapacityUpLimit = CALC_UPPER_LIMIT(pData->hashTable.entryCapacity);
+    CALC_LOWER_LIMIT(pData->hashTable)
+
+    pData->lastCommentSize = 0;
+    pData->pLastComment = NULL;
+
+    return pData;
+}
+
+#undef INITIAL_CAPACITY
+#undef P2_LIMIT
+#undef CALC_UPPER_LIMIT
+#undef CALC_P2_LOWER_LIMIT
+#undef CALC_LR_LOWER_LIMIT
+#undef CALC_LOWER_LIMIT
+
+void cs64_ini_data_free(CS64INIData* pData);
+
 #endif /* CS64_INI_LIBRARY_IMP */
