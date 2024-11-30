@@ -176,30 +176,64 @@ typedef struct {
     } status;
 } CS64INITokenResult;
 
-typedef struct CS64Value {
-    CS64UniChar name[32];
-    CS64UniChar value[32]; /* This could be a union to hold integers/floats efficiently */
+typedef struct CS64ValueHeader {
     struct CS64Value *pNext;
     struct CS64Value *pPrev;
+} CS64ValueHeader;
+
+typedef struct CS64Value {
+    CS64ValueHeader header;
+    CS64Size nameByteSize;
+    CS64Size valueByteSize;
+    CS64UniChar name[32];
+    CS64UniChar value[32]; /* This could be a union to hold integers/floats efficiently */
 } CS64Value;
 
-typedef struct CS64Section {
-    CS64UniChar name[32];
+typedef struct CS64DynamicValue {
+    CS64ValueHeader header;
+    CS64Size nameByteSize;
+    CS64Size valueByteSize;
+    CS64UniChar *pName;
+    CS64UniChar *pValue; /* This could be a union to hold integers/floats efficiently */
+} CS64DynamicValue;
+
+typedef struct CS64SectionHeader {
     struct CS64Section *pNext;
     struct CS64Section *pPrev;
     CS64Value *pFirstValue;
+    CS64Value *pLastValue;
+} CS64SectionHeader;
+
+typedef struct CS64Section {
+    CS64SectionHeader header;
+    CS64Size nameByteSize;
+    CS64UniChar name[32];
 } CS64Section;
+
+typedef struct CS64DynamicSection {
+    CS64SectionHeader header;
+    CS64Size nameByteSize;
+    CS64UniChar *pName;
+} CS64DynamicSection;
 
 typedef enum {
     CS64_INI_SECTION,
-    CS64_INI_VALUE
+    CS64_INI_DYNAMIC_SECTION,
+    CS64_INI_VALUE,
+    CS64_INI_DYNAMIC_VALUE
 } CS64EntryType;
 
 typedef struct {
     CS64EntryType entryType;
+    CS64Size commentSize;
+    CS64UniChar *pComment;
+    CS64Size inlineCommentSize;
+    CS64UniChar *pInlineComment;
     union {
         CS64Value value;
         CS64Section section;
+        CS64Value dynmanicValue;
+        CS64Section dynamicSection;
     } entry;
 } CS64INIEntry;
 
@@ -214,6 +248,9 @@ typedef struct {
 typedef struct {
     CS64INIHashTable hashTable;
 
+    CS64Size lastCommentSize;
+    CS64UniChar *pLastComment;
+
     /* Useful for exporting in order. */
     CS64Section *pFirstSection; /* The first section is always the empty one or the global section. */
     CS64Section *pLastSection;
@@ -225,15 +262,15 @@ CS64INIData* cs64_ini_data_alloc();
 /*TODO Add save and load functions*/
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryStateFlags cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
-const CS64UTF8 *const cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
-CS64INIEntryStateFlags cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+CS64INIEntryStateFlags cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
+CS64INIEntryStateFlags cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
 
-CS64INIEntryStateFlags cs64_ini_set_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
-const CS64UTF8 *const cs64_ini_get_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+CS64INIEntryStateFlags cs64_ini_set_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
 
-CS64INIEntryStateFlags cs64_ini_set_inline_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue);
-const CS64UTF8 *const cs64_ini_get_inline_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+CS64INIEntryStateFlags cs64_ini_set_inline_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_inline_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
 
 /* Private functions */
 
