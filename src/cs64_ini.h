@@ -226,6 +226,8 @@ typedef struct CS64DynamicSection {
 } CS64DynamicSection;
 
 typedef enum {
+    CS64_INI_EMPTY,
+    CS64_INI_OCCUPIED,
     CS64_INI_SECTION,
     CS64_INI_DYNAMIC_SECTION,
     CS64_INI_VALUE,
@@ -929,11 +931,21 @@ CS64INIData* cs64_ini_data_alloc() {
     pData->pLastComment = NULL;
 
     pData->section.pNext = NULL;
-    pData->section.pLast = NULL;
+    pData->section.pPrev = NULL;
     pData->section.pFirstValue = NULL;
     pData->section.pLastValue  = NULL;
 
     return pData;
+}
+
+void cs64_ini_data_free(CS64INIData* pData) {
+    if(pData == NULL)
+        return;
+
+    if(pData->hashTable.pEntries != NULL)
+        CS64_INI_FREE(pData->hashTable.pEntries);
+
+    CS64_INI_FREE(pData);
 }
 
 #undef INITIAL_CAPACITY
@@ -942,7 +954,5 @@ CS64INIData* cs64_ini_data_alloc() {
 #undef CALC_P2_LOWER_LIMIT
 #undef CALC_LR_LOWER_LIMIT
 #undef CALC_LOWER_LIMIT
-
-void cs64_ini_data_free(CS64INIData* pData);
 
 #endif /* CS64_INI_LIBRARY_IMP */
