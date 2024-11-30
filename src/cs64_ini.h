@@ -43,14 +43,22 @@
     #else
         #error size_t is required for CS64Size. Include stdint.h and/or stddef.h if available.
     #endif
+
+    #define CS64_SIZE_MAX SIZE_MAX
+#elifndef CS64_SIZE_MAX
+    #error CS64_SIZE_MAX Also needs to be defined!
 #endif
 
 #ifndef CS64Offset
-    #ifdef SIZE_MAX
-        #define CS64Offset size_t
-    #else
-        #error size_t is required for CS64Offset. Include stdint.h and/or stddef.h if available.
-    #endif
+    #define CS64Offset CS64Size
+#endif
+
+#ifndef CS64_INI_HASH_FUNCTION
+    #define CS64_INI_HASH_STANDARD_FUNCTION
+
+    CS64Offset cs64_ini_standard_hash_function(CS64UniChar *string, CS64Size stringLength);
+
+    #define CS64_INI_HASH_FUNCTION(string, stringLength) cs64_ini_standard_hash_function(string, stringLength)
 #endif
 
 /* Infulenced from rini another ini parsing library from raysan5. */
@@ -809,5 +817,33 @@ void cs64_ini_lexer_free(CS64INITokenResult *pData) {
     if(pData->pTokenStorage != NULL)
         cs64_ini_token_data_free(pData->pTokenStorage);
 }
+
+/* ### Hash Table ### */
+
+#ifdef CS64_INI_HASH_STANDARD_FUNCTION
+
+CS64Offset cs64_ini_standard_hash_function(CS64UniChar *pString, CS64Size stringLength) {
+    /* This implementation uses the Fowler–Noll–Vo hash algorithm. It cyroptographically secure, but this is just an INI file parser. */
+
+    #if CS64_SIZE_MAX > 0xFFFFFFFF
+    CS64Offset hash = 0xcbf29ce484222325;
+    const static CS64Offset prime = 0x00000100000001b3;
+    #else
+    CS64Offset hash = 0x811c9dc5;
+    const static CS64Offset prime = 0x01000193;
+    #endif
+
+    CS64Size currentStringLength = 0;
+
+    while(currentStringLength < stringLength){
+        hash ^= pString[currentStringLength];
+        hash *= prime;
+        currentStringLength++;
+    }
+
+    return hash;
+}
+
+#endif
 
 #endif /* CS64_INI_LIBRARY_IMP */
