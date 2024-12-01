@@ -272,15 +272,21 @@ CS64INIData* cs64_ini_data_alloc();
 /*TODO Add save and load functions*/
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryStateFlags cs64_ini_add_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize);
-const CS64UTF8 *const cs64_ini_get_entry(CS64INIData* pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
-CS64INIEntryStateFlags cs64_ini_del_entry(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
+CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, CS64Size sectionByteSize, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize, CS64INIEntry** ppEntry);
+CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, CS64Size sectionByteSize, const CS64UTF8 *const pName, CS64Size nameByteSize, CS64INIEntry** ppEntry);
+CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
-CS64INIEntryStateFlags cs64_ini_set_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize);
-const CS64UTF8 *const cs64_ini_get_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
+CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry);
 
-CS64INIEntryStateFlags cs64_ini_set_inline_comment(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize);
-const CS64UTF8 *const cs64_ini_get_inline_comment(const CS64INIData *const pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64Size nameByteSize);
+CS64INIEntryStateFlags cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_entry_value(const CS64INIEntry *const pEntry);
+
+CS64INIEntryStateFlags cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_entry_comment(const CS64INIEntry *const pEntry);
+
+CS64INIEntryStateFlags cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pSection, const CS64UTF8 *const pValue, CS64Size valueByteSize);
+const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *const pEntry);
 
 /* Private functions */
 
