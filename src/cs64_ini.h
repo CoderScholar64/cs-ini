@@ -184,31 +184,22 @@ typedef struct {
     } status;
 } CS64INITokenResult;
 
-struct CS64INIEntry;
-
-typedef struct CS64ValueHeader {
-    struct CS64INIEntry *pNext; /* Must either be type CS64_INI_VALUE or CS64_INI_DYNAMIC_VALUE */
-    struct CS64INIEntry *pPrev;
-} CS64ValueHeader;
-
 typedef struct CS64Value {
-    CS64ValueHeader header;
     CS64Size nameByteSize;
     CS64Size valueByteSize;
     CS64UniChar nameValue[CS64_INI_IMP_DETAIL_VALUE_SIZE]; /* This could be a union to hold integers/floats efficiently */
 } CS64Value;
 
 typedef struct CS64DynamicValue {
-    CS64ValueHeader header;
     CS64Size nameByteSize;
     CS64Size valueByteSize;
     CS64UniChar *pName;
     CS64UniChar *pValue; /* This could be a union to hold integers/floats efficiently */
 } CS64DynamicValue;
 
+struct CS64INIEntry;
+
 typedef struct CS64SectionHeader {
-    struct CS64INIEntry *pNext; /* Must either be type CS64_INI_SECTION or CS64_INI_DYNAMIC_SECTION */
-    struct CS64INIEntry *pPrev;
     struct CS64INIEntry *pFirstValue;  /* CS64_INI_VALUE or CS64_INI_DYNAMIC_VALUE */
     struct CS64INIEntry *pLastValue;
 } CS64SectionHeader;
@@ -234,8 +225,11 @@ typedef enum {
     CS64_INI_DYNAMIC_VALUE
 } CS64EntryType;
 
-typedef struct {
+typedef struct CS64INIEntry {
     CS64EntryType entryType;
+    struct CS64INIEntry *pNext;
+    struct CS64INIEntry *pPrev;
+
     CS64Size commentSize;
     CS64UniChar *pComment;
     CS64Size inlineCommentSize;
@@ -263,7 +257,9 @@ typedef struct {
     CS64UniChar *pLastComment;
 
     /* Useful for exporting in order. */
-    CS64SectionHeader section; /* This holds the "global" section. */
+    CS64SectionHeader globals;
+    CS64INIEntry *pFirstSection;
+    CS64INIEntry  *pLastSection;
 } CS64INIData;
 
 /* Public functions */
@@ -951,10 +947,10 @@ CS64INIData* cs64_ini_data_alloc() {
     pData->lastCommentSize = 0;
     pData->pLastComment = NULL;
 
-    pData->section.pNext = NULL;
-    pData->section.pPrev = NULL;
-    pData->section.pFirstValue = NULL;
-    pData->section.pLastValue  = NULL;
+    pData->pFirstSection = NULL;
+    pData->pLastSection = NULL;
+    pData->globals.pFirstValue = NULL;
+    pData->globals.pLastValue  = NULL;
 
     return pData;
 }
