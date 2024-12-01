@@ -266,7 +266,7 @@ typedef struct {
 
 CS64INIData* cs64_ini_data_alloc();
 /*TODO Add save and load functions*/
-void cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
+int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
 void cs64_ini_data_free(CS64INIData* pData);
 
 CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, CS64Size sectionByteSize, const CS64UTF8 *const pName, CS64Size nameByteSize, const CS64UTF8 *const pValue, CS64Size valueByteSize, CS64INIEntry** ppEntry);
