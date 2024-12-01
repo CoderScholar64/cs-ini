@@ -277,6 +277,9 @@ CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry);
 CS64INIEntry* cs64_ini_get_first_section(CS64INIData *pData);
 CS64INIEntry* cs64_ini_get_first_value(CS64INIEntry *pSection);
 
+CS64INIEntry* cs64_ini_get_next_entry(CS64INIEntry *pEntry);
+CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry);
+
 CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue, CS64Size valueByteSize);
 const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry);
 
