@@ -200,7 +200,7 @@ typedef struct CS64DynamicValue {
 struct CS64INIEntry;
 
 typedef struct CS64SectionHeader {
-    struct CS64INIEntry *pFirstValue;  /* CS64_INI_VALUE or CS64_INI_DYNAMIC_VALUE */
+    struct CS64INIEntry *pFirstValue;  /* CS64_INI_ENTRY_VALUE or CS64_INI_ENTRY_DYNAMIC_VALUE */
     struct CS64INIEntry *pLastValue;
 } CS64SectionHeader;
 
@@ -217,12 +217,12 @@ typedef struct CS64DynamicSection {
 } CS64DynamicSection;
 
 typedef enum {
-    CS64_INI_EMPTY,
-    CS64_INI_OCCUPIED,
-    CS64_INI_SECTION,
-    CS64_INI_DYNAMIC_SECTION,
-    CS64_INI_VALUE,
-    CS64_INI_DYNAMIC_VALUE
+    CS64_INI_ENTRY_EMPTY,
+    CS64_INI_ENTRY_OCCUPIED,
+    CS64_INI_ENTRY_SECTION,
+    CS64_INI_ENTRY_DYNAMIC_SECTION,
+    CS64_INI_ENTRY_VALUE,
+    CS64_INI_ENTRY_DYNAMIC_VALUE
 } CS64EntryType;
 
 typedef struct CS64INIEntry {
@@ -936,7 +936,7 @@ CS64INIData* cs64_ini_data_alloc() {
 
     CS64Offset entryIndex = 0;
     while(entryIndex < pData->hashTable.entryCapacity) {
-        pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_EMPTY;
+        pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
 
         pData->hashTable.pEntries[entryIndex].pComment = NULL;
         pData->hashTable.pEntries[entryIndex].pInlineComment = NULL;
@@ -959,6 +959,18 @@ CS64INIData* cs64_ini_data_alloc() {
     return pData;
 }
 
+int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues) {
+    if(pData == NULL)
+        return 0;
+
+    if(pData->hashTable.pEntries == NULL)
+        return 0;
+
+    /* TODO Work on this later */
+
+    return 0;
+}
+
 void cs64_ini_data_free(CS64INIData* pData) {
     if(pData == NULL)
         return;
@@ -967,16 +979,16 @@ void cs64_ini_data_free(CS64INIData* pData) {
 
         CS64Offset entryIndex = 0;
         while(entryIndex < pData->hashTable.entryCapacity) {
-            pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_EMPTY;
+            pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
 
             if(pData->hashTable.pEntries[entryIndex].pComment != NULL)
                 CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].pComment); /* This also frees pInlineComment */
 
             switch(pData->hashTable.pEntries[entryIndex].entryType) {
-                case CS64_INI_DYNAMIC_VALUE:
+                case CS64_INI_ENTRY_DYNAMIC_VALUE:
                     CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].entry.dynamicValue.pName); /* This also frees pValue */
                     break;
-                case CS64_INI_DYNAMIC_SECTION:
+                case CS64_INI_ENTRY_DYNAMIC_SECTION:
                     CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].entry.dynamicSection.pName);
                     break;
                 default:
