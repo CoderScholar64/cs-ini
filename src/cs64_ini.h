@@ -64,9 +64,15 @@
 #ifndef CS64_INI_HASH_FUNCTION
     #define CS64_INI_HASH_STANDARD_FUNCTION
 
-    CS64Offset cs64_ini_standard_hash_function(CS64UniChar *string, CS64Size stringLength);
+    CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringLength);
 
-    #define CS64_INI_HASH_FUNCTION(string, stringLength) cs64_ini_standard_hash_function(string, stringLength)
+    #define CS64_INI_HASH_FUNCTION(pString, hash, pStringLength) cs64_ini_standard_hash_function(pString, hash, pStringLength)
+
+    #if CS64_SIZE_MAX > 0xFFFFFFFF
+    #define CS64_INI_INITIAL_HASH 0xcbf29ce484222325
+    #else
+    #define CS64_INI_INITIAL_HASH 0x811c9dc5
+    #endif
 #endif
 
 /* Infulenced from rini another ini parsing library from raysan5. */
@@ -219,7 +225,7 @@ typedef struct CS64DynamicSection {
 
 typedef enum {
     CS64_INI_ENTRY_EMPTY,
-    CS64_INI_ENTRY_OCCUPIED,
+    CS64_INI_ENTRY_WAS_OCCUPIED,
     CS64_INI_ENTRY_SECTION,
     CS64_INI_ENTRY_DYNAMIC_SECTION,
     CS64_INI_ENTRY_VALUE,
@@ -270,7 +276,7 @@ CS64INIData* cs64_ini_data_alloc();
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64Size valueByteSize, CS64INIEntry** ppEntry);
+CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
 CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64INIEntry** ppEntry);
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
@@ -885,23 +891,19 @@ void cs64_ini_lexer_free(CS64INITokenResult *pData) {
 
 #ifdef CS64_INI_HASH_STANDARD_FUNCTION
 
-CS64Offset cs64_ini_standard_hash_function(CS64UniChar *pString, CS64Size stringLength) {
+CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringLength) {
     /* This implementation uses the Fowler–Noll–Vo hash algorithm. It is NOT cyroptographically secure, but this is just an INI file parser. */
 
     #if CS64_SIZE_MAX > 0xFFFFFFFF
-    CS64Offset hash = 0xcbf29ce484222325;
     const static CS64Offset prime = 0x00000100000001b3;
     #else
-    CS64Offset hash = 0x811c9dc5;
     const static CS64Offset prime = 0x01000193;
     #endif
 
-    CS64Size currentStringLength = 0;
-
-    while(currentStringLength < stringLength){
-        hash ^= pString[currentStringLength];
+    while(pString[*pStringLength] != 0) {
+        hash ^= pString[*pStringLength];
         hash *= prime;
-        currentStringLength++;
+        (*pStringLength)++;
     }
 
     return hash;
@@ -1007,6 +1009,85 @@ void cs64_ini_data_free(CS64INIData* pData) {
 
     CS64_INI_FREE(pData);
 }
+
+#define IS_STRING_PRESENT(x) (x != NULL || x[0] != '\0')
+
+CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+    if(pData == NULL)
+        return CS64_INI_ENTRY_ERROR_PROBLEM_NULL | CS64_INI_ENTRY_ERROR_DATA;
+
+    if(!IS_STRING_PRESENT(pName) || IS_STRING_PRESENT(pValue))
+        return CS64_INI_ENTRY_ERROR_PROBLEM_MISSING | CS64_INI_ENTRY_ERROR_KEY;
+
+    CS64EntryType entryType;
+
+    if( IS_STRING_PRESENT(pSection) ) {
+        if( !IS_STRING_PRESENT(pName) )
+            entryType = CS64_INI_ENTRY_SECTION;
+        else
+            entryType = CS64_INI_ENTRY_VALUE;
+    }
+    else
+        entryType = CS64_INI_ENTRY_VALUE;
+
+    CS64Offset hashValue = CS64_INI_INITIAL_HASH;
+    CS64Size sectionLength = 0;
+    CS64Size nameLength = 0;
+
+    if(pSection != NULL)
+        hashValue = CS64_INI_HASH_FUNCTION(pSection, hashValue, &sectionLength);
+
+    hashValue = CS64_INI_HASH_FUNCTION(pName, hashValue, &nameLength);
+
+    CS64Offset original_index = hashValue % pData->hashTable.entryCapacity;
+    CS64Offset index = original_index;
+
+    if(pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_EMPTY || pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_WAS_OCCUPIED) {
+        index++;
+
+        while(index != original_index && (
+            pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_EMPTY || pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_WAS_OCCUPIED))
+        {
+            index = (1 + index) % pData->hashTable.entryCapacity;
+        }
+
+        if(index == original_index)
+            return CS64_INI_ENTRY_ERROR_PROBLEM_TOO_BIG;
+    }
+
+    CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
+
+    if(entryType == CS64_INI_ENTRY_SECTION) {
+        if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE > sectionLength) {
+            pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+            pEntry->entry.dynamicSection.header.pFirstValue = NULL;
+            pEntry->entry.dynamicSection.header.pLastValue  = NULL;
+            pEntry->entry.dynamicSection.nameByteSize = sectionLength;
+            /* TODO pName allocation and copy */
+        }
+        else {
+            pEntry->entryType = CS64_INI_ENTRY_SECTION;
+            pEntry->entry.section.header.pFirstValue = NULL;
+            pEntry->entry.section.header.pLastValue  = NULL;
+            pEntry->entry.section.nameByteSize = sectionLength;
+            /* TODO name copy */
+        }
+    }
+    else if(entryType == CS64_INI_ENTRY_VALUE) {}
+
+    pEntry->commentSize       = 0;
+    pEntry->pComment          = NULL;
+    pEntry->inlineCommentSize = 0;
+    pEntry->pInlineComment    = NULL;
+
+    /* TODO complete this! */
+}
+
+CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64INIEntry** ppEntry);
+
+CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
+
+#undef IS_STRING_PRESENT
 
 #undef INITIAL_CAPACITY
 #undef P2_LIMIT
