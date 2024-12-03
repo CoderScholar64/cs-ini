@@ -114,10 +114,11 @@ typedef enum {
 
 typedef enum {
     CS64_INI_LEXER_SUCCESS              = 0,
-    CS64_INI_LEXER_NO_MEMORY_ERROR      = 1,
-    CS64_INI_LEXER_ENCODING_ERROR       = 2,
-    CS64_INI_LEXER_EXPECTED_ERROR       = 3,
-    CS64_INI_LEXER_UNHANDLED_CHAR_ERROR = 4
+    CS64_INI_LEXER_EARLY_NULL           = 1,
+    CS64_INI_LEXER_NO_MEMORY_ERROR      = 2,
+    CS64_INI_LEXER_ENCODING_ERROR       = 3,
+    CS64_INI_LEXER_EXPECTED_ERROR       = 4,
+    CS64_INI_LEXER_UNHANDLED_CHAR_ERROR = 5
 } CS64INILexerState;
 
 typedef enum {
@@ -653,6 +654,10 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
             count++;\
         }\
         return ret; /* NOTE: Invalid Character Error. */\
+    }\
+    else if(pUTF8Data[UTF8Offset] == '\0') {\
+        (pResult)->state = CS64_INI_LEXER_EARLY_NULL;\
+        return ret;\
     }
 
 #define ADVANCE_CHARACTER(pResult)\
