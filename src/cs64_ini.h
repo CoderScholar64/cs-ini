@@ -1040,12 +1040,12 @@ void cs64_ini_data_free(CS64INIData* pData) {
     }\
     dst[length] = '\0';\
 }
-#define IS_SAME_SECTION_ENTRY(x) ( IS_ENTRY_SECTION((x))               &&\
+#define IS_SAME_SECTION_ENTRY(x) (IS_ENTRY_SECTION((x))                &&\
     ((x).type.section.nameByteSize == sectionLength)                   &&\
     ((x).entryType == CS64_INI_ENTRY_SECTION                           &&\
     cs64_ini_are_strings_equal((x).type.section.name.fixed, pSection)) &&\
     ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION                   &&\
-    cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSection))
+    cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSection)))
 
 static int cs64_ini_are_strings_equal(const CS64UTF8 *const x, const CS64UTF8 *const y) {
     CS64Size length = 0;
@@ -1087,8 +1087,7 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
     if(!IS_ENTRY_EMPTY(*pEntry)) {
-        if(IS_SAME_SECTION_ENTRY(*pEntry))
-        ) {
+        if( IS_SAME_SECTION_ENTRY(*pEntry) ) {
             return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
         }
 
@@ -1097,8 +1096,7 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
         while(index != original_index &&
             !IS_ENTRY_EMPTY(pData->hashTable.pEntries[index]))
         {
-            if(IS_SAME_SECTION_ENTRY(*pEntry))
-            ) {
+            if(IS_SAME_SECTION_ENTRY(*pEntry)) {
                 return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
             }
             index = (1 + index) % pData->hashTable.entryCapacity;
