@@ -194,15 +194,15 @@ typedef struct {
 typedef struct CS64Value {
     CS64Size nameByteSize;
     CS64Size valueByteSize;
-    CS64UniChar nameValue[CS64_INI_IMP_DETAIL_VALUE_SIZE]; /* This could be a union to hold integers/floats efficiently */
+    /* This could be a union to hold integers/floats efficiently */
+    union {
+        CS64UTF8 fixed[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
+        struct {
+            CS64UTF8 *pName;
+            CS64UTF8 *pValue;
+        } dynamic;
+    } data;
 } CS64Value;
-
-typedef struct CS64DynamicValue {
-    CS64Size nameByteSize;
-    CS64Size valueByteSize;
-    CS64UniChar *pName;
-    CS64UniChar *pValue; /* This could be a union to hold integers/floats efficiently */
-} CS64DynamicValue;
 
 struct CS64INIEntry;
 
@@ -239,9 +239,8 @@ typedef struct CS64INIEntry {
     CS64Size inlineCommentSize;
     CS64UniChar *pInlineComment;
     union {
-        CS64Value          value;
-        CS64DynamicValue   dynamicValue;
-        CS64Section        section;
+        CS64Value   value;
+        CS64Section section;
     } type;
 } CS64INIEntry;
 
@@ -990,7 +989,7 @@ void cs64_ini_data_free(CS64INIData* pData) {
 
             switch(pData->hashTable.pEntries[entryIndex].entryType) {
                 case CS64_INI_ENTRY_DYNAMIC_VALUE:
-                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].type.dynamicValue.pName); /* This also frees pValue */
+                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].type.value.data.dynamic.pName); /* This also frees pValue */
                     break;
                 case CS64_INI_ENTRY_DYNAMIC_SECTION:
                     CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].type.section.name.pDynamic);
