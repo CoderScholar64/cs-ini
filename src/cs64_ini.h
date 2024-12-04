@@ -231,9 +231,9 @@ typedef struct CS64INIEntry {
     struct CS64INIEntry *pPrev;
 
     CS64Size commentSize;
-    CS64UniChar *pComment;
+    CS64UTF8 *pComment;
     CS64Size inlineCommentSize;
-    CS64UniChar *pInlineComment;
+    CS64UTF8 *pInlineComment;
     union {
         CS64Value   value;
         CS64Section section;
@@ -252,7 +252,7 @@ typedef struct {
     CS64INIHashTable hashTable;
 
     CS64Size lastCommentSize;
-    CS64UniChar *pLastComment;
+    CS64UTF8 *pLastComment;
 
     /* Useful for exporting in order. */
     CS64SectionHeader globals;
@@ -958,14 +958,61 @@ CS64INIData* cs64_ini_data_alloc() {
     return pData;
 }
 
+static CS64Size cs64_ini_increment_table(CS64Size entryCapacity) {
+    if(entryCapacity < INITIAL_CAPACITY)
+        return INITIAL_CAPACITY;
+    else if(entryCapacity >= P2_LIMIT)
+        return entryCapacity + P2_LIMIT;
+    else
+        return 2 * entryCapacity;
+}
+
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues) {
+    /* pData is the INI file. */
     if(pData == NULL)
         return 0;
 
+    /* pData make sure that the hash table has entries. */
     if(pData->hashTable.pEntries == NULL)
         return 0;
 
-    /* TODO Work on this later */
+    /* This ensures that there will not be a crash to be made. */
+    if(numberOfSectionsAndValues <= pData->hashTable.currentEntryAmount)
+        return 0;
+
+    CS64INIHashTable hashTable;
+
+    hashTable.currentEntryAmount = pData->hashTable.currentEntryAmount;
+    hashTable.entryCapacity = numberOfSectionsAndValues;
+    hashTable.entryCapacityUpLimit = CALC_UPPER_LIMIT(hashTable.entryCapacity);
+    CALC_LOWER_LIMIT(hashTable)
+
+    hashTable.pEntries = CS64_INI_MALLOC(hashTable.entryCapacity * sizeof(CS64INIEntry));
+
+    if(hashTable.pEntries == NULL)
+        return 0;
+
+    CS64Offset entryIndex = 0;
+    while(entryIndex < hashTable.entryCapacity) {
+        hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
+
+        hashTable.pEntries[entryIndex].pComment = NULL;
+        hashTable.pEntries[entryIndex].pInlineComment = NULL;
+
+        entryIndex++;
+    }
+
+    /* TODO Write down the global variables */
+
+    /* TODO Write down the sections first */
+    CS64INIEntry *pSection = pData->pFirstSection;
+    while(pSection != NULL) {
+        /* TODO Write down the section variables */
+        pSection = pSection->pNext;
+    }
+
+    /* TODO Remove this routine when function is complete! */
+    CS64_INI_FREE(hashTable.pEntries);
 
     return 0;
 }
@@ -1041,6 +1088,10 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     if(IS_STRING_PRESENT(pSection))
         return CS64_INI_ENTRY_ERROR_SECTION_EMPTY;
 
+    /* Check if it is time for a resize */
+    if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
+        cs64_ini_data_reserve(pData, cs64_ini_increment_table(pData->hashTable.entryCapacity));
+
     /* Check if table is too big. */
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
         return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
@@ -1076,8 +1127,6 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
         if(index == original_index)
             return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
     }
-
-    /* TODO Add a rehashing function here for resizing! */
 
     pData->hashTable.currentEntryAmount++;
 
@@ -1135,6 +1184,10 @@ CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSect
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
 #undef IS_STRING_PRESENT
+#undef IS_ENTRY_EMPTY
+#undef IS_ENTRY_SECTION
+#undef STRING_COPY
+#undef IS_SAME_SECTION_ENTRY
 
 #undef INITIAL_CAPACITY
 #undef P2_LIMIT
