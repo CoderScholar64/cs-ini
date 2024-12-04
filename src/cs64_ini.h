@@ -915,23 +915,24 @@ else if(x.currentEntryAmount > P2_LIMIT)\
     x.entryCapacityDownLimit = CALC_LR_LOWER_LIMIT(x.currentEntryAmount);\
 else\
     x.entryCapacityDownLimit = CALC_P2_LOWER_LIMIT(x.currentEntryAmount);
-#define INIT_HASH_MEMORY(x) {\
-    CS64Offset entryIndex = 0;\
-    while(entryIndex < x.entryCapacity) {\
-        x.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;\
-\
-        x.pEntries[entryIndex].pComment = NULL;\
-        x.pEntries[entryIndex].pInlineComment = NULL;\
-\
-        entryIndex++;\
-    }\
-}
-#define INIT_HASH_TABLE(hashTable, entryAmount, capacity)\
+#define INIT_HASH_TABLE(hashTable, entryAmount, capacity, onFailureRoutine)\
     hashTable.currentEntryAmount = entryAmount;\
     hashTable.entryCapacity = capacity;\
     hashTable.entryCapacityUpLimit = CALC_UPPER_LIMIT(hashTable.entryCapacity);\
     CALC_LOWER_LIMIT(hashTable)\
-    hashTable.pEntries = CS64_INI_MALLOC(hashTable.entryCapacity * sizeof(CS64INIEntry));
+    hashTable.pEntries = CS64_INI_MALLOC(hashTable.entryCapacity * sizeof(CS64INIEntry));\
+\
+    if(hashTable.pEntries == NULL) onFailureRoutine\
+\
+    {CS64Offset entryIndex = 0;\
+    while(entryIndex < hashTable.entryCapacity) {\
+        hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;\
+\
+        hashTable.pEntries[entryIndex].pComment = NULL;\
+        hashTable.pEntries[entryIndex].pInlineComment = NULL;\
+\
+        entryIndex++;\
+    }}\
 
 
 CS64INIData* cs64_ini_data_alloc() {
@@ -941,14 +942,7 @@ CS64INIData* cs64_ini_data_alloc() {
         return NULL; /* Malloc had failed in this case. */
     }
 
-    INIT_HASH_TABLE(pData->hashTable, 0, INITIAL_CAPACITY)
-
-    if(pData->hashTable.pEntries == NULL) {
-        CS64_INI_FREE(pData);
-        return NULL; /* Malloc had failed in this case. */
-    }
-
-    INIT_HASH_MEMORY(pData->hashTable)
+    INIT_HASH_TABLE(pData->hashTable, 0, INITIAL_CAPACITY, {CS64_INI_FREE(pData); return NULL;})
 
     pData->lastCommentSize = 0;
     pData->pLastComment    = NULL;
@@ -985,12 +979,8 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
     /* Initialize a new hash table */
     CS64INIHashTable hashTable;
-    INIT_HASH_TABLE(hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues)
 
-    if(hashTable.pEntries == NULL)
-        return 0;
-
-    INIT_HASH_MEMORY(hashTable)
+    INIT_HASH_TABLE(hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return 0;})
 
     /* TODO Write down the global variables */
 
