@@ -1072,34 +1072,30 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
         cs64_ini_data_reserve(pData, cs64_ini_increment_table(pData->hashTable.entryCapacity));
 
-    /* Check if table is too big. */
+    /* Check if table is full. */
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
         return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
-    CS64Offset hashValue = CS64_INI_INITIAL_HASH;
     CS64Size sectionLength = 0;
 
-    hashValue = CS64_INI_HASH_FUNCTION(pSection, hashValue, &sectionLength);
-
-    CS64Offset original_index = hashValue % pData->hashTable.entryCapacity;
+    CS64Offset original_index = CS64_INI_HASH_FUNCTION(pSection, CS64_INI_INITIAL_HASH, &sectionLength) % pData->hashTable.entryCapacity;
     CS64Offset index = original_index;
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
     if(!IS_ENTRY_EMPTY(*pEntry)) {
-        if( IS_SAME_SECTION_ENTRY(*pEntry) ) {
+        if(IS_SAME_SECTION_ENTRY(*pEntry))
             return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
-        }
 
         index = (1 + index) % pData->hashTable.entryCapacity;
+        pEntry = &pData->hashTable.pEntries[index];
 
-        while(index != original_index &&
-            !IS_ENTRY_EMPTY(pData->hashTable.pEntries[index]))
-        {
-            if(IS_SAME_SECTION_ENTRY(*pEntry)) {
+        while(index != original_index && !IS_ENTRY_EMPTY(*pEntry)) {
+            if(IS_SAME_SECTION_ENTRY(*pEntry))
                 return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
-            }
+
             index = (1 + index) % pData->hashTable.entryCapacity;
+            pEntry = &pData->hashTable.pEntries[index];
         }
 
         if(index == original_index)
