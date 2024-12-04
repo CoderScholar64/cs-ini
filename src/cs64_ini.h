@@ -1046,6 +1046,25 @@ void cs64_ini_data_free(CS64INIData* pData) {
     cs64_ini_are_strings_equal((x).type.section.name.fixed, pSection)) &&\
     ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION                   &&\
     cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSection)))
+#define ATTEMPT_TO_FIND_SECTION(x, index, originalIndex, srcHashTable)\
+    if(!IS_ENTRY_EMPTY((*x))) {\
+        if(IS_SAME_SECTION_ENTRY((*x)))\
+            return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;\
+\
+        index = (1 + index) % srcHashTable.entryCapacity;\
+        x = &srcHashTable.pEntries[index];\
+\
+        while(index != originalIndex && !IS_ENTRY_EMPTY((*x))) {\
+            if(IS_SAME_SECTION_ENTRY((*x)))\
+                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;\
+\
+            index = (1 + index) % srcHashTable.entryCapacity;\
+            x = &srcHashTable.pEntries[index];\
+        }\
+\
+        if(index == originalIndex)\
+            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;\
+    }
 
 static int cs64_ini_are_strings_equal(const CS64UTF8 *const x, const CS64UTF8 *const y) {
     CS64Size length = 0;
@@ -1078,29 +1097,12 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
 
     CS64Size sectionLength = 0;
 
-    CS64Offset original_index = CS64_INI_HASH_FUNCTION(pSection, CS64_INI_INITIAL_HASH, &sectionLength) % pData->hashTable.entryCapacity;
-    CS64Offset index = original_index;
+    CS64Offset originalIndex = CS64_INI_HASH_FUNCTION(pSection, CS64_INI_INITIAL_HASH, &sectionLength) % pData->hashTable.entryCapacity;
+    CS64Offset index = originalIndex;
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    if(!IS_ENTRY_EMPTY(*pEntry)) {
-        if(IS_SAME_SECTION_ENTRY(*pEntry))
-            return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
-
-        index = (1 + index) % pData->hashTable.entryCapacity;
-        pEntry = &pData->hashTable.pEntries[index];
-
-        while(index != original_index && !IS_ENTRY_EMPTY(*pEntry)) {
-            if(IS_SAME_SECTION_ENTRY(*pEntry))
-                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
-
-            index = (1 + index) % pData->hashTable.entryCapacity;
-            pEntry = &pData->hashTable.pEntries[index];
-        }
-
-        if(index == original_index)
-            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
-    }
+    ATTEMPT_TO_FIND_SECTION(pEntry, index, originalIndex, pData->hashTable)
 
     pData->hashTable.currentEntryAmount++;
 
@@ -1146,7 +1148,7 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
         pData->pLastSection = pEntry;
     }
 
-    /* Finally return the entry. If the programmer allows entry */
+    /* Finally return the entry. If the programmer gives ppEntry an address */
     if(ppEntry != NULL)
         *ppEntry = pEntry;
 
