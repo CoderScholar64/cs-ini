@@ -1079,6 +1079,12 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
 
     /* TODO Add a rehashing function here for resizing! */
 
+    /* Just in case the resizing fails */
+    if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
+        return CS64_INI_ENTRY_ERROR_PROBLEM_INVALID | CS64_INI_ENTRY_ERROR_SECTION;
+
+    pData->hashTable.currentEntryAmount++;
+
     /* New Sections do not have variables */
     pEntry->type.section.header.pFirstValue = NULL;
     pEntry->type.section.header.pLastValue  = NULL;
