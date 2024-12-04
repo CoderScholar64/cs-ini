@@ -915,6 +915,17 @@ else if(x.currentEntryAmount > P2_LIMIT)\
     x.entryCapacityDownLimit = CALC_LR_LOWER_LIMIT(x.currentEntryAmount);\
 else\
     x.entryCapacityDownLimit = CALC_P2_LOWER_LIMIT(x.currentEntryAmount);
+#define INIT_HASH_MEMORY(x) {\
+    CS64Offset entryIndex = 0;\
+    while(entryIndex < x.entryCapacity) {\
+        x.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;\
+\
+        x.pEntries[entryIndex].pComment = NULL;\
+        x.pEntries[entryIndex].pInlineComment = NULL;\
+\
+        entryIndex++;\
+    }\
+}
 
 
 CS64INIData* cs64_ini_data_alloc() {
@@ -933,15 +944,7 @@ CS64INIData* cs64_ini_data_alloc() {
         return NULL; /* Malloc had failed in this case. */
     }
 
-    CS64Offset entryIndex = 0;
-    while(entryIndex < pData->hashTable.entryCapacity) {
-        pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
-
-        pData->hashTable.pEntries[entryIndex].pComment = NULL;
-        pData->hashTable.pEntries[entryIndex].pInlineComment = NULL;
-
-        entryIndex++;
-    }
+    INIT_HASH_MEMORY(pData->hashTable)
 
     pData->hashTable.currentEntryAmount = 0;
     pData->hashTable.entryCapacityUpLimit = CALC_UPPER_LIMIT(pData->hashTable.entryCapacity);
@@ -992,15 +995,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     if(hashTable.pEntries == NULL)
         return 0;
 
-    CS64Offset entryIndex = 0;
-    while(entryIndex < hashTable.entryCapacity) {
-        hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
-
-        hashTable.pEntries[entryIndex].pComment = NULL;
-        hashTable.pEntries[entryIndex].pInlineComment = NULL;
-
-        entryIndex++;
-    }
+    INIT_HASH_MEMORY(hashTable)
 
     /* TODO Write down the global variables */
 
