@@ -129,14 +129,10 @@ typedef enum {
 
 typedef enum {
     CS64_INI_ENTRY_SUCCESS               = 0, /* Anything other than zero, is an error */
-    CS64_INI_ENTRY_ERROR_PROBLEM_NULL    = 1 << 1,
-    CS64_INI_ENTRY_ERROR_PROBLEM_MISSING = 1 << 2,
-    CS64_INI_ENTRY_ERROR_PROBLEM_INVALID = 1 << 3,
-    CS64_INI_ENTRY_ERROR_PROBLEM_TOO_BIG = 1 << 4,
-    CS64_INI_ENTRY_ERROR_DATA            = 1 << 5,
-    CS64_INI_ENTRY_ERROR_SECTION         = 1 << 6,
-    CS64_INI_ENTRY_ERROR_KEY             = 1 << 7,
-    CS64_INI_ENTRY_ERROR_VALUE           = 1 << 8
+    CS64_INI_ENTRY_ERROR_DATA_NULL       = 1,
+    CS64_INI_ENTRY_ERROR_SECTION_EMPTY   = 2,
+    CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 3,
+    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 4
 } CS64INIEntryStateFlags;
 
 typedef enum {
@@ -1039,11 +1035,15 @@ static int cs64_ini_are_strings_equal(const CS64UTF8 *const x, const CS64UTF8 *c
 CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry) {
     /* Data must be present for this function to work */
     if(pData == NULL)
-        return CS64_INI_ENTRY_ERROR_PROBLEM_NULL | CS64_INI_ENTRY_ERROR_DATA;
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
-    /* There already is a global section */
+    /* There already is a global section. */
     if(IS_STRING_PRESENT(pSection))
-        return CS64_INI_ENTRY_ERROR_PROBLEM_NULL | CS64_INI_ENTRY_ERROR_SECTION;
+        return CS64_INI_ENTRY_ERROR_SECTION_EMPTY;
+
+    /* Check if table is too big. */
+    if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
+        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
     CS64Offset hashValue = CS64_INI_INITIAL_HASH;
     CS64Size sectionLength = 0;
@@ -1058,7 +1058,7 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     if(!IS_ENTRY_EMPTY(*pEntry)) {
         if(IS_SAME_SECTION_ENTRY(*pEntry))
         ) {
-            return CS64_INI_ENTRY_ERROR_PROBLEM_INVALID | CS64_INI_ENTRY_ERROR_SECTION;
+            return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
         }
 
         index = (1 + index) % pData->hashTable.entryCapacity;
@@ -1068,20 +1068,16 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
         {
             if(IS_SAME_SECTION_ENTRY(*pEntry))
             ) {
-                return CS64_INI_ENTRY_ERROR_PROBLEM_INVALID | CS64_INI_ENTRY_ERROR_SECTION;
+                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
             }
             index = (1 + index) % pData->hashTable.entryCapacity;
         }
 
         if(index == original_index)
-            return CS64_INI_ENTRY_ERROR_PROBLEM_TOO_BIG;
+            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
     }
 
     /* TODO Add a rehashing function here for resizing! */
-
-    /* Just in case the resizing fails */
-    if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
-        return CS64_INI_ENTRY_ERROR_PROBLEM_INVALID | CS64_INI_ENTRY_ERROR_SECTION;
 
     pData->hashTable.currentEntryAmount++;
 
