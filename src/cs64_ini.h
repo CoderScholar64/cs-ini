@@ -1045,11 +1045,11 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         else
             pSectionName = pSection->type.section.name.pDynamic;
 
-        originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength) % pData->hashTable.entryCapacity;
+        originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength) % hashTable.entryCapacity;
 
         index = originalIndex;
 
-        ATTEMPT_TO_FIND_SECTION(pSection, pSectionName, index, originalIndex, pData->hashTable)
+        ATTEMPT_TO_FIND_SECTION(pSection, pSectionName, index, originalIndex, hashTable)
 
         /* TODO Copy source section over to new table! */
 
