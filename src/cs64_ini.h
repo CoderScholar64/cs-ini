@@ -214,14 +214,11 @@ typedef struct CS64SectionHeader {
 typedef struct CS64Section {
     CS64SectionHeader header;
     CS64Size nameByteSize;
-    CS64UniChar name[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
+    union {
+        CS64UTF8 fixed[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
+        CS64UTF8 *pDynamic;
+    } name;
 } CS64Section;
-
-typedef struct CS64DynamicSection {
-    CS64SectionHeader header;
-    CS64Size nameByteSize;
-    CS64UniChar *pName;
-} CS64DynamicSection;
 
 typedef enum {
     CS64_INI_ENTRY_EMPTY,
@@ -245,8 +242,7 @@ typedef struct CS64INIEntry {
         CS64Value          value;
         CS64DynamicValue   dynamicValue;
         CS64Section        section;
-        CS64DynamicSection dynamicSection;
-    } entry;
+    } type;
 } CS64INIEntry;
 
 typedef struct {
@@ -276,7 +272,8 @@ CS64INIData* cs64_ini_data_alloc();
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
+CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
+CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
 CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64INIEntry** ppEntry);
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
@@ -993,10 +990,10 @@ void cs64_ini_data_free(CS64INIData* pData) {
 
             switch(pData->hashTable.pEntries[entryIndex].entryType) {
                 case CS64_INI_ENTRY_DYNAMIC_VALUE:
-                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].entry.dynamicValue.pName); /* This also frees pValue */
+                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].type.dynamicValue.pName); /* This also frees pValue */
                     break;
                 case CS64_INI_ENTRY_DYNAMIC_SECTION:
-                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].entry.dynamicSection.pName);
+                    CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].type.section.name.pDynamic);
                     break;
                 default:
             }
@@ -1011,43 +1008,72 @@ void cs64_ini_data_free(CS64INIData* pData) {
 }
 
 #define IS_STRING_PRESENT(x) (x != NULL || x[0] != '\0')
+#define IS_SPOT_EMPTY(x) ((x).entryType == CS64_INI_ENTRY_EMPTY || (x).entryType == CS64_INI_ENTRY_WAS_OCCUPIED)
+#define IS_SPOT_SECTION(x) ((x).entryType == CS64_INI_ENTRY_SECTION || (x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
+#define STRING_COPY(dst, src) {\
+    CS64Size length = 0;\
+    while(src[length] != '\0') {\
+        dst[length] = src[length];\
+        length++;\
+    }\
+    dst[length] = '\0';\
+}
 
-CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+static int cs64_ini_are_strings_equal(const CS64UTF8 *const x, const CS64UTF8 *const y) {
+    CS64Size length = 0;
+
+    while(x[length] == y[length] && x[length] != '\0' && y[length] != '\0') {
+        length++;
+    }
+
+    if(x[length] != y[length])
+        return 0; /* False */
+    return 1; /* True */
+}
+
+CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry) {
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_PROBLEM_NULL | CS64_INI_ENTRY_ERROR_DATA;
 
-    if(!IS_STRING_PRESENT(pName) || IS_STRING_PRESENT(pValue))
-        return CS64_INI_ENTRY_ERROR_PROBLEM_MISSING | CS64_INI_ENTRY_ERROR_KEY;
-
-    CS64EntryType entryType;
-
-    if( IS_STRING_PRESENT(pSection) ) {
-        if( !IS_STRING_PRESENT(pName) )
-            entryType = CS64_INI_ENTRY_SECTION;
-        else
-            entryType = CS64_INI_ENTRY_VALUE;
-    }
-    else
-        entryType = CS64_INI_ENTRY_VALUE;
+    if(IS_STRING_PRESENT(pSection))
+        return CS64_INI_ENTRY_ERROR_PROBLEM_NULL | CS64_INI_ENTRY_ERROR_SECTION;
 
     CS64Offset hashValue = CS64_INI_INITIAL_HASH;
     CS64Size sectionLength = 0;
-    CS64Size nameLength = 0;
 
-    if(pSection != NULL)
-        hashValue = CS64_INI_HASH_FUNCTION(pSection, hashValue, &sectionLength);
-
-    hashValue = CS64_INI_HASH_FUNCTION(pName, hashValue, &nameLength);
+    hashValue = CS64_INI_HASH_FUNCTION(pSection, hashValue, &sectionLength);
 
     CS64Offset original_index = hashValue % pData->hashTable.entryCapacity;
     CS64Offset index = original_index;
 
-    if(pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_EMPTY || pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_WAS_OCCUPIED) {
+    CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
+
+    if(!IS_SPOT_EMPTY(*pEntry)) {
+
+        if(IS_SPOT_SECTION(*pEntry) &&
+            pEntry->type.section.nameByteSize == sectionLength &&
+            (pEntry->entryType == CS64_INI_ENTRY_SECTION &&
+            cs64_ini_are_strings_equal(pEntry->type.section.name.fixed, pSection)) &&
+            (pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION &&
+            cs64_ini_are_strings_equal(pEntry->type.section.name.pDynamic, pSection))
+        ) {
+            return CS64_INI_ENTRY_ERROR_PROBLEM_INVALID | CS64_INI_ENTRY_ERROR_SECTION;
+        }
+
         index++;
 
-        while(index != original_index && (
-            pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_EMPTY || pData->hashTable.pEntries[index].entryType != CS64_INI_ENTRY_WAS_OCCUPIED))
+        while(index != original_index &&
+            !IS_SPOT_EMPTY(pData->hashTable.pEntries[index]))
         {
+            if(IS_SPOT_SECTION(*pEntry) &&
+                pEntry->type.section.nameByteSize == sectionLength &&
+                (pEntry->entryType == CS64_INI_ENTRY_SECTION &&
+                cs64_ini_are_strings_equal(pEntry->type.section.name.fixed, pSection)) &&
+                (pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION &&
+                cs64_ini_are_strings_equal(pEntry->type.section.name.pDynamic, pSection))
+            ) {
+                return CS64_INI_ENTRY_ERROR_PROBLEM_INVALID | CS64_INI_ENTRY_ERROR_SECTION;
+            }
             index = (1 + index) % pData->hashTable.entryCapacity;
         }
 
@@ -1055,32 +1081,45 @@ CS64INIEntryStateFlags cs64_ini_add_entry(CS64INIData *pData, const CS64UTF8 *co
             return CS64_INI_ENTRY_ERROR_PROBLEM_TOO_BIG;
     }
 
-    CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
-
-    if(entryType == CS64_INI_ENTRY_SECTION) {
-        if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE > sectionLength) {
-            pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
-            pEntry->entry.dynamicSection.header.pFirstValue = NULL;
-            pEntry->entry.dynamicSection.header.pLastValue  = NULL;
-            pEntry->entry.dynamicSection.nameByteSize = sectionLength;
-            /* TODO pName allocation and copy */
-        }
-        else {
-            pEntry->entryType = CS64_INI_ENTRY_SECTION;
-            pEntry->entry.section.header.pFirstValue = NULL;
-            pEntry->entry.section.header.pLastValue  = NULL;
-            pEntry->entry.section.nameByteSize = sectionLength;
-            /* TODO name copy */
-        }
+    if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE > sectionLength) {
+        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+        pEntry->type.section.name.pDynamic = CS64_INI_MALLOC(sizeof(CS64UniChar) * sectionLength);
+        STRING_COPY(pEntry->type.section.name.pDynamic, pSection);
     }
-    else if(entryType == CS64_INI_ENTRY_VALUE) {}
+    else {
+        pEntry->entryType = CS64_INI_ENTRY_SECTION;
+        STRING_COPY(pEntry->type.section.name.fixed, pSection);
+    }
 
+    pEntry->type.section.header.pFirstValue = NULL;
+    pEntry->type.section.header.pLastValue  = NULL;
+    pEntry->type.section.nameByteSize = sectionLength;
     pEntry->commentSize       = 0;
     pEntry->pComment          = NULL;
     pEntry->inlineCommentSize = 0;
     pEntry->pInlineComment    = NULL;
 
-    /* TODO complete this! */
+    /* Empty section check */
+    if(pData->pFirstSection == NULL) {
+        pData->pFirstSection = pEntry;
+        pData->pLastSection  = pEntry;
+
+        pEntry->pNext = NULL;
+        pEntry->pPrev = NULL;
+    } /* Has sections check */
+    else {
+        pData->pLastSection->pNext = pEntry;
+
+        pEntry->pNext = NULL;
+        pEntry->pPrev = pData->pLastSection;
+
+        pData->pLastSection = pEntry;
+    }
+
+    if(ppEntry != NULL)
+        *ppEntry = pEntry;
+
+    return CS64_INI_ENTRY_SUCCESS;
 }
 
 CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64INIEntry** ppEntry);
