@@ -269,7 +269,7 @@ void cs64_ini_data_free(CS64INIData* pData);
 
 CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
 CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
-CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64INIEntry** ppEntry);
+CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
 CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry);
@@ -892,7 +892,7 @@ CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Of
     const static CS64Offset prime = 0x01000193;
     #endif
 
-    while(pString[*pStringLength] != 0) {
+    while(pString[*pStringLength] != '\0') {
         hash ^= pString[*pStringLength];
         hash *= prime;
         (*pStringLength)++;
@@ -956,11 +956,11 @@ else\
     }\
     dst[length] = '\0';\
 }
-#define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION((x))                &&\
-    ((x).type.section.nameByteSize == sectionLength)                   &&\
-    ((x).entryType == CS64_INI_ENTRY_SECTION                           &&\
+#define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION((x))      &&\
+    ((x).type.section.nameByteSize == sectionLength)                       &&\
+    ((x).entryType == CS64_INI_ENTRY_SECTION                               &&\
     cs64_ini_are_strings_equal((x).type.section.name.fixed, pSectionName)) &&\
-    ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION                   &&\
+    ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION                       &&\
     cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSectionName)))
 #define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, memHandleRoutine)\
     if(!IS_ENTRY_EMPTY((*x))) {\
@@ -1131,6 +1131,10 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
+    /* pData make sure that the hash table has entries. */
+    if(pData->hashTable.pEntries == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
     /* There already is a global section. */
     if(IS_STRING_PRESENT(pSection))
         return CS64_INI_ENTRY_ERROR_SECTION_EMPTY;
@@ -1203,7 +1207,33 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     return CS64_INI_ENTRY_SUCCESS;
 }
 
-CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, CS64INIEntry** ppEntry);
+CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName) {
+    /* Data must be present for this function to work */
+    if(pData == NULL)
+        return NULL;
+
+    /* pData make sure that the hash table has entries. */
+    if(pData->hashTable.pEntries == NULL)
+        return NULL;
+
+    /* If no name and section then there is no entry to find. */
+    if(!IS_STRING_PRESENT(pSection) && !IS_STRING_PRESENT(pName))
+        return NULL;
+
+    CS64Offset hash = CS64_INI_INITIAL_HASH;
+    CS64Size sectionLength = 0;
+    CS64Size nameLength = 0;
+
+    if(pSection != NULL)
+        hash = CS64_INI_HASH_FUNCTION(pSection, hash, &sectionLength);
+    if(pName != NULL)
+        hash = CS64_INI_HASH_FUNCTION(pName,    hash, &nameLength);
+
+    CS64Offset originalIndex = hash % pData->hashTable.entryCapacity;
+    CS64Offset index = originalIndex;
+
+    /* TODO Add the rest */
+}
 
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
