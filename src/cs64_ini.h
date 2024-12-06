@@ -985,6 +985,22 @@ else\
 #define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
     ATTEMPT_TO_FIND_ENTRY(x, pSectionName, index, originalIndex, srcHashTable, if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {findCondition;}, notFoundCondition)
 #define IS_ENTRY_VALUE(x) ((x)->entryType == CS64_INI_ENTRY_VALUE || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
+#define IS_CORRECT_VARIABLE(x, pSectionName, pVariableName, findCondition)\
+    if(IS_ENTRY_VALUE(x)) {\
+        if((x)->type.value.pSection == NULL || IS_SAME_SECTION_ENTRY((x)->type.value.pSection, pSectionName)) {\
+            if((x)->entryType == CS64_INI_ENTRY_VALUE) {\
+                if(cs64_ini_are_strings_equal((x)->type.value.data.fixed, pVariableName)) {\
+                    findCondition\
+                }\
+            } else if((x)->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {\
+                if(cs64_ini_are_strings_equal((x)->type.value.data.dynamic.pName, pVariableName)) {\
+                    findCondition\
+                }\
+            }\
+        }\
+    }
+#define ATTEMPT_TO_FIND_VARIABLE(x, pSectionName, pVariableName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
+    ATTEMPT_TO_FIND_ENTRY(x, pVariableName, index, originalIndex, srcHashTable, IS_CORRECT_VARIABLE(x, pSectionName, pVariableName, findCondition), notFoundCondition)
 
 CS64INIData* cs64_ini_data_alloc() {
     CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
@@ -1249,32 +1265,7 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    if(!IS_ENTRY_EMPTY(pEntry)) {
-        if(IS_ENTRY_VALUE(pEntry)) {
-            if(pEntry->type.value.pSection == NULL ||
-                IS_SAME_SECTION_ENTRY(pEntry->type.value.pSection, pSectionName)) {
-                if(pEntry->entryType == CS64_INI_ENTRY_VALUE) {
-                    if(cs64_ini_are_strings_equal(pEntry->type.value.data.fixed, pName)) {
-                        return pEntry;
-                    }
-                } else if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-                    if(cs64_ini_are_strings_equal(pEntry->type.value.data.dynamic.pName, pName)) {
-                        return pEntry;
-                    }
-                }
-            }
-        }
-
-        index = (1 + index) % pData->hashTable.entryCapacity;
-        pEntry = &pData->hashTable.pEntries[index];
-
-        while(index != originalIndex && !IS_ENTRY_EMPTY(pEntry)) {
-            /* TODO Is Same Value and Section */
-
-            index = (1 + index) % pData->hashTable.entryCapacity;
-            pEntry = &pData->hashTable.pEntries[index];
-        }
-    }
+    ATTEMPT_TO_FIND_VARIABLE(pEntry, pSectionName, pName, index, originalIndex, pData->hashTable, return pEntry;, {})
 
     return NULL;
 }
@@ -1376,5 +1367,7 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
 #undef IS_SAME_SECTION_ENTRY
 #undef ATTEMPT_TO_FIND_SECTION
 #undef IS_ENTRY_VALUE
+#undef IS_CORRECT_VARIABLE
+#undef ATTEMPT_TO_FIND_VARIABLE
 
 #endif /* CS64_INI_LIBRARY_IMP */
