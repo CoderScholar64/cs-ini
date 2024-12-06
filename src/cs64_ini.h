@@ -950,7 +950,7 @@ else\
         entryIndex++;\
     }}
 #define IS_STRING_PRESENT(x) (x != NULL || x[0] != '\0')
-#define IS_ENTRY_EMPTY(x) ((x).entryType == CS64_INI_ENTRY_EMPTY || (x).entryType == CS64_INI_ENTRY_WAS_OCCUPIED)
+#define IS_ENTRY_EMPTY(x) ((x)->entryType == CS64_INI_ENTRY_EMPTY || (x)->entryType == CS64_INI_ENTRY_WAS_OCCUPIED)
 #define STRING_COPY(dst, src) {\
     CS64Size length = 0;\
     while(src[length] != '\0') {\
@@ -959,22 +959,22 @@ else\
     }\
     dst[length] = '\0';\
 }
-#define IS_ENTRY_SECTION(x) ((x).entryType == CS64_INI_ENTRY_SECTION || (x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-#define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION((x))      &&\
-    ((x).type.section.nameByteSize == sectionLength)                       &&\
-    (((x).entryType == CS64_INI_ENTRY_SECTION        && cs64_ini_are_strings_equal((x).type.section.name.fixed, pSectionName)) ||\
-    ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION && cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSectionName))))
+#define IS_ENTRY_SECTION(x) ((x)->entryType == CS64_INI_ENTRY_SECTION || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
+#define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION(x)         &&\
+    ((x)->type.section.nameByteSize == sectionLength)                       &&\
+    (((x)->entryType == CS64_INI_ENTRY_SECTION        && cs64_ini_are_strings_equal((x)->type.section.name.fixed, pSectionName)) ||\
+    ((x)->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION && cs64_ini_are_strings_equal((x)->type.section.name.pDynamic, pSectionName))))
 #define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
-    if(!IS_ENTRY_EMPTY((*x))) {\
-        if(IS_SAME_SECTION_ENTRY((*x), pSectionName)) {\
+    if(!IS_ENTRY_EMPTY(x)) {\
+        if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {\
             findCondition;\
         }\
 \
         index = (1 + index) % srcHashTable.entryCapacity;\
         x = &srcHashTable.pEntries[index];\
 \
-        while(index != originalIndex && !IS_ENTRY_EMPTY((*x))) {\
-            if(IS_SAME_SECTION_ENTRY((*x), pSectionName)) {\
+        while(index != originalIndex && !IS_ENTRY_EMPTY(x)) {\
+            if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {\
                 findCondition;\
             }\
 \
@@ -986,7 +986,7 @@ else\
             notFoundCondition;\
         }\
     }
-#define IS_ENTRY_VALUE(x) ((x).entryType == CS64_INI_ENTRY_VALUE || (x).entryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
+#define IS_ENTRY_VALUE(x) ((x)->entryType == CS64_INI_ENTRY_VALUE || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
 
 CS64INIData* cs64_ini_data_alloc() {
     CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
@@ -1251,10 +1251,10 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    if(!IS_ENTRY_EMPTY((*pEntry))) {
-        if(IS_ENTRY_VALUE((*pEntry))) {
+    if(!IS_ENTRY_EMPTY(pEntry)) {
+        if(IS_ENTRY_VALUE(pEntry)) {
             if(pEntry->type.value.pSection == NULL ||
-                IS_SAME_SECTION_ENTRY((*pEntry->type.value.pSection), pSectionName)) {
+                IS_SAME_SECTION_ENTRY(pEntry->type.value.pSection, pSectionName)) {
                 if(pEntry->entryType == CS64_INI_ENTRY_VALUE) {
                     if(cs64_ini_are_strings_equal(pEntry->type.value.data.fixed, pName)) {
                         return pEntry;
@@ -1270,7 +1270,7 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
         index = (1 + index) % pData->hashTable.entryCapacity;
         pEntry = &pData->hashTable.pEntries[index];
 
-        while(index != originalIndex && !IS_ENTRY_EMPTY((*pEntry))) {
+        while(index != originalIndex && !IS_ENTRY_EMPTY(pEntry)) {
             /* TODO Is Same Value and Section */
 
             index = (1 + index) % pData->hashTable.entryCapacity;
@@ -1328,7 +1328,7 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
     if(pData->hashTable.currentEntryAmount == 0)
         return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
-    if(IS_ENTRY_SECTION(*pEntry)) {
+    if(IS_ENTRY_SECTION(pEntry)) {
         /* TODO Add variable deletion rountine */
     }
 
