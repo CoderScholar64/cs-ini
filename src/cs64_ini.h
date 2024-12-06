@@ -964,19 +964,15 @@ else\
     ((x)->type.section.nameByteSize == sectionLength)                       &&\
     (((x)->entryType == CS64_INI_ENTRY_SECTION        && cs64_ini_are_strings_equal((x)->type.section.name.fixed, pSectionName)) ||\
     ((x)->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION && cs64_ini_are_strings_equal((x)->type.section.name.pDynamic, pSectionName))))
-#define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
+#define ATTEMPT_TO_FIND_ENTRY(x, pSectionName, index, originalIndex, srcHashTable, findConditionStatement, notFoundCondition)\
     if(!IS_ENTRY_EMPTY(x)) {\
-        if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {\
-            findCondition;\
-        }\
+        findConditionStatement\
 \
         index = (1 + index) % srcHashTable.entryCapacity;\
         x = &srcHashTable.pEntries[index];\
 \
         while(index != originalIndex && !IS_ENTRY_EMPTY(x)) {\
-            if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {\
-                findCondition;\
-            }\
+            findConditionStatement\
 \
             index = (1 + index) % srcHashTable.entryCapacity;\
             x = &srcHashTable.pEntries[index];\
@@ -986,6 +982,8 @@ else\
             notFoundCondition;\
         }\
     }
+#define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
+    ATTEMPT_TO_FIND_ENTRY(x, pSectionName, index, originalIndex, srcHashTable, if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {findCondition;}, notFoundCondition)
 #define IS_ENTRY_VALUE(x) ((x)->entryType == CS64_INI_ENTRY_VALUE || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
 
 CS64INIData* cs64_ini_data_alloc() {
