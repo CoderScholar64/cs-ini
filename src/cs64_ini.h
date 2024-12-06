@@ -131,10 +131,11 @@ typedef enum {
     CS64_INI_ENTRY_SUCCESS               = 0, /* Anything other than zero, is an error */
     CS64_INI_ENTRY_ERROR_DATA_NULL       = 1,
     CS64_INI_ENTRY_ERROR_SECTION_EMPTY   = 2,
-    CS64_INI_ENTRY_ERROR_ENTRY_EMPTY     = 3,
-    CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 4,
-    CS64_INI_ENTRY_ERROR_ENTRY_DNE       = 5,
-    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 6
+    CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY  = 3,
+    CS64_INI_ENTRY_ERROR_ENTRY_EMPTY     = 4,
+    CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 5,
+    CS64_INI_ENTRY_ERROR_ENTRY_DNE       = 6,
+    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 7
 } CS64INIEntryStateFlags;
 
 typedef enum {
@@ -1149,6 +1150,60 @@ void cs64_ini_data_free(CS64INIData* pData) {
     }
 
     CS64_INI_FREE(pData);
+}
+
+CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+    /* Data must be present for this function to work */
+    if(pData == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    /* pData make sure that the hash table has entries. */
+    if(pData->hashTable.pEntries == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    /* Variables must always be named. */
+    if(IS_STRING_PRESENT(pVariableName))
+        return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
+
+    /* Check if it is time for a resize */
+    if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
+        cs64_ini_data_reserve(pData, cs64_ini_increment_table(pData->hashTable.entryCapacity));
+
+    /* Check if table is full. */
+    if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
+        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+    CS64Size sectionLength = 0;
+    CS64Size nameLength = 0;
+
+    CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
+
+    if(pSectionName != NULL)
+        sectionHash = CS64_INI_HASH_FUNCTION(pSectionName,  sectionHash, &sectionLength);
+    CS64Offset hash = CS64_INI_HASH_FUNCTION(pVariableName, sectionHash, &nameLength);
+
+    CS64Offset originalIndex = hash % pData->hashTable.entryCapacity;
+    CS64Offset index = originalIndex;
+    CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
+
+    ATTEMPT_TO_FIND_VARIABLE(
+        pEntry, pSectionName, pVariableName, index, originalIndex, pData->hashTable,
+        {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+        {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+
+    CS64Offset originalSectionIndex;
+    CS64Offset sectionIndex;
+    CS64INIEntry *pSectionEntry = NULL;
+
+    if(pSectionName != NULL) {
+        originalSectionIndex = sectionHash % pData->hashTable.entryCapacity;
+        sectionIndex = originalSectionIndex;
+        pSectionEntry = &pData->hashTable.pEntries[sectionIndex];
+
+        ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionIndex, originalSectionIndex, pData->hashTable, {}, {})
+    }
+
+    pData->hashTable.currentEntryAmount++;
 }
 
 CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSectionName, CS64INIEntry** ppEntry) {
