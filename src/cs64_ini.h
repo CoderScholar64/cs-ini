@@ -1022,6 +1022,15 @@ static CS64Size cs64_ini_increment_table(CS64Size entryCapacity) {
         return 2 * entryCapacity;
 }
 
+static CS64Size cs64_ini_decrement_table(CS64Size entryCapacity) {
+    if(entryCapacity < INITIAL_CAPACITY)
+        return INITIAL_CAPACITY;
+    else if(entryCapacity > P2_LIMIT)
+        return entryCapacity - P2_LIMIT;
+    else
+        return entryCapacity / 2;
+}
+
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues) {
     /* pData is the INI file. */
     if(pData == NULL)
@@ -1329,12 +1338,12 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
     /* Make sure that the table does have items in it to delete. */
-    if(pData->hashTable.currentEntryAmount == 0)
-        return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
-
-    /* Make sure that the table does have items in it to delete. */
     if(pEntry == NULL)
         return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+
+    /* Make sure that the table does have items in it to delete. */
+    if(pData->hashTable.currentEntryAmount == 0)
+        return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
     if(IS_ENTRY_SECTION(*pEntry)) {
         /* TODO Add variable deletion rountine */
@@ -1363,6 +1372,11 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
     }
 
     pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+
+    pData->hashTable.currentEntryAmount--;
+
+    if(pData->hashTable.currentEntryAmount < pData->hashTable.entryCapacityDownLimit)
+        cs64_ini_data_reserve(pData, cs64_ini_decrement_table(pData->hashTable.entryCapacity));
 
     return CS64_INI_ENTRY_SUCCESS;
 }
