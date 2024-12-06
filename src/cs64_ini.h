@@ -1221,6 +1221,9 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
     if(!IS_STRING_PRESENT(pSectionName))
         return NULL;
 
+    if(pData->hashTable.currentEntryAmount == 0)
+        return NULL;
+
     CS64Size sectionLength = 0;
 
     CS64Offset hash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength);
@@ -1251,7 +1254,51 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
     return NULL;
 }
 
-CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
+CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
+    /* Data must be present for this function to work */
+    if(pData == NULL)
+        return NULL;
+
+    /* pData make sure that the hash table has entries. */
+    if(pData->hashTable.pEntries == NULL)
+        return NULL;
+
+    /* Make sure that the table does have items in it to delete. */
+    if(pData->hashTable.currentEntryAmount == 0)
+        return NULL;
+
+    /* Make sure that the table does have items in it to delete. */
+    if(pEntry == NULL)
+        return NULL;
+
+    /* Standard Remove Element from double linked lists! */
+    if(pEntry->pPrev == NULL)
+        pEntry->pPrev->pNext = pEntry->pNext;
+
+    if(pEntry->pNext == NULL)
+        pEntry->pNext->pPrev = pEntry->pPrev;
+
+    /* Free Comment */
+    if(pEntry->pComment != NULL)
+        CS64_INI_FREE(pEntry->pComment); /* This also frees pInlineComment */
+
+    /* Free if dynamic */
+    switch(pEntry->entryType) {
+        case CS64_INI_ENTRY_DYNAMIC_VALUE:
+            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
+            break;
+        case CS64_INI_ENTRY_DYNAMIC_SECTION:
+            CS64_INI_FREE(pEntry->type.section.name.pDynamic);
+            break;
+        default:
+    }
+
+    if(IS_ENTRY_SECTION(*pEntry)) {
+        /* TODO Add variable deletion rountine */
+    }
+
+    pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+}
 
 #undef INITIAL_CAPACITY
 #undef P2_LIMIT
