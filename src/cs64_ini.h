@@ -189,7 +189,10 @@ typedef struct {
     } status;
 } CS64INITokenResult;
 
+struct CS64INIEntry;
+
 typedef struct CS64Value {
+    struct CS64INIEntry *pSection;
     CS64Size nameByteSize;
     CS64Size valueByteSize;
     /* This could be a union to hold integers/floats efficiently */
@@ -201,8 +204,6 @@ typedef struct CS64Value {
         } dynamic;
     } data;
 } CS64Value;
-
-struct CS64INIEntry;
 
 typedef struct CS64SectionHeader {
     struct CS64INIEntry *pFirstValue;  /* CS64_INI_ENTRY_VALUE or CS64_INI_ENTRY_DYNAMIC_VALUE */
@@ -950,7 +951,6 @@ else\
     }}
 #define IS_STRING_PRESENT(x) (x != NULL || x[0] != '\0')
 #define IS_ENTRY_EMPTY(x) ((x).entryType == CS64_INI_ENTRY_EMPTY || (x).entryType == CS64_INI_ENTRY_WAS_OCCUPIED)
-#define IS_ENTRY_SECTION(x) ((x).entryType == CS64_INI_ENTRY_SECTION || (x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
 #define STRING_COPY(dst, src) {\
     CS64Size length = 0;\
     while(src[length] != '\0') {\
@@ -959,6 +959,7 @@ else\
     }\
     dst[length] = '\0';\
 }
+#define IS_ENTRY_SECTION(x) ((x).entryType == CS64_INI_ENTRY_SECTION || (x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
 #define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION((x))      &&\
     ((x).type.section.nameByteSize == sectionLength)                       &&\
     ((x).entryType == CS64_INI_ENTRY_SECTION                               &&\
@@ -990,6 +991,7 @@ else\
             return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;\
         }\
     }
+#define IS_ENTRY_VALUE(x) ((x).entryType == CS64_INI_ENTRY_VALUE || (x).entryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
 
 CS64INIData* cs64_ini_data_alloc() {
     CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
@@ -1051,7 +1053,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     const CS64INIEntry *pSection = pData->pFirstSection;
     CS64Size sectionLength = 0;
     while(pSection != NULL) {
-        CS64UTF8 *pSectionName;
+        const CS64UTF8 *pSectionName;
 
         if(pSection->entryType == CS64_INI_ENTRY_SECTION)
             pSectionName = pSection->type.section.name.fixed;
@@ -1210,6 +1212,67 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     return CS64_INI_ENTRY_SUCCESS;
 }
 
+
+CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pName) {
+    /* Data must be present for this function to work */
+    if(pData == NULL)
+        return NULL;
+
+    /* pData make sure that the hash table has entries. */
+    if(pData->hashTable.pEntries == NULL)
+        return NULL;
+
+    /* If no name and section then there is no entry to find. */
+    if(!IS_STRING_PRESENT(pName))
+        return NULL;
+
+    if(pData->hashTable.currentEntryAmount == 0)
+        return NULL;
+
+    CS64Size sectionLength = 0;
+    CS64Size nameLength = 0;
+
+    CS64Offset hash = CS64_INI_INITIAL_HASH;
+
+    if(pSectionName != NULL)
+        hash = CS64_INI_HASH_FUNCTION(pSectionName, hash, &sectionLength);
+    hash = CS64_INI_HASH_FUNCTION(pName, hash, &nameLength);
+
+    CS64Offset originalIndex = hash % pData->hashTable.entryCapacity;
+    CS64Offset index = originalIndex;
+
+    CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
+
+    if(!IS_ENTRY_EMPTY((*pEntry))) {
+        if(IS_ENTRY_VALUE((*pEntry))) {
+            if(pEntry->type.value.pSection == NULL ||
+                IS_SAME_SECTION_ENTRY((*pEntry), pSectionName)) {
+                if(pEntry->entryType == CS64_INI_ENTRY_VALUE) {
+                    if(cs64_ini_are_strings_equal(pEntry->type.value.data.fixed, pName)) {
+                        return pEntry;
+                    }
+                } else if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+                    if(cs64_ini_are_strings_equal(pEntry->type.value.data.dynamic.pName, pName)) {
+                        return pEntry;
+                    }
+                }
+            }
+        }
+
+        index = (1 + index) % pData->hashTable.entryCapacity;
+        pEntry = &pData->hashTable.pEntries[index];
+
+        while(index != originalIndex && !IS_ENTRY_EMPTY((*pEntry))) {
+            /* TODO Is Same Value and Section */
+
+            index = (1 + index) % pData->hashTable.entryCapacity;
+            pEntry = &pData->hashTable.pEntries[index];
+        }
+    }
+
+    return NULL;
+}
+
 CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSectionName) {
     /* Data must be present for this function to work */
     if(pData == NULL)
@@ -1317,5 +1380,6 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
 #undef STRING_COPY
 #undef IS_SAME_SECTION_ENTRY
 #undef ATTEMPT_TO_FIND_SECTION
+#undef IS_ENTRY_VALUE
 
 #endif /* CS64_INI_LIBRARY_IMP */
