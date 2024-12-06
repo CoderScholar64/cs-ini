@@ -131,8 +131,10 @@ typedef enum {
     CS64_INI_ENTRY_SUCCESS               = 0, /* Anything other than zero, is an error */
     CS64_INI_ENTRY_ERROR_DATA_NULL       = 1,
     CS64_INI_ENTRY_ERROR_SECTION_EMPTY   = 2,
-    CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 3,
-    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 4
+    CS64_INI_ENTRY_ERROR_ENTRY_EMPTY     = 3,
+    CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 4,
+    CS64_INI_ENTRY_ERROR_ENTRY_DNE       = 5,
+    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 6
 } CS64INIEntryStateFlags;
 
 typedef enum {
@@ -1257,19 +1259,23 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
     /* Data must be present for this function to work */
     if(pData == NULL)
-        return NULL;
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
     /* pData make sure that the hash table has entries. */
     if(pData->hashTable.pEntries == NULL)
-        return NULL;
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
     /* Make sure that the table does have items in it to delete. */
     if(pData->hashTable.currentEntryAmount == 0)
-        return NULL;
+        return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
     /* Make sure that the table does have items in it to delete. */
     if(pEntry == NULL)
-        return NULL;
+        return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+
+    if(IS_ENTRY_SECTION(*pEntry)) {
+        /* TODO Add variable deletion rountine */
+    }
 
     /* Standard Remove Element from double linked lists! */
     if(pEntry->pPrev == NULL)
@@ -1293,11 +1299,9 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
         default:
     }
 
-    if(IS_ENTRY_SECTION(*pEntry)) {
-        /* TODO Add variable deletion rountine */
-    }
-
     pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+
+    return CS64_INI_ENTRY_SUCCESS;
 }
 
 #undef INITIAL_CAPACITY
