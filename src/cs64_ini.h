@@ -962,10 +962,8 @@ else\
 #define IS_ENTRY_SECTION(x) ((x).entryType == CS64_INI_ENTRY_SECTION || (x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
 #define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION((x))      &&\
     ((x).type.section.nameByteSize == sectionLength)                       &&\
-    ((x).entryType == CS64_INI_ENTRY_SECTION                               &&\
-    cs64_ini_are_strings_equal((x).type.section.name.fixed, pSectionName)) &&\
-    ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION                       &&\
-    cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSectionName)))
+    (((x).entryType == CS64_INI_ENTRY_SECTION        && cs64_ini_are_strings_equal((x).type.section.name.fixed, pSectionName)) ||\
+    ((x).entryType == CS64_INI_ENTRY_DYNAMIC_SECTION && cs64_ini_are_strings_equal((x).type.section.name.pDynamic, pSectionName))))
 #define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, memHandleRoutine)\
     if(!IS_ENTRY_EMPTY((*x))) {\
         if(IS_SAME_SECTION_ENTRY((*x), pSectionName)) {\
@@ -1052,9 +1050,9 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     CS64Offset originalIndex;
     CS64Offset index;
     CS64INIEntry *pEntry;
-    CS64INIEntry *pFirstEntry;
-    CS64INIEntry *pLastEntry;
-    CS64INIEntry *pPrevEntry = NULL;
+    CS64INIEntry *pFirstEntry = NULL;
+    CS64INIEntry *pLastEntry  = NULL;
+    CS64INIEntry *pPrevEntry  = NULL;
 
     /* TODO Write down the global variables */
 
@@ -1255,7 +1253,7 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
     if(!IS_ENTRY_EMPTY((*pEntry))) {
         if(IS_ENTRY_VALUE((*pEntry))) {
             if(pEntry->type.value.pSection == NULL ||
-                IS_SAME_SECTION_ENTRY((*pEntry), pSectionName)) {
+                IS_SAME_SECTION_ENTRY((*pEntry->type.value.pSection), pSectionName)) {
                 if(pEntry->entryType == CS64_INI_ENTRY_VALUE) {
                     if(cs64_ini_are_strings_equal(pEntry->type.value.data.fixed, pName)) {
                         return pEntry;
