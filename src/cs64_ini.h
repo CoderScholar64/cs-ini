@@ -269,7 +269,8 @@ void cs64_ini_data_free(CS64INIData* pData);
 
 CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
 CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
-CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
+CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSection);
+CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
 CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry);
@@ -1207,7 +1208,7 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
     return CS64_INI_ENTRY_SUCCESS;
 }
 
-CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName) {
+CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSectionName) {
     /* Data must be present for this function to work */
     if(pData == NULL)
         return NULL;
@@ -1217,22 +1218,37 @@ CS64INIEntry* cs64_ini_get_entry(CS64INIData *pData, const CS64UTF8 *const pSect
         return NULL;
 
     /* If no name and section then there is no entry to find. */
-    if(!IS_STRING_PRESENT(pSection) && !IS_STRING_PRESENT(pName))
+    if(!IS_STRING_PRESENT(pSectionName))
         return NULL;
 
-    CS64Offset hash = CS64_INI_INITIAL_HASH;
     CS64Size sectionLength = 0;
-    CS64Size nameLength = 0;
 
-    if(pSection != NULL)
-        hash = CS64_INI_HASH_FUNCTION(pSection, hash, &sectionLength);
-    if(pName != NULL)
-        hash = CS64_INI_HASH_FUNCTION(pName,    hash, &nameLength);
+    CS64Offset hash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength);
 
     CS64Offset originalIndex = hash % pData->hashTable.entryCapacity;
     CS64Offset index = originalIndex;
 
-    /* TODO Add the rest */
+    CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
+
+    if(!IS_ENTRY_EMPTY((*pEntry))) {
+        if(IS_SAME_SECTION_ENTRY((*pEntry), pSectionName)) {
+            return pEntry;
+        }
+
+        index = (1 + index) % pData->hashTable.entryCapacity;
+        pEntry = &pData->hashTable.pEntries[index];
+
+        while(index != originalIndex && !IS_ENTRY_EMPTY((*pEntry))) {
+            if(IS_SAME_SECTION_ENTRY((*pEntry), pSectionName)) {
+                return pEntry;
+            }
+
+            index = (1 + index) % pData->hashTable.entryCapacity;
+            pEntry = &pData->hashTable.pEntries[index];
+        }
+    }
+
+    return NULL;
 }
 
 CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
