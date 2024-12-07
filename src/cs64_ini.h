@@ -1075,7 +1075,10 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
     CS64Offset originalIndex;
     CS64Offset index;
+    CS64Offset sectionHash;
+    CS64Offset variableHash;
     CS64INIEntry *pEntry;
+    CS64INIEntry *pSectionEntry;
     CS64Size nameByteSize;
 
     const CS64INIEntry *pVariable = pData->globals.pFirstValue;
@@ -1089,9 +1092,9 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
         nameByteSize = 0;
 
-        CS64Offset hash = CS64_INI_HASH_FUNCTION(pName, CS64_INI_INITIAL_HASH, &nameByteSize);
+        variableHash = CS64_INI_HASH_FUNCTION(pName, CS64_INI_INITIAL_HASH, &nameByteSize);
 
-        originalIndex = hash % newINIData.hashTable.entryCapacity;
+        originalIndex = variableHash % newINIData.hashTable.entryCapacity;
 
         index = originalIndex;
 
@@ -1102,22 +1105,21 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
-        /* Copy source section over to new table! */
+        /* Copy source variable over to new table! */
         *pEntry = *pVariable;
 
         pEntry->pNext = NULL;
-        pEntry->pPrev = NULL;
+        pEntry->pPrev = newINIData.globals.pLastValue;
 
         if(pData->globals.pLastValue != NULL) {
-            pData->globals.pLastValue->pNext = pEntry;
+            newINIData.globals.pLastValue->pNext = pEntry;
             pEntry->pPrev = pData->globals.pLastValue;
         }
 
         if(pData->globals.pFirstValue == pVariable)
             newINIData.globals.pFirstValue = pEntry;
 
-        if(pData->globals.pLastValue == pVariable)
-            newINIData.globals.pLastValue = pEntry;
+        newINIData.globals.pLastValue = pEntry;
 
         pVariable = pVariable->pNext;
     }
@@ -1133,31 +1135,74 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         else
             pSectionName = pSection->type.section.name.pDynamic;
 
-        originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength) % newINIData.hashTable.entryCapacity;
+        sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength);
+
+        originalIndex = sectionHash % newINIData.hashTable.entryCapacity;
 
         index = originalIndex;
 
-        pEntry = &newINIData.hashTable.pEntries[index];
+        pSectionEntry = &newINIData.hashTable.pEntries[index];
 
-        ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pEntry),
+        ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionLength, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pSectionEntry),
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
         /* Copy source section over to new table! */
-        *pEntry = *pSection;
+        *pSectionEntry = *pSection;
 
-        pEntry->pPrev = newINIData.pLastSection;
+        pSectionEntry->pPrev = newINIData.pLastSection;
 
         if(newINIData.pLastSection != NULL)
-            newINIData.pLastSection->pNext = pEntry;
+            newINIData.pLastSection->pNext = pSectionEntry;
 
         if(pData->pFirstSection == pSection)
-            newINIData.pFirstSection = pEntry;
+            newINIData.pFirstSection = pSectionEntry;
 
-        if(pData->pLastSection == pSection)
-            newINIData.pLastSection = pEntry;
+        newINIData.pLastSection = pSectionEntry;
 
-        /* TODO Write down the section variables */
+        /* Write down the section variables */
+        pVariable = pSection->type.section.header.pFirstValue;
+        while(pVariable != NULL) {
+            const CS64UTF8 *pName;
+
+            if(pVariable->entryType == CS64_INI_ENTRY_VALUE)
+                pName = &pVariable->type.value.data.fixed[0];
+            else
+                pName = pVariable->type.value.data.dynamic.pName;
+
+            nameByteSize = 0;
+
+            variableHash = CS64_INI_HASH_FUNCTION(pName, sectionHash, &nameByteSize);
+
+            originalIndex = variableHash % newINIData.hashTable.entryCapacity;
+
+            index = originalIndex;
+
+            pEntry = &pData->hashTable.pEntries[index];
+
+            ATTEMPT_TO_FIND_VARIABLE(
+                pEntry, pSectionName, sectionLength, pName, index, originalIndex, pData->hashTable,
+                {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+                {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+
+            /* Copy source variable over to new table! */
+            *pEntry = *pVariable;
+
+            pEntry->pNext = NULL;
+            pEntry->pPrev = NULL;
+
+            if(pSection->type.section.header.pLastValue != NULL) {
+                pSectionEntry->type.section.header.pFirstValue = pEntry;
+                pEntry->pPrev = pSectionEntry->type.section.header.pLastValue;
+            }
+
+            if(pSection->type.section.header.pFirstValue == pVariable)
+                pSectionEntry->type.section.header.pFirstValue = pEntry;
+
+            pSectionEntry->type.section.header.pLastValue = pEntry;
+
+            pVariable = pVariable->pNext;
+        }
 
         pSection = pSection->pNext;
     }
