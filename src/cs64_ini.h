@@ -1065,16 +1065,13 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         return 0;
 
     /* Initialize a new hash table */
-    CS64INIHashTable hashTable;
+    CS64INIData newINIData = *pData;
 
-    INIT_HASH_TABLE(hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return 0;})
+    INIT_HASH_TABLE(newINIData.hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return 0;})
 
     CS64Offset originalIndex;
     CS64Offset index;
     CS64INIEntry *pEntry;
-    CS64INIEntry *pFirstEntry = NULL;
-    CS64INIEntry *pLastEntry  = NULL;
-    CS64INIEntry *pPrevEntry  = NULL;
 
     /* TODO Write down the global variables */
 
@@ -1089,33 +1086,32 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         else
             pSectionName = pSection->type.section.name.pDynamic;
 
-        originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength) % hashTable.entryCapacity;
+        originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength) % newINIData.hashTable.entryCapacity;
 
         index = originalIndex;
 
-        pEntry = &hashTable.pEntries[index];
+        pEntry = &newINIData.hashTable.pEntries[index];
 
-        ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, index, originalIndex, hashTable, !IS_ENTRY_EMPTY(pEntry),
-            {CS64_INI_FREE(hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-            {CS64_INI_FREE(hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+        ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pEntry),
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
         /* Copy source section over to new table! */
         *pEntry = *pSection;
 
-        pEntry->pPrev = pPrevEntry;
+        pEntry->pPrev = newINIData.pLastSection;
 
-        if(pPrevEntry != NULL)
-            pPrevEntry->pNext = pEntry;
+        if(newINIData.pLastSection != NULL)
+            newINIData.pLastSection->pNext = pEntry;
 
         if(pData->pFirstSection == pSection)
-            pFirstEntry = pEntry;
+            newINIData.pFirstSection = pEntry;
 
         if(pData->pLastSection == pSection)
-            pLastEntry = pEntry;
+            newINIData.pLastSection = pEntry;
 
         /* TODO Write down the section variables */
 
-        pPrevEntry = pEntry;
         pSection = pSection->pNext;
     }
 
@@ -1123,9 +1119,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     CS64_INI_FREE(pData->hashTable.pEntries);
 
     /* Set the variables of the INI library */
-    pData->pFirstSection = pFirstEntry;
-    pData->pLastSection  = pLastEntry;
-    pData->hashTable     = hashTable;
+    *pData = newINIData;
 
     return 0;
 }
