@@ -1613,6 +1613,20 @@ CS64INIEntry* cs64_ini_get_first_section_value(CS64INIEntry *pEntry) {
     return pEntry->type.section.header.pFirstValue;
 }
 
+CS64INIEntry* cs64_ini_get_next_entry(CS64INIEntry *pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+
+    return pEntry->pNext;
+}
+
+CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+
+    return pEntry->pPrev;
+}
+
 #undef INITIAL_CAPACITY
 #undef P2_LIMIT
 #undef CALC_UPPER_LIMIT
