@@ -1074,6 +1074,28 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     CS64INIEntry *pEntry;
 
     /* TODO Write down the global variables */
+    const CS64INIEntry *pVariable = pData->globals.pFirstValue;
+    while(pVariable != NULL) {
+        const CS64UTF8 *pName;
+        const CS64UTF8 *pValue;
+
+        if(pVariable->entryType == CS64_INI_ENTRY_VALUE) {
+            pName = &pVariable->type.value.data.fixed[0];
+            pValue = &pVariable->type.value.data.fixed[pVariable->type.value.nameByteSize];
+        }
+        else {
+            pName = pVariable->type.value.data.dynamic.pName;
+            pValue = pVariable->type.value.data.dynamic.pValue;
+        }
+
+        if(pData->globals.pFirstValue == pVariable)
+            newINIData.globals.pFirstValue = pEntry;
+
+        if(pData->globals.pLastValue == pVariable)
+            newINIData.globals.pLastValue = pEntry;
+
+        pVariable = pVariable->pNext;
+    }
 
     /* Write down the sections first */
     const CS64INIEntry *pSection = pData->pFirstSection;
