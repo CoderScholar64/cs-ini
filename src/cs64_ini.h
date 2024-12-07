@@ -1589,6 +1589,30 @@ CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry) {
     }
 }
 
+CS64INIEntry* cs64_ini_get_first_section(CS64INIData *pData) {
+    if(pData == NULL)
+        return NULL;
+
+    return pData->pFirstSection;
+}
+
+CS64INIEntry* cs64_ini_get_first_global_value(CS64INIData *pData) {
+    if(pData == NULL)
+        return NULL;
+
+    return pData->globals.pFirstValue;
+}
+
+CS64INIEntry* cs64_ini_get_first_section_value(CS64INIEntry *pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+
+    if(cs64_ini_get_entry_type(pEntry) != CS64_INI_ENTRY_SECTION)
+        return NULL;
+
+    return pEntry->type.section.header.pFirstValue;
+}
+
 #undef INITIAL_CAPACITY
 #undef P2_LIMIT
 #undef CALC_UPPER_LIMIT
