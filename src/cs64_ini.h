@@ -1627,7 +1627,24 @@ CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry) {
     return pEntry->pPrev;
 }
 
-CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {}
+CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
+    if(pData == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    if(pEntry == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    if(!IS_STRING_PRESENT(pValue))
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    /* backup entry */
+
+    /* cs64_ini_del_entry without deleting contained value and coments */
+
+    /* cs64_ini_add_section or cs64_ini_add_value */
+
+    return CS64_INI_ENTRY_ERROR_DATA_NULL; /* TODO Complete the function then turn the return value to success! */
+}
 
 const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) {
     if(pEntry == NULL)
