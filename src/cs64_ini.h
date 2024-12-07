@@ -971,8 +971,8 @@ else\
     dst[length] = '\0';\
 }
 #define IS_ENTRY_SECTION(x) ((x)->entryType == CS64_INI_ENTRY_SECTION || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-#define IS_SAME_SECTION_ENTRY(x, pSectionName) (IS_ENTRY_SECTION(x)         &&\
-    ((x)->type.section.nameByteSize == sectionLength)                       &&\
+#define IS_SAME_SECTION_ENTRY(x, pSectionName, sectionByteSize) (IS_ENTRY_SECTION(x) &&\
+    ((x)->type.section.nameByteSize == sectionByteSize)                              &&\
     (((x)->entryType == CS64_INI_ENTRY_SECTION        && cs64_ini_are_strings_equal((x)->type.section.name.fixed, pSectionName)) ||\
     ((x)->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION && cs64_ini_are_strings_equal((x)->type.section.name.pDynamic, pSectionName))))
 #define ATTEMPT_TO_FIND_ENTRY(x, pSectionName, index, originalIndex, srcHashTable, checker, findConditionStatement, notFoundCondition)\
@@ -993,12 +993,12 @@ else\
             notFoundCondition;\
         }\
     }
-#define ATTEMPT_TO_FIND_SECTION(x, pSectionName, index, originalIndex, srcHashTable, checker, findCondition, notFoundCondition)\
-    ATTEMPT_TO_FIND_ENTRY(x, pSectionName, index, originalIndex, srcHashTable, checker, if(IS_SAME_SECTION_ENTRY(x, pSectionName)) {findCondition;}, notFoundCondition)
+#define ATTEMPT_TO_FIND_SECTION(x, pSectionName, sectionByteSize, index, originalIndex, srcHashTable, checker, findCondition, notFoundCondition)\
+    ATTEMPT_TO_FIND_ENTRY(x, pSectionName, index, originalIndex, srcHashTable, checker, if(IS_SAME_SECTION_ENTRY(x, pSectionName, sectionByteSize)) {findCondition;}, notFoundCondition)
 #define IS_ENTRY_VALUE(x) ((x)->entryType == CS64_INI_ENTRY_VALUE || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
-#define IS_CORRECT_VARIABLE(x, pSectionName, pVariableName, findCondition)\
+#define IS_CORRECT_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, findCondition)\
     if(IS_ENTRY_VALUE(x)) {\
-        if((x)->type.value.pSection == NULL || IS_SAME_SECTION_ENTRY((x)->type.value.pSection, pSectionName)) {\
+        if((x)->type.value.pSection == NULL || IS_SAME_SECTION_ENTRY((x)->type.value.pSection, pSectionName, sectionByteSize)) {\
             if((x)->entryType == CS64_INI_ENTRY_VALUE) {\
                 if(cs64_ini_are_strings_equal((x)->type.value.data.fixed, pVariableName)) {\
                     findCondition\
@@ -1010,8 +1010,8 @@ else\
             }\
         }\
     }
-#define ATTEMPT_TO_FIND_VARIABLE(x, pSectionName, pVariableName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
-    ATTEMPT_TO_FIND_ENTRY(x, pVariableName, index, originalIndex, srcHashTable, !IS_ENTRY_EMPTY(x), IS_CORRECT_VARIABLE(x, pSectionName, pVariableName, findCondition), notFoundCondition)
+#define ATTEMPT_TO_FIND_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
+    ATTEMPT_TO_FIND_ENTRY(x, pVariableName, index, originalIndex, srcHashTable, !IS_ENTRY_EMPTY(x), IS_CORRECT_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, findCondition), notFoundCondition)
 
 CS64INIData* cs64_ini_data_alloc() {
     CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
@@ -1066,26 +1066,51 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
     /* Initialize a new hash table */
     CS64INIData newINIData = *pData;
+    newINIData.globals.pFirstValue = NULL;
+    newINIData.globals.pLastValue  = NULL;
+    newINIData.pFirstSection = NULL;
+    newINIData.pLastSection  = NULL;
 
     INIT_HASH_TABLE(newINIData.hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return 0;})
 
     CS64Offset originalIndex;
     CS64Offset index;
     CS64INIEntry *pEntry;
+    CS64Size nameByteSize;
 
-    /* TODO Write down the global variables */
     const CS64INIEntry *pVariable = pData->globals.pFirstValue;
     while(pVariable != NULL) {
         const CS64UTF8 *pName;
-        const CS64UTF8 *pValue;
 
-        if(pVariable->entryType == CS64_INI_ENTRY_VALUE) {
+        if(pVariable->entryType == CS64_INI_ENTRY_VALUE)
             pName = &pVariable->type.value.data.fixed[0];
-            pValue = &pVariable->type.value.data.fixed[pVariable->type.value.nameByteSize];
-        }
-        else {
+        else
             pName = pVariable->type.value.data.dynamic.pName;
-            pValue = pVariable->type.value.data.dynamic.pValue;
+
+        nameByteSize = 0;
+
+        CS64Offset hash = CS64_INI_HASH_FUNCTION(pName, CS64_INI_INITIAL_HASH, &nameByteSize);
+
+        originalIndex = hash % newINIData.hashTable.entryCapacity;
+
+        index = originalIndex;
+
+        pEntry = &pData->hashTable.pEntries[index];
+
+        ATTEMPT_TO_FIND_VARIABLE(
+            pEntry, NULL, 0, pName, index, originalIndex, pData->hashTable,
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+
+        /* Copy source section over to new table! */
+        *pEntry = *pVariable;
+
+        pEntry->pNext = NULL;
+        pEntry->pPrev = NULL;
+
+        if(pData->globals.pLastValue != NULL) {
+            pData->globals.pLastValue->pNext = pEntry;
+            pEntry->pPrev = pData->globals.pLastValue;
         }
 
         if(pData->globals.pFirstValue == pVariable)
@@ -1114,7 +1139,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
         pEntry = &newINIData.hashTable.pEntries[index];
 
-        ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pEntry),
+        ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pEntry),
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
@@ -1213,7 +1238,7 @@ CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *co
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
     ATTEMPT_TO_FIND_VARIABLE(
-        pEntry, pSectionName, pVariableName, index, originalIndex, pData->hashTable,
+        pEntry, pSectionName, sectionLength, pVariableName, index, originalIndex, pData->hashTable,
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
@@ -1229,7 +1254,7 @@ CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *co
         CS64INIEntry *pSearchForSectionEntry = &pData->hashTable.pEntries[sectionIndex];
 
         ATTEMPT_TO_FIND_SECTION(
-            pSearchForSectionEntry, pSectionName, sectionIndex, originalSectionIndex, pData->hashTable,
+            pSearchForSectionEntry, pSectionName, sectionLength, sectionIndex, originalSectionIndex, pData->hashTable,
             !IS_ENTRY_EMPTY(pSearchForSectionEntry) && pSectionEntry == NULL,
             {pSectionEntry = pSearchForSectionEntry;},
             {})
@@ -1326,7 +1351,7 @@ CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
+    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
@@ -1412,7 +1437,7 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_VARIABLE(pEntry, pSectionName, pName, index, originalIndex, pData->hashTable, return pEntry;, {})
+    ATTEMPT_TO_FIND_VARIABLE(pEntry, pSectionName, sectionLength, pName, index, originalIndex, pData->hashTable, return pEntry;, {})
 
     return NULL;
 }
@@ -1442,7 +1467,7 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry), {return pEntry;}, {})
+    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry), {return pEntry;}, {})
 
     return NULL;
 }
