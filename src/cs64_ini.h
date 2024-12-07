@@ -1627,6 +1627,26 @@ CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry) {
     return pEntry->pPrev;
 }
 
+CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {}
+
+const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+
+    switch(pEntry->entryType) {
+        case CS64_INI_ENTRY_SECTION:
+            return pEntry->type.section.name.fixed;
+        case CS64_INI_ENTRY_DYNAMIC_SECTION:
+            return pEntry->type.section.name.pDynamic;
+        case CS64_INI_ENTRY_VALUE:
+            return pEntry->type.value.data.fixed;
+        case CS64_INI_ENTRY_DYNAMIC_VALUE:
+            return pEntry->type.value.data.dynamic.pName;
+        default:
+            return NULL;
+    }
+}
+
 #undef INITIAL_CAPACITY
 #undef P2_LIMIT
 #undef CALC_UPPER_LIMIT
