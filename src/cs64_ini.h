@@ -280,7 +280,8 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
 CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry);
 
 CS64INIEntry* cs64_ini_get_first_section(CS64INIData *pData);
-CS64INIEntry* cs64_ini_get_first_value(CS64INIEntry *pSection);
+CS64INIEntry* cs64_ini_get_first_global_value(CS64INIData *pData);
+CS64INIEntry* cs64_ini_get_first_section_value(CS64INIEntry *pEntry);
 
 CS64INIEntry* cs64_ini_get_next_entry(CS64INIEntry *pEntry);
 CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry);
@@ -1568,6 +1569,24 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
         cs64_ini_data_reserve(pData, cs64_ini_decrement_table(pData->hashTable.entryCapacity));
 
     return CS64_INI_ENTRY_SUCCESS;
+}
+
+/* ### Hash Table Entry ### */
+
+CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL)
+        return CS64_INI_ENTRY_EMPTY;
+
+    switch(pEntry->entryType) {
+        case CS64_INI_ENTRY_SECTION:
+        case CS64_INI_ENTRY_DYNAMIC_SECTION:
+            return CS64_INI_ENTRY_SECTION;
+        case CS64_INI_ENTRY_VALUE:
+        case CS64_INI_ENTRY_DYNAMIC_VALUE:
+            return CS64_INI_ENTRY_VALUE;
+        default:
+            return CS64_INI_ENTRY_EMPTY;
+    }
 }
 
 #undef INITIAL_CAPACITY
