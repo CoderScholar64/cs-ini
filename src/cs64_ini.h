@@ -1661,6 +1661,8 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
 
     /* backup entry */
 
+    /* set pointers of pEntry to NULL. del entry does not delete NULLs */
+
     /* cs64_ini_del_entry without deleting contained value and coments */
 
     /* cs64_ini_add_section or cs64_ini_add_value */
