@@ -1654,16 +1654,43 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
     if(pEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
     if(!IS_STRING_PRESENT(pValue))
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
 
-    /* backup entry */
+    CS64INIEntry backup;
 
-    /* set pointers of pEntry to NULL. del entry does not delete NULLs */
+    switch(cs64_ini_get_entry_type(pEntry)) {
+        case CS64_INI_ENTRY_SECTION:
+            backup = *pEntry;
 
-    /* cs64_ini_del_entry without deleting contained value and coments */
+            pEntry->type.section.header.pFirstValue = NULL;
+            pEntry->type.section.header.pLastValue  = NULL;
+
+            if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
+                pEntry->type.section.name.pDynamic = NULL;
+            }
+        case CS64_INI_ENTRY_VALUE:
+            backup = *pEntry;
+
+            pEntry->type.value.pSection = NULL;
+
+            if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+                pEntry->type.value.data.dynamic.pName  = NULL;
+                pEntry->type.value.data.dynamic.pValue = NULL;
+            }
+        default:
+            return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+    }
+
+    /* This is so cs64_ini_del_entry does not delete */
+    pEntry->pNext          = NULL;
+    pEntry->pPrev          = NULL;
+    pEntry->pComment       = NULL;
+    pEntry->pInlineComment = NULL;
+
+    /* cs64_ini_del_entry */
 
     /* cs64_ini_add_section or cs64_ini_add_value */
 
