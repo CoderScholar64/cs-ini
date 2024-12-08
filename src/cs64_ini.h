@@ -136,7 +136,7 @@ typedef enum {
     CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 5,
     CS64_INI_ENTRY_ERROR_ENTRY_DNE       = 6,
     CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 7
-} CS64INIEntryStateFlags;
+} CS64INIEntryState;
 
 typedef enum {
     /* CS64_INI_TOKEN_WHITE_SPACE would not be stored anyways. */
@@ -271,11 +271,11 @@ CS64INIData* cs64_ini_data_alloc();
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
-CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
+CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
+CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
 CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSection);
 CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
-CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
+CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry);
 
 CS64EntryType cs64_ini_get_entry_type(const CS64INIEntry *const pEntry);
 
@@ -286,16 +286,16 @@ CS64INIEntry* cs64_ini_get_first_section_value(CS64INIEntry *pEntry);
 CS64INIEntry* cs64_ini_get_next_entry(CS64INIEntry *pEntry);
 CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry);
 
-CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
+CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry);
 
-CS64INIEntryStateFlags cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
+CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_value(const CS64INIEntry *const pEntry);
 
-CS64INIEntryStateFlags cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
+CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_comment(const CS64INIEntry *const pEntry);
 
-CS64INIEntryStateFlags cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pSection, const CS64UTF8 *const pValue);
+CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pSection, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *const pEntry);
 
 /* Private functions */
@@ -1249,7 +1249,7 @@ void cs64_ini_data_free(CS64INIData* pData) {
     CS64_INI_FREE(pData);
 }
 
-CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
     /* Data must be present for this function to work */
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
@@ -1369,7 +1369,7 @@ CS64INIEntryStateFlags cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *co
     return CS64_INI_ENTRY_SUCCESS;
 }
 
-CS64INIEntryStateFlags cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSectionName, CS64INIEntry** ppEntry) {
+CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSectionName, CS64INIEntry** ppEntry) {
     /* Data must be present for this function to work */
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
@@ -1518,7 +1518,7 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
     return NULL;
 }
 
-CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
+CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
     /* Data must be present for this function to work */
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
@@ -1651,7 +1651,7 @@ CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry) {
     return pEntry->pPrev;
 }
 
-CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
+CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
@@ -1690,7 +1690,7 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
     pEntry->pComment       = NULL;
     pEntry->pInlineComment = NULL;
 
-    CS64INIEntryStateFlags entryState = cs64_ini_del_entry(pData, pEntry);
+    CS64INIEntryState entryState = cs64_ini_del_entry(pData, pEntry);
 
     if(entryState != CS64_INI_ENTRY_SUCCESS)
         return entryState;
@@ -1722,7 +1722,7 @@ const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) 
     }
 }
 
-CS64INIEntryStateFlags cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *pNewValue) {
+CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *pNewValue) {
     const CS64UTF8 emptyString[] = "";
 
     if(pEntry == NULL)
