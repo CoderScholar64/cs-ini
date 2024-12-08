@@ -1663,6 +1663,7 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
 
     CS64INIEntry backup;
 
+    /* This is so cs64_ini_del_entry does not delete dynamic memory */
     switch(cs64_ini_get_entry_type(pEntry)) {
         case CS64_INI_ENTRY_SECTION:
             backup = *pEntry;
@@ -1673,6 +1674,7 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
             if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
                 pEntry->type.section.name.pDynamic = NULL;
             }
+
         case CS64_INI_ENTRY_VALUE:
             backup = *pEntry;
 
@@ -1682,17 +1684,20 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
                 pEntry->type.value.data.dynamic.pName  = NULL;
                 pEntry->type.value.data.dynamic.pValue = NULL;
             }
+
         default:
             return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
     }
 
-    /* This is so cs64_ini_del_entry does not delete */
     pEntry->pNext          = NULL;
     pEntry->pPrev          = NULL;
     pEntry->pComment       = NULL;
     pEntry->pInlineComment = NULL;
 
-    /* cs64_ini_del_entry */
+    CS64INIEntryStateFlags entryState = cs64_ini_del_entry(pData, pEntry);
+
+    if(entryState != CS64_INI_ENTRY_SUCCESS)
+        return entryState;
 
     /* cs64_ini_add_section or cs64_ini_add_value */
 
