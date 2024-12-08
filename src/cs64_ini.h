@@ -135,7 +135,9 @@ typedef enum {
     CS64_INI_ENTRY_ERROR_ENTRY_EMPTY     = 4,
     CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 5,
     CS64_INI_ENTRY_ERROR_ENTRY_DNE       = 6,
-    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 7
+    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 7,
+    CS64_INI_ENTRY_ERROR_ILLEGAL_STRING  = 8,
+    CS64_INI_ENTRY_ERROR_INVALID_ENCODE  = 9
 } CS64INIEntryState;
 
 typedef enum {
@@ -295,7 +297,7 @@ const CS64UTF8 *const cs64_ini_get_entry_value(const CS64INIEntry *const pEntry)
 CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_comment(const CS64INIEntry *const pEntry);
 
-CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pSection, const CS64UTF8 *const pValue);
+CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *const pEntry);
 
 /* Private functions */
@@ -1253,6 +1255,10 @@ void cs64_ini_data_free(CS64INIData* pData) {
 }
 
 CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
+    /* TODO Check if pVariableName is UTF-8/ASCII compatible! */
+    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
     /* Data must be present for this function to work */
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
@@ -1373,6 +1379,8 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
 }
 
 CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSectionName, CS64INIEntry** ppEntry) {
+    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
+
     /* Data must be present for this function to work */
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
@@ -1457,6 +1465,9 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
 
 CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pName) {
+    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
+    /* TODO Check if pName is UTF-8/ASCII compatible! */
+
     /* Data must be present for this function to work */
     if(pData == NULL)
         return NULL;
@@ -1492,6 +1503,8 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
 }
 
 CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSectionName) {
+    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
+
     /* Data must be present for this function to work */
     if(pData == NULL)
         return NULL;
@@ -1661,6 +1674,8 @@ CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry) {
 }
 
 CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
+    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
@@ -1732,6 +1747,8 @@ const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) 
 }
 
 CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *pNewValue) {
+    /* TODO Check if pNewValue is UTF-8/ASCII compatible! */
+
     const CS64UTF8 emptyString[] = "";
 
     if(pEntry == NULL)
@@ -1795,6 +1812,71 @@ const CS64UTF8 *const cs64_ini_get_entry_value(const CS64INIEntry *const pEntry)
     }
     else
         return NULL;
+}
+
+CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
+    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
+    if(pEntry == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    /* Free Comment */
+    if(pEntry->pComment != NULL)
+        CS64_INI_FREE(pEntry->pComment);
+
+    pEntry->pComment = NULL;
+
+    if(!IS_STRING_PRESENT(pValue))
+        return CS64_INI_ENTRY_SUCCESS;
+
+    CS64Size valueByteSize = cs64_ini_string_byte_size(pValue);
+
+    pEntry->pComment = CS64_INI_MALLOC(valueByteSize);
+
+    if(pEntry->pComment == NULL)
+        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+    STRING_COPY(pEntry->pComment, pValue)
+
+    return CS64_INI_ENTRY_SUCCESS;
+}
+
+const CS64UTF8 *const cs64_ini_get_entry_comment(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+    return pEntry->pComment;
+}
+
+CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
+    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+    /* TODO Also check if new line is in pValue which would invalidate this function! */
+
+    if(pEntry == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    /* Free Comment */
+    if(pEntry->pInlineComment != NULL)
+        CS64_INI_FREE(pEntry->pInlineComment);
+
+    pEntry->pInlineComment = NULL;
+
+    if(!IS_STRING_PRESENT(pValue))
+        return CS64_INI_ENTRY_SUCCESS;
+
+    CS64Size valueByteSize = cs64_ini_string_byte_size(pValue);
+
+    pEntry->pInlineComment = CS64_INI_MALLOC(valueByteSize);
+
+    if(pEntry->pInlineComment == NULL)
+        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+    STRING_COPY(pEntry->pInlineComment, pValue)
+}
+
+const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+    return pEntry->pInlineComment;
 }
 
 #undef INITIAL_CAPACITY
