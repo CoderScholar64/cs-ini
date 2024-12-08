@@ -198,7 +198,7 @@ typedef struct CS64Value {
     CS64Size valueByteSize;
     /* This could be a union to hold integers/floats efficiently */
     union {
-        CS64UTF8 fixed[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
+        CS64UTF8 fixed[CS64_INI_IMP_DETAIL_VALUE_SIZE];
         struct {
             CS64UTF8 *pName;
             CS64UTF8 *pValue;
@@ -1695,8 +1695,11 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
     if(entryState != CS64_INI_ENTRY_SUCCESS)
         return entryState;
 
+    const CS64UTF8 *pOldEntryName = cs64_ini_get_entry_name(&backup);
+
     /* cs64_ini_add_section or cs64_ini_add_value */
-    if(cs64_ini_get_entry_type(backup)) {}
+    if(cs64_ini_get_entry_type(&backup) == CS64_INI_ENTRY_SECTION) {}
+    else {}
 
     return CS64_INI_ENTRY_ERROR_DATA_NULL; /* TODO Complete the function then turn the return value to success! */
 }
@@ -1717,6 +1720,72 @@ const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) 
         default:
             return NULL;
     }
+}
+
+CS64INIEntryStateFlags cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *pNewValue) {
+    const CS64UTF8 emptyString[] = "";
+
+    if(pEntry == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    if(pNewValue == NULL)
+        pNewValue = emptyString;
+
+    CS64Size valueByteSize = cs64_ini_string_byte_size(pNewValue);
+
+    CS64UTF8       *pOldName  = pEntry->type.value.data.fixed;
+    const CS64UTF8 *pOldValue = pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize;
+
+    if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+        pOldName  = pEntry->type.value.data.dynamic.pName;
+        pOldValue = pEntry->type.value.data.dynamic.pValue;
+    }
+
+    CS64UTF8 *pName  = NULL;
+    CS64UTF8 *pValue = NULL;
+
+    if(valueByteSize + pEntry->type.value.nameByteSize > CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+        CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(valueByteSize + pEntry->type.value.nameByteSize);
+
+        if(pNameAndValue == NULL)
+            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+
+        pName  = pNameAndValue;
+        pValue = pNameAndValue + pEntry->type.value.nameByteSize;
+    }
+    else {
+        pEntry->entryType = CS64_INI_ENTRY_SECTION;
+
+        pName  = pEntry->type.value.data.fixed;
+        pValue = pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize;
+    }
+
+    pEntry->type.value.valueByteSize = valueByteSize;
+
+    STRING_COPY(pName,  pOldName)
+    STRING_COPY(pValue, pOldValue)
+
+    if(pOldName != pEntry->type.value.data.fixed) {
+        CS64_INI_FREE(pOldName); /* This also frees pOldValue */
+    }
+
+    return CS64_INI_ENTRY_SUCCESS;
+}
+
+const CS64UTF8 *const cs64_ini_get_entry_value(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+
+    if(pEntry->entryType == CS64_INI_ENTRY_VALUE) {
+        return &pEntry->type.value.data.fixed[pEntry->type.value.nameByteSize];
+    }
+    else if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+        return pEntry->type.value.data.dynamic.pValue;
+    }
+    else
+        return NULL;
 }
 
 #undef INITIAL_CAPACITY
