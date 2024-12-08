@@ -1536,7 +1536,29 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
         return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
     if(IS_ENTRY_SECTION(pEntry)) {
-        /* TODO Add variable deletion rountine */
+        CS64INIEntry *pVariable = pEntry->type.section.header.pFirstValue;
+        while(pVariable != NULL) {
+            /* Free Comment */
+            if(pVariable->pComment != NULL)
+                CS64_INI_FREE(pVariable->pComment); /* This also frees pInlineComment */
+
+            /* Free if dynamic */
+            switch(pVariable->entryType) {
+                case CS64_INI_ENTRY_DYNAMIC_VALUE:
+                    CS64_INI_FREE(pVariable->type.value.data.dynamic.pName); /* This also frees pValue */
+                    break;
+                case CS64_INI_ENTRY_DYNAMIC_SECTION:
+                    CS64_INI_FREE(pVariable->type.section.name.pDynamic);
+                    break;
+                default:
+            }
+
+            pVariable->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+
+            pData->hashTable.currentEntryAmount--;
+
+            pVariable = pVariable->pNext;
+        }
     }
 
     /* Standard Remove Element from double linked lists! */
