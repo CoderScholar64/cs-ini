@@ -1575,10 +1575,12 @@ CS64INIEntryStateFlags cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEnt
     /* Free if dynamic */
     switch(pEntry->entryType) {
         case CS64_INI_ENTRY_DYNAMIC_VALUE:
-            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
+            if(pEntry->type.value.data.dynamic.pName != NULL)
+                CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
             break;
         case CS64_INI_ENTRY_DYNAMIC_SECTION:
-            CS64_INI_FREE(pEntry->type.section.name.pDynamic);
+            if(pEntry->type.section.name.pDynamic != NULL)
+                CS64_INI_FREE(pEntry->type.section.name.pDynamic);
             break;
         default:
     }
