@@ -1228,7 +1228,10 @@ void cs64_ini_data_free(CS64INIData* pData) {
             pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
 
             if(pData->hashTable.pEntries[entryIndex].pComment != NULL)
-                CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].pComment); /* This also frees pInlineComment */
+                CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].pComment);
+
+            if(pData->hashTable.pEntries[entryIndex].pInlineComment != NULL)
+                CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].pInlineComment);
 
             switch(pData->hashTable.pEntries[entryIndex].entryType) {
                 case CS64_INI_ENTRY_DYNAMIC_VALUE:
@@ -1540,7 +1543,10 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
         while(pVariable != NULL) {
             /* Free Comment */
             if(pVariable->pComment != NULL)
-                CS64_INI_FREE(pVariable->pComment); /* This also frees pInlineComment */
+                CS64_INI_FREE(pVariable->pComment);
+
+            if(pVariable->pInlineComment != NULL)
+                CS64_INI_FREE(pVariable->pInlineComment);
 
             /* Free if dynamic */
             switch(pVariable->entryType) {
@@ -1570,7 +1576,10 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
 
     /* Free Comment */
     if(pEntry->pComment != NULL)
-        CS64_INI_FREE(pEntry->pComment); /* This also frees pInlineComment */
+        CS64_INI_FREE(pEntry->pComment);
+
+    if(pEntry->pInlineComment != NULL)
+        CS64_INI_FREE(pEntry->pInlineComment);
 
     /* Free if dynamic */
     switch(pEntry->entryType) {
