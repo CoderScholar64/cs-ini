@@ -1664,26 +1664,24 @@ CS64INIEntryStateFlags cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry 
     CS64INIEntry backup;
 
     /* This is so cs64_ini_del_entry does not delete dynamic memory */
-    switch(cs64_ini_get_entry_type(pEntry)) {
+    switch(pEntry->entryType) {
+        case CS64_INI_ENTRY_DYNAMIC_SECTION:
+            pEntry->type.section.name.pDynamic = NULL;
         case CS64_INI_ENTRY_SECTION:
             backup = *pEntry;
 
             pEntry->type.section.header.pFirstValue = NULL;
             pEntry->type.section.header.pLastValue  = NULL;
+            break;
 
-            if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
-                pEntry->type.section.name.pDynamic = NULL;
-            }
-
+        case CS64_INI_ENTRY_DYNAMIC_VALUE:
+            pEntry->type.value.data.dynamic.pName  = NULL;
+            pEntry->type.value.data.dynamic.pValue = NULL;
         case CS64_INI_ENTRY_VALUE:
             backup = *pEntry;
 
             pEntry->type.value.pSection = NULL;
-
-            if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-                pEntry->type.value.data.dynamic.pName  = NULL;
-                pEntry->type.value.data.dynamic.pValue = NULL;
-            }
+            break;
 
         default:
             return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
