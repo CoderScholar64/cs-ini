@@ -23,15 +23,21 @@ void *pPointerTrackArray[TACKER_ARRAY_LIMIT];
 unsigned pointerTrackAmount = 0;
 int mallocPagesLeft = 0;
 
-#define UNIT_TEST_DESCRIPTION_ASSERT(EXP, STRING)\
-    if(!(EXP))\
-        printf("Statement (%s) failed with %s\n", #EXP, STRING);\
-    exit(1);
+#define UNIT_TEST_DETAIL_ASSERT(EXP, ON_FAILURE)\
+    if(!(EXP)) {\
+        printf("Line %d: Statement (%s) failed\n", __LINE__, #EXP);\
+        ON_FAILURE\
+        exit(__LINE__);\
+    }
 
 #define UNIT_TEST_ASSERT(EXP)\
-    if(!(EXP))\
-        printf("Statement (%s) failed\n", #EXP);\
-    exit(1);
+    UNIT_TEST_DETAIL_ASSERT(EXP, {})
+
+#define SET_AVAILABLE_MEM_PAGES(x)\
+    mallocPagesLeft = x;
+
+#define UNIT_TEST_MEM_CHECK_ASSERT\
+    UNIT_TEST_DETAIL_ASSERT(pointerTrackAmount == 0, printf("pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);)
 
 // Prototypes here.
 void cs64_ini_data_alloc_test();
@@ -47,17 +53,30 @@ void cs64_ini_data_alloc_test() {
 
     UNIT_TEST_ASSERT(pData == NULL);
 
-    mallocPagesLeft = 1;
+    SET_AVAILABLE_MEM_PAGES(1)
+    pData = cs64_ini_data_alloc();
+
+    UNIT_TEST_ASSERT(pData == NULL);
+
+    SET_AVAILABLE_MEM_PAGES(2)
     pData = cs64_ini_data_alloc();
 
     UNIT_TEST_ASSERT(pData != NULL);
+    UNIT_TEST_ASSERT(pData->lastCommentSize == 0);
+    UNIT_TEST_ASSERT(pData->pLastComment == NULL);
+    UNIT_TEST_ASSERT(pData->pFirstSection == NULL);
+    UNIT_TEST_ASSERT(pData->pLastSection == NULL);
+    UNIT_TEST_ASSERT(pData->hashTable.pEntries != NULL);
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount     ==  0);
+    UNIT_TEST_ASSERT(pData->hashTable.entryCapacity          == 16);
+    UNIT_TEST_ASSERT(pData->hashTable.entryCapacityUpLimit   == 13);
+    UNIT_TEST_ASSERT(pData->hashTable.entryCapacityDownLimit ==  0);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == NULL);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == NULL);
 
     cs64_ini_data_free(pData);
 
-    if(pointerTrackAmount != 0) {
-        printf("Error cs64_ini_data_alloc_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
-        exit(1);
-    }
+    UNIT_TEST_MEM_CHECK_ASSERT
 }
 
 void *test_malloc(size_t size) {
