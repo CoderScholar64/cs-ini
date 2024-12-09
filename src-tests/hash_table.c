@@ -47,10 +47,12 @@ int mallocPagesLeft = 0;
 
 // Prototypes here.
 void cs64_ini_data_alloc_test();
+void cs64_ini_global_variable_test();
 void cs64_ini_entry_comment_test();
 
 int main() {
     cs64_ini_data_alloc_test();
+    cs64_ini_global_variable_test();
     cs64_ini_entry_comment_test();
     return 0;
 }
@@ -83,6 +85,22 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT(pData->globals.pLastValue  == NULL);
 
     cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_global_variable_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(pData != NULL);
+
+    CS64INIEntry* pEntry = NULL;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+
+    CS64INIEntryState state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"Key", (const CS64UTF8*)"Value", &pEntry);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "%d"); // TOO short for dynamic RAM usage.
 
     UNIT_TEST_MEM_CHECK_ASSERT
 }
