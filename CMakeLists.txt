@@ -16,3 +16,6 @@ add_test(NAME unicode_test COMMAND $<TARGET_FILE:unicode_test>)
 
 add_executable(token_test src-tests/token.c)
 add_test(NAME token_test COMMAND $<TARGET_FILE:token_test>)
+
+add_executable(hash_table_test src-tests/hash_table.c)
+add_test(NAME hash_table_test COMMAND $<TARGET_FILE:hash_table_test>)
