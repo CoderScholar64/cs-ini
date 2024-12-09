@@ -288,6 +288,9 @@ CS64INIEntry* cs64_ini_get_first_section_value(CS64INIEntry *pEntry);
 CS64INIEntry* cs64_ini_get_next_entry(CS64INIEntry *pEntry);
 CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry);
 
+CS64INIEntry* cs64_ini_get_entry_section(const CS64INIEntry *const pEntry);
+const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const pEntry);
+
 CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry);
 
@@ -1673,6 +1676,30 @@ CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry) {
     return pEntry->pPrev;
 }
 
+CS64INIEntry* cs64_ini_get_entry_section(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL)
+        return NULL;
+
+    if(cs64_ini_get_entry_type(pEntry) == CS64_INI_ENTRY_EMPTY)
+        return NULL;
+
+    if(cs64_ini_get_entry_type(pEntry) == CS64_INI_ENTRY_SECTION)
+        return NULL;
+
+    return pEntry->type.value.pSection;
+}
+
+const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const pEntry) {
+    const CS64INIEntry *const pSectionEntry = cs64_ini_get_entry_section(pEntry);
+
+    if(pSectionEntry == NULL)
+        return NULL;
+
+    if(pSectionEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
+        return pEntry->type.section.name.pDynamic;
+    return pEntry->type.section.name.fixed;
+}
+
 CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
     /* TODO Check if pValue is UTF-8/ASCII compatible! */
 
@@ -1723,7 +1750,11 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
     /* cs64_ini_add_section or cs64_ini_add_value */
     if(cs64_ini_get_entry_type(&backup) == CS64_INI_ENTRY_SECTION) {}
-    else {}
+    else {
+        const CS64UTF8 *pOldValue = cs64_ini_get_entry_value(&backup);
+
+        /*cs64_ini_add_value();*/
+    }
 
     return CS64_INI_ENTRY_ERROR_DATA_NULL; /* TODO Complete the function then turn the return value to success! */
 }
