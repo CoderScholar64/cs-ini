@@ -966,7 +966,7 @@ else\
 \
         entryIndex++;\
     }}
-#define IS_STRING_PRESENT(x) (x != NULL || x[0] != '\0')
+#define IS_STRING_PRESENT(x) (x != NULL && x[0] != '\0')
 #define IS_ENTRY_EMPTY(x) ((x)->entryType == CS64_INI_ENTRY_EMPTY || (x)->entryType == CS64_INI_ENTRY_WAS_OCCUPIED)
 #define STRING_COPY(dst, src) {\
     CS64Size length = 0;\
@@ -1271,7 +1271,7 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
     /* Variables must always be named. */
-    if(IS_STRING_PRESENT(pVariableName))
+    if(!IS_STRING_PRESENT(pVariableName))
         return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
 
     /* Check if it is time for a resize */
@@ -1304,9 +1304,10 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
 
     CS64Offset originalSectionIndex;
     CS64Offset sectionIndex;
-    CS64INIEntry *pSectionEntry = NULL;
 
     if(IS_STRING_PRESENT(pSectionName)) {
+        CS64INIEntry *pSectionEntry = NULL;
+
         originalSectionIndex = sectionHash % pData->hashTable.entryCapacity;
         sectionIndex = originalSectionIndex;
         CS64INIEntry *pSearchForSectionEntry = &pData->hashTable.pEntries[sectionIndex];
@@ -1332,7 +1333,7 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
     else {
         pEntry->type.value.pSection = NULL;
 
-        pLastValue = pSectionEntry->type.section.header.pLastValue;
+        pLastValue = pData->globals.pLastValue;
 
         if( pData->globals.pFirstValue == NULL)
             pData->globals.pFirstValue = pEntry;
