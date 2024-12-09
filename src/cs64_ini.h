@@ -1743,18 +1743,72 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
     CS64INIEntryState entryState = cs64_ini_del_entry(pData, pEntry);
 
-    if(entryState != CS64_INI_ENTRY_SUCCESS)
-        return entryState;
+    if(entryState != CS64_INI_ENTRY_SUCCESS) {
+        if(pEntry->pComment != NULL)
+            CS64_INI_FREE(pEntry->pComment);
+        if(pEntry->pInlineComment != NULL)
+            CS64_INI_FREE(pEntry->pInlineComment);
 
-    const CS64UTF8 *pOldEntryName = cs64_ini_get_entry_name(&backup);
+        if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
+            CS64_INI_FREE(backup.type.section.name.pDynamic);
+        } else if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
+        }
+
+        return entryState;
+    }
+
+    const CS64UTF8 *pOldSectionName = cs64_ini_get_entry_section_name(&backup);
+    CS64INIEntry* pAddEntry;
 
     /* cs64_ini_add_section or cs64_ini_add_value */
-    if(cs64_ini_get_entry_type(&backup) == CS64_INI_ENTRY_SECTION) {}
+    if(cs64_ini_get_entry_type(&backup) == CS64_INI_ENTRY_SECTION) {
+
+        entryState = cs64_ini_add_section(pData, pValue, &pAddEntry);
+
+        if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
+            CS64_INI_FREE(backup.type.section.name.pDynamic);
+        }
+
+        if(entryState != CS64_INI_ENTRY_SUCCESS) {
+            if(pEntry->pComment != NULL)
+                CS64_INI_FREE(pEntry->pComment);
+            if(pEntry->pInlineComment != NULL)
+                CS64_INI_FREE(pEntry->pInlineComment);
+
+            return entryState;
+        }
+
+        CS64INIEntry *pVariable = pAddEntry->type.section.header.pFirstValue;
+        while(pVariable != NULL) {
+            pVariable->type.value.pSection = pAddEntry;
+
+            pVariable = pVariable->pNext;
+        }
+    }
     else {
         const CS64UTF8 *pOldValue = cs64_ini_get_entry_value(&backup);
 
-        /*cs64_ini_add_value();*/
+        if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
+        }
+
+        entryState = cs64_ini_add_value(pData, pOldSectionName, pValue, pOldValue, &pAddEntry);
+
+        if(entryState != CS64_INI_ENTRY_SUCCESS) {
+            if(pEntry->pComment != NULL)
+                CS64_INI_FREE(pEntry->pComment);
+            if(pEntry->pInlineComment != NULL)
+                CS64_INI_FREE(pEntry->pInlineComment);
+
+            return entryState;
+        }
     }
+
+    pAddEntry->pComment          = backup.pComment;
+    pAddEntry->commentSize       = backup.commentSize;
+    pAddEntry->pInlineComment    = backup.pInlineComment;
+    pAddEntry->inlineCommentSize = backup.inlineCommentSize;
 
     return CS64_INI_ENTRY_ERROR_DATA_NULL; /* TODO Complete the function then turn the return value to success! */
 }
@@ -1902,6 +1956,8 @@ CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const 
         return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
     STRING_COPY(pEntry->pInlineComment, pValue)
+
+    return CS64_INI_ENTRY_SUCCESS;
 }
 
 const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *const pEntry) {
