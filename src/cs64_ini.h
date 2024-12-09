@@ -909,6 +909,8 @@ CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Of
         (*pStringLength)++;
     }
 
+    pStringLength++;
+
     return hash;
 }
 
@@ -932,6 +934,7 @@ static CS64Size cs64_ini_string_byte_size(const CS64UTF8 *const str) {
     while(str[length] != '\0') {
         length++;
     }
+    length++;
 
     return length;
 }
@@ -975,6 +978,7 @@ else\
         length++;\
     }\
     dst[length] = '\0';\
+    length++;\
 }
 #define IS_ENTRY_SECTION(x) ((x)->entryType == CS64_INI_ENTRY_SECTION || (x)->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
 #define IS_SAME_SECTION_ENTRY(x, pSectionName, sectionByteSize) (IS_ENTRY_SECTION(x) &&\
@@ -1362,7 +1366,7 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
     if(IS_STRING_PRESENT(pValue))
         pEntry->type.value.valueByteSize = cs64_ini_string_byte_size(pValue);
 
-    if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE > nameByteSize + pEntry->type.value.valueByteSize) {
+    if(CS64_INI_IMP_DETAIL_VALUE_SIZE <= nameByteSize + pEntry->type.value.valueByteSize) {
         pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
         pEntry->type.value.data.dynamic.pName = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + pEntry->type.value.valueByteSize));
         pEntry->type.value.data.dynamic.pValue = &pEntry->type.value.data.dynamic.pName[nameByteSize];
@@ -1425,7 +1429,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
     /* Apply the section byte size */
     pEntry->type.section.nameByteSize = sectionLength;
 
-    if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE > sectionLength) {
+    if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE <= sectionLength) {
         pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
         pEntry->type.section.name.pDynamic = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionLength);
         STRING_COPY(pEntry->type.section.name.pDynamic, pSectionName);
@@ -1856,7 +1860,7 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
     CS64UTF8 *pName  = NULL;
     CS64UTF8 *pValue = NULL;
 
-    if(valueByteSize + pEntry->type.value.nameByteSize > CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+    if(valueByteSize + pEntry->type.value.nameByteSize <= CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE) {
         CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(valueByteSize + pEntry->type.value.nameByteSize);
 
         if(pNameAndValue == NULL)

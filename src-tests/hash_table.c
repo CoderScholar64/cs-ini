@@ -96,11 +96,21 @@ void cs64_ini_global_variable_test() {
 
     CS64INIEntry* pEntry = NULL;
 
-    SET_AVAILABLE_MEM_PAGES(1)
-
     CS64INIEntryState state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"Key", (const CS64UTF8*)"Value", &pEntry);
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "%d"); // TOO short for dynamic RAM usage.
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(pEntry->pNext == NULL);
+    UNIT_TEST_ASSERT(pEntry->pPrev == NULL);
+    UNIT_TEST_ASSERT(pEntry->commentSize == 0);
+    UNIT_TEST_ASSERT(pEntry->pComment == NULL);
+    UNIT_TEST_ASSERT(pEntry->inlineCommentSize == 0);
+    UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
+    UNIT_TEST_ASSERT(pEntry->type.value.pSection == NULL);
+    UNIT_TEST_ASSERT_EQ(pEntry->type.value.nameByteSize, 4, "%zd");
+    UNIT_TEST_ASSERT(pEntry->type.value.valueByteSize == 0);
+    UNIT_TEST_DETAIL_ASSERT(strcmp((const char*)pEntry->type.value.data.fixed, "Key") == 0, printf("Actually (%s) \n", pEntry->type.value.data.fixed););
+
+    cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
 }
