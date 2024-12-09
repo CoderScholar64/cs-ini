@@ -33,6 +33,12 @@ int mallocPagesLeft = 0;
 #define UNIT_TEST_ASSERT(EXP)\
     UNIT_TEST_DETAIL_ASSERT(EXP, {})
 
+#define UNIT_TEST_ASSERT_EQ(VALUE, EXPECT, FORMAT)\
+    UNIT_TEST_DETAIL_ASSERT(VALUE == EXPECT, printf(#VALUE " = " FORMAT "\n", VALUE);)
+
+#define UNIT_TEST_ASSERT_NEQ(VALUE, EXPECT, FORMAT)\
+    UNIT_TEST_DETAIL_ASSERT(VALUE != EXPECT, printf(#VALUE " = " FORMAT "\n", VALUE);)
+
 #define SET_AVAILABLE_MEM_PAGES(x)\
     mallocPagesLeft = x;
 
@@ -41,9 +47,11 @@ int mallocPagesLeft = 0;
 
 // Prototypes here.
 void cs64_ini_data_alloc_test();
+void cs64_ini_entry_comment_test();
 
 int main() {
     cs64_ini_data_alloc_test();
+    cs64_ini_entry_comment_test();
     return 0;
 }
 
@@ -78,6 +86,41 @@ void cs64_ini_data_alloc_test() {
 
     UNIT_TEST_MEM_CHECK_ASSERT
 }
+
+void cs64_ini_entry_comment_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(pData != NULL);
+
+    CS64INIEntry* pEntry = NULL;
+    SET_AVAILABLE_MEM_PAGES(1)
+    CS64INIEntryState state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"Key", (const CS64UTF8*)"Value", &pEntry);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(pEntry != NULL);
+
+    // Test setters and getters for inline comments.
+    const CS64UTF8 inlineComment[] = "This is an inline comment";
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+
+    const CS64UTF8* retrievedInlineComment = cs64_ini_get_entry_inline_comment(pEntry);
+    UNIT_TEST_ASSERT(strcmp((const char*)retrievedInlineComment, (const char*)inlineComment) == 0);
+
+    // Test setters and getters for entry comments.
+    const CS64UTF8 entryComment[] = "This is an entry comment";
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_comment(pEntry, entryComment);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+
+    const CS64UTF8* retrievedEntryComment = cs64_ini_get_entry_comment(pEntry);
+    UNIT_TEST_ASSERT(strcmp((const char*)retrievedEntryComment, (const char*)entryComment) == 0);
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
 
 void *test_malloc(size_t size) {
     if(mallocPagesLeft <= 0)
