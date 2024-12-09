@@ -30,12 +30,34 @@ int mallocPagesLeft = 0;
 
 #define UNIT_TEST_ASSERT(EXP)\
     if(!(EXP))\
-        printf("Statement (%s) failed", #EXP);\
+        printf("Statement (%s) failed\n", #EXP);\
     exit(1);
 
+// Prototypes here.
+void cs64_ini_data_alloc_test();
+
 int main() {
-    UNIT_TEST_DESCRIPTION_ASSERT(0 == 1, "text")
+    cs64_ini_data_alloc_test();
     return 0;
+}
+
+// Definitions here
+void cs64_ini_data_alloc_test() {
+    CS64INIData* pData = cs64_ini_data_alloc();
+
+    UNIT_TEST_ASSERT(pData == NULL);
+
+    mallocPagesLeft = 1;
+    pData = cs64_ini_data_alloc();
+
+    UNIT_TEST_ASSERT(pData != NULL);
+
+    cs64_ini_data_free(pData);
+
+    if(pointerTrackAmount != 0) {
+        printf("Error cs64_ini_data_alloc_test: pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);
+        exit(1);
+    }
 }
 
 void *test_malloc(size_t size) {
