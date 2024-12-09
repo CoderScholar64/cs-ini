@@ -25,7 +25,7 @@ int mallocPagesLeft = 0;
 
 #define UNIT_TEST_DESCRIPTION_ASSERT(EXP, STRING)\
     if(!(EXP))\
-        printf("Statement (%s) failed with %s", #EXP, STRING);\
+        printf("Statement (%s) failed with %s\n", #EXP, STRING);\
     exit(1);
 
 #define UNIT_TEST_ASSERT(EXP)\
@@ -34,7 +34,7 @@ int mallocPagesLeft = 0;
     exit(1);
 
 int main() {
-    UNIT_TEST_ASSERT(0 == 1)
+    UNIT_TEST_DESCRIPTION_ASSERT(0 == 1, "text")
     return 0;
 }
 
