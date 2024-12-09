@@ -1810,7 +1810,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
     pAddEntry->pInlineComment    = backup.pInlineComment;
     pAddEntry->inlineCommentSize = backup.inlineCommentSize;
 
-    return CS64_INI_ENTRY_ERROR_DATA_NULL; /* TODO Complete the function then turn the return value to success! */
+    return CS64_INI_ENTRY_SUCCESS;
 }
 
 const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) {
