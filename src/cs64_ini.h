@@ -1375,8 +1375,8 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
     }
     else {
         pEntry->entryType = CS64_INI_ENTRY_VALUE;
-        STRING_COPY((&pEntry->type.section.name.fixed[0]),            pValue);
-        STRING_COPY((&pEntry->type.section.name.fixed[nameByteSize]), pVariableName);
+        STRING_COPY((&pEntry->type.section.name.fixed[0]),            pVariableName);
+        STRING_COPY((&pEntry->type.section.name.fixed[nameByteSize]), pValue);
     }
 
     /* Finally return the entry. If the programmer gives ppEntry an address */
