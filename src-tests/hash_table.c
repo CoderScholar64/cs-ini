@@ -107,7 +107,7 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
     UNIT_TEST_ASSERT(pEntry->type.value.pSection == NULL);
     UNIT_TEST_ASSERT_EQ(pEntry->type.value.nameByteSize, 4, "%zd");
-    UNIT_TEST_ASSERT(pEntry->type.value.valueByteSize == 0);
+    UNIT_TEST_ASSERT(pEntry->type.value.valueByteSize == 6);
     UNIT_TEST_DETAIL_ASSERT(strcmp((const char*)pEntry->type.value.data.fixed, "Key") == 0, printf("Actually (%s) \n", pEntry->type.value.data.fixed););
 
     cs64_ini_data_free(pData);

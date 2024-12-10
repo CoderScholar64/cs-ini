@@ -909,7 +909,7 @@ CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Of
         (*pStringLength)++;
     }
 
-    pStringLength++;
+    (*pStringLength)++;
 
     return hash;
 }
