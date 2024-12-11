@@ -104,7 +104,7 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT(pEntry->type.value.pSection == NULL);
 
     UNIT_TEST_ASSERT_EQ(pEntry->type.value.nameByteSize, 4, "%zd");
-    UNIT_TEST_DETAIL_ASSERT(strcmp((const char*)pEntry->type.value.data.fixed, key) == 0, printf("Actually (%s) \n", pEntry->type.value.data.fixed););
+    UNIT_TEST_DETAIL_ASSERT(strcmp((const char*)pEntry->type.value.data.fixed, (const char*)key) == 0, printf("Actually (%s) \n", pEntry->type.value.data.fixed););
     UNIT_TEST_ASSERT_EQ(cs64_ini_get_entry_name(pEntry), pEntry->type.value.data.fixed, "%s");
 
     UNIT_TEST_ASSERT_EQ(pEntry->type.value.valueByteSize, 6, "%zd");
@@ -149,9 +149,9 @@ void cs64_ini_global_variable_test() {
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_comment(pEntry, entryComment);
 
-    state = cs64_ini_set_entry_comment(pEntry, "");
+    state = cs64_ini_set_entry_comment(pEntry, (const CS64UTF8*)"");
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
-    state = cs64_ini_set_entry_comment(pEntry, "");
+    state = cs64_ini_set_entry_comment(pEntry, (const CS64UTF8*)"");
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT(pEntry->pComment == NULL);
     UNIT_TEST_ASSERT_EQ(pEntry->commentSize, 0, "%zd");
@@ -182,9 +182,9 @@ void cs64_ini_global_variable_test() {
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
 
-    state = cs64_ini_set_entry_inline_comment(pEntry, "");
+    state = cs64_ini_set_entry_inline_comment(pEntry, (const CS64UTF8*)"");
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
-    state = cs64_ini_set_entry_inline_comment(pEntry, "");
+    state = cs64_ini_set_entry_inline_comment(pEntry, (const CS64UTF8*)"");
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
     UNIT_TEST_ASSERT_EQ(pEntry->inlineCommentSize, 0, "%zd");
