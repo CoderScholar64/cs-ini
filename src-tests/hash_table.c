@@ -140,6 +140,8 @@ void cs64_ini_global_variable_test() {
 
     state = cs64_ini_set_entry_comment(pEntry, NULL);
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    state = cs64_ini_set_entry_comment(pEntry, NULL);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT(pEntry->pComment == NULL);
     UNIT_TEST_ASSERT_EQ(pEntry->commentSize, 0, "%zd");
     UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
@@ -147,6 +149,8 @@ void cs64_ini_global_variable_test() {
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_comment(pEntry, entryComment);
 
+    state = cs64_ini_set_entry_comment(pEntry, "");
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     state = cs64_ini_set_entry_comment(pEntry, "");
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT(pEntry->pComment == NULL);
@@ -169,6 +173,8 @@ void cs64_ini_global_variable_test() {
 
     state = cs64_ini_set_entry_inline_comment(pEntry, NULL);
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    state = cs64_ini_set_entry_inline_comment(pEntry, NULL);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
     UNIT_TEST_ASSERT_EQ(pEntry->inlineCommentSize, 0, "%zd");
     UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
@@ -176,6 +182,8 @@ void cs64_ini_global_variable_test() {
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
 
+    state = cs64_ini_set_entry_inline_comment(pEntry, "");
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     state = cs64_ini_set_entry_inline_comment(pEntry, "");
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
