@@ -48,6 +48,7 @@ int mallocPagesLeft = 0;
 // Prototypes here.
 void cs64_ini_data_alloc_test();
 void cs64_ini_single_global_variable_test();
+void cs64_ini_static_to_dynamic_variable_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
@@ -197,6 +198,33 @@ void cs64_ini_single_global_variable_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
+void cs64_ini_static_to_dynamic_variable_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(pData != NULL);
+
+    CS64UTF8 value[CS64_INI_IMP_DETAIL_VALUE_SIZE];
+
+    int i = 0;
+    while(i < CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+        value[i] = 'b';
+    }
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = '\0';
+
+    CS64INIEntryState state;
+    CS64INIEntry* pEntry = NULL;
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = '\0';
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"a", value, &pEntry);
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'b';
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
 void cs64_ini_4_global_variables_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
@@ -273,14 +301,14 @@ void cs64_ini_4_global_variables_test() {
 
     // Check if the variables can be found!
 
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[0])) != pEntry[0])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[1])) != pEntry[1])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) != pEntry[2])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) != pEntry[3])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[0])) != pEntry[0])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[1])) != pEntry[1])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) != pEntry[2])
-    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) != pEntry[3])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[0])) == pEntry[0])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[1])) == pEntry[1])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) == pEntry[2])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) == pEntry[3])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[0])) == pEntry[0])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[1])) == pEntry[1])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) == pEntry[2])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) == pEntry[3])
 
     cs64_ini_data_free(pData);
 
