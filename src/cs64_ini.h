@@ -1234,8 +1234,6 @@ void cs64_ini_data_free(CS64INIData* pData) {
 
         CS64Offset entryIndex = 0;
         while(entryIndex < pData->hashTable.entryCapacity) {
-            pData->hashTable.pEntries[entryIndex].entryType = CS64_INI_ENTRY_EMPTY;
-
             if(pData->hashTable.pEntries[entryIndex].pComment != NULL)
                 CS64_INI_FREE(pData->hashTable.pEntries[entryIndex].pComment);
 
