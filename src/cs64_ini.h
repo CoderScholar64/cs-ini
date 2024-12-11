@@ -1262,6 +1262,10 @@ void cs64_ini_data_free(CS64INIData* pData) {
 }
 
 CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+    /* If the programmer gives ppEntry an address */
+    if(ppEntry != NULL)
+        *ppEntry = NULL;
+
     /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
     /* TODO Check if pVariableName is UTF-8/ASCII compatible! */
     /* TODO Check if pValue is UTF-8/ASCII compatible! */
@@ -1304,6 +1308,19 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
+    CS64UTF8 *pDynamicMemory = NULL;
+    CS64Size valueByteSize = 0;
+
+    if(IS_STRING_PRESENT(pValue))
+        valueByteSize = cs64_ini_string_byte_size(pValue);
+
+    if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + valueByteSize) {
+        pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + valueByteSize));
+
+        if(pDynamicMemory == NULL)
+            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+    }
+
     CS64INIEntry *pLastValue = NULL;
 
     CS64Offset originalSectionIndex;
@@ -1323,6 +1340,10 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
             {})
 
         if(pSectionEntry == NULL) {
+
+            if(pDynamicMemory != NULL)
+                CS64_INI_FREE(pDynamicMemory);
+
             return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
         }
 
@@ -1361,14 +1382,11 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
     pEntry->pInlineComment    = NULL;
 
     pEntry->type.value.nameByteSize  = nameByteSize;
-    pEntry->type.value.valueByteSize = 0;
+    pEntry->type.value.valueByteSize = valueByteSize;
 
-    if(IS_STRING_PRESENT(pValue))
-        pEntry->type.value.valueByteSize = cs64_ini_string_byte_size(pValue);
-
-    if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + pEntry->type.value.valueByteSize) {
+    if(pDynamicMemory != NULL) {
         pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
-        pEntry->type.value.data.dynamic.pName = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + pEntry->type.value.valueByteSize));
+        pEntry->type.value.data.dynamic.pName = pDynamicMemory;
         pEntry->type.value.data.dynamic.pValue = &pEntry->type.value.data.dynamic.pName[nameByteSize];
         STRING_COPY(pEntry->type.value.data.dynamic.pName,  pValue);
         STRING_COPY(pEntry->type.value.data.dynamic.pValue, pVariableName);

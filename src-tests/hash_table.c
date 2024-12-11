@@ -121,13 +121,6 @@ void cs64_ini_single_global_variable_test() {
     UNIT_TEST_ASSERT(cs64_ini_get_entry_section(pEntry) == NULL);
     UNIT_TEST_ASSERT(cs64_ini_get_entry_section_name(pEntry) == NULL);
 
-    CS64INIEntry *pEntryReceived = cs64_ini_get_variable(pData, NULL, key);
-
-    UNIT_TEST_ASSERT(pEntry == pEntryReceived);
-
-    state = cs64_ini_add_value(pData, NULL, key, (const CS64UTF8*)"This is not supposed to work!", &pEntry);
-    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
-
     // Test setters and getters for entry comments.
     UNIT_TEST_ASSERT(pEntry->commentSize == 0);
     UNIT_TEST_ASSERT(pEntry->pComment == NULL);
@@ -194,6 +187,13 @@ void cs64_ini_single_global_variable_test() {
     UNIT_TEST_ASSERT_EQ(pEntry->inlineCommentSize, 0, "%zd");
     UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
 
+    CS64INIEntry *pEntryReceived = cs64_ini_get_variable(pData, NULL, key);
+
+    UNIT_TEST_ASSERT(pEntry == pEntryReceived);
+
+    state = cs64_ini_add_value(pData, NULL, key, (const CS64UTF8*)"This is not supposed to work!", &pEntry);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+
     cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
@@ -231,7 +231,7 @@ void cs64_ini_static_to_dynamic_variable_test() {
     // Test lack of memory case
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"2", value, &pEntry);
-    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
     UNIT_TEST_ASSERT(pEntry == NULL);
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
 
