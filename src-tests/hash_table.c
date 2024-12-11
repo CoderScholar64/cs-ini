@@ -117,14 +117,6 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT(cs64_ini_get_entry_section(pEntry) == NULL);
     UNIT_TEST_ASSERT(cs64_ini_get_entry_section_name(pEntry) == NULL);
 
-    UNIT_TEST_ASSERT(pEntry->commentSize == 0);
-    UNIT_TEST_ASSERT(pEntry->pComment == NULL);
-    UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
-
-    UNIT_TEST_ASSERT(pEntry->inlineCommentSize == 0);
-    UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
-    UNIT_TEST_ASSERT(cs64_ini_get_entry_inline_comment(pEntry) == NULL);
-
     CS64INIEntry *pEntryReceived = cs64_ini_get_variable(pData, NULL, key);
 
     UNIT_TEST_ASSERT(pEntry == pEntryReceived);
@@ -133,6 +125,10 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
 
     // Test setters and getters for entry comments.
+    UNIT_TEST_ASSERT(pEntry->commentSize == 0);
+    UNIT_TEST_ASSERT(pEntry->pComment == NULL);
+    UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
+
     const CS64UTF8 entryComment[] = "This is an entry comment\nmultilines can be done with this kind of comment!\n";
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_comment(pEntry, entryComment);
@@ -142,7 +138,26 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT_EQ(pEntry->commentSize, sizeof(entryComment) / sizeof(entryComment[0]), "%zd");
     UNIT_TEST_ASSERT(pEntry->pComment != NULL);
 
+    state = cs64_ini_set_entry_comment(pEntry, NULL);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(pEntry->pComment == NULL);
+    UNIT_TEST_ASSERT_EQ(pEntry->commentSize, 0, "%zd");
+    UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_comment(pEntry, entryComment);
+
+    state = cs64_ini_set_entry_comment(pEntry, "");
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(pEntry->pComment == NULL);
+    UNIT_TEST_ASSERT_EQ(pEntry->commentSize, 0, "%zd");
+    UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
+
     // Test setters and getters for inline comments.
+    UNIT_TEST_ASSERT(pEntry->inlineCommentSize == 0);
+    UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
+    UNIT_TEST_ASSERT(cs64_ini_get_entry_inline_comment(pEntry) == NULL);
+
     const CS64UTF8 inlineComment[] = "This is an inline comment";
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
@@ -151,6 +166,21 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT(strcmp((const char*)retrievedInlineComment, (const char*)inlineComment) == 0);
     UNIT_TEST_ASSERT(pEntry->inlineCommentSize == sizeof(inlineComment) / sizeof(inlineComment[0]));
     UNIT_TEST_ASSERT(pEntry->pInlineComment != NULL);
+
+    state = cs64_ini_set_entry_inline_comment(pEntry, NULL);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
+    UNIT_TEST_ASSERT_EQ(pEntry->inlineCommentSize, 0, "%zd");
+    UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
+
+    state = cs64_ini_set_entry_inline_comment(pEntry, "");
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
+    UNIT_TEST_ASSERT_EQ(pEntry->inlineCommentSize, 0, "%zd");
+    UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
 
     cs64_ini_data_free(pData);
 

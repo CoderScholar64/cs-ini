@@ -1915,6 +1915,7 @@ CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF
         CS64_INI_FREE(pEntry->pComment);
 
     pEntry->pComment = NULL;
+    pEntry->commentSize = 0;
 
     if(!IS_STRING_PRESENT(pValue))
         return CS64_INI_ENTRY_SUCCESS;
@@ -1927,7 +1928,6 @@ CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF
         return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
     STRING_COPY(pEntry->pComment, pValue)
-
     pEntry->commentSize = valueByteSize;
 
     return CS64_INI_ENTRY_SUCCESS;
@@ -1951,6 +1951,7 @@ CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const 
         CS64_INI_FREE(pEntry->pInlineComment);
 
     pEntry->pInlineComment = NULL;
+    pEntry->inlineCommentSize = 0;
 
     if(!IS_STRING_PRESENT(pValue))
         return CS64_INI_ENTRY_SUCCESS;
@@ -1963,7 +1964,6 @@ CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const 
         return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
     STRING_COPY(pEntry->pInlineComment, pValue)
-
     pEntry->inlineCommentSize = valueByteSize;
 
     return CS64_INI_ENTRY_SUCCESS;
