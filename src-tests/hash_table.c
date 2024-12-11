@@ -216,20 +216,26 @@ void cs64_ini_static_to_dynamic_variable_test() {
     CS64INIEntryState state;
     CS64INIEntry* pEntry = NULL;
 
-    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = '\0';
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 4] = '\0';
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"0", value, &pEntry);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 4] = 'b';
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = '\0';
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"1", value, &pEntry);
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'b';
 
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
-    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"1", value, &pEntry);
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"2", value, &pEntry);
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
 
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = '\0';
-    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"2", value, &pEntry);
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"4", value, &pEntry);
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = 'b';
