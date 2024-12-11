@@ -1386,8 +1386,8 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
         pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
         pEntry->type.value.data.dynamic.pName = pDynamicMemory;
         pEntry->type.value.data.dynamic.pValue = &pEntry->type.value.data.dynamic.pName[nameByteSize];
-        STRING_COPY(pEntry->type.value.data.dynamic.pName,  pValue);
-        STRING_COPY(pEntry->type.value.data.dynamic.pValue, pVariableName);
+        STRING_COPY(pEntry->type.value.data.dynamic.pName,  pVariableName);
+        STRING_COPY(pEntry->type.value.data.dynamic.pValue, pValue);
     }
     else {
         pEntry->entryType = CS64_INI_ENTRY_VALUE;

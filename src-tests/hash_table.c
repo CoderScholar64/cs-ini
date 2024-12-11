@@ -246,7 +246,39 @@ void cs64_ini_static_to_dynamic_variable_test() {
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"3", value, &pEntry);
     UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
-    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = 'b';
+
+    // Now, value will be used as the key.
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 4] = '\0';
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 4] = 'b';
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = '\0';
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'b';
+
+    // Test lack of memory case
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+    UNIT_TEST_ASSERT(pEntry == NULL);
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = '\0';
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
+    UNIT_TEST_ASSERT(state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
 
     cs64_ini_data_free(pData);
 
