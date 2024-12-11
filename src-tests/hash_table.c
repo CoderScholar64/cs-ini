@@ -47,11 +47,13 @@ int mallocPagesLeft = 0;
 
 // Prototypes here.
 void cs64_ini_data_alloc_test();
-void cs64_ini_global_variable_test();
+void cs64_ini_single_global_variable_test();
+void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
-    cs64_ini_global_variable_test();
+    cs64_ini_single_global_variable_test();
+    cs64_ini_4_global_variables_test();
     return 0;
 }
 
@@ -87,7 +89,7 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_global_variable_test() {
+void cs64_ini_single_global_variable_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(pData != NULL);
@@ -189,6 +191,96 @@ void cs64_ini_global_variable_test() {
     UNIT_TEST_ASSERT(pEntry->pInlineComment == NULL);
     UNIT_TEST_ASSERT_EQ(pEntry->inlineCommentSize, 0, "%zd");
     UNIT_TEST_ASSERT(cs64_ini_get_entry_comment(pEntry) == NULL);
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_4_global_variables_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(pData != NULL);
+
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == NULL);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue == NULL);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+
+    CS64INIEntry* pEntry[] = {NULL, NULL, NULL, NULL};
+    CS64INIEntryState state;
+
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pEntry[0]);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(pEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(pEntry[0]->pNext == NULL);
+    UNIT_TEST_ASSERT(pEntry[0]->pPrev == NULL);
+
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pEntry[1]);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(pEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(pEntry[1]->pNext == NULL);
+    UNIT_TEST_ASSERT(pEntry[1]->pPrev == pEntry[0]);
+
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[1]);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pEntry[2]);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(pEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(pEntry[2]->pNext == NULL);
+    UNIT_TEST_ASSERT(pEntry[2]->pPrev == pEntry[1]);
+
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[2]);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_3", (const CS64UTF8*)"Value", &pEntry[3]);
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(pEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(pEntry[3]->pNext == NULL);
+    UNIT_TEST_ASSERT(pEntry[3]->pPrev == pEntry[2]);
+
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[3]);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+
+    // Check if the chain is correct.
+
+    UNIT_TEST_ASSERT(pEntry[0]->pNext == pEntry[1]);
+    UNIT_TEST_ASSERT(pEntry[0]->pPrev == NULL);
+    UNIT_TEST_ASSERT(pEntry[0]->pNext == cs64_ini_get_next_entry(pEntry[0]));
+    UNIT_TEST_ASSERT(pEntry[0]->pPrev == cs64_ini_get_prev_entry(pEntry[0]));
+
+    UNIT_TEST_ASSERT(pEntry[1]->pNext == pEntry[2]);
+    UNIT_TEST_ASSERT(pEntry[1]->pPrev == pEntry[0]);
+    UNIT_TEST_ASSERT(pEntry[1]->pNext == cs64_ini_get_next_entry(pEntry[1]));
+    UNIT_TEST_ASSERT(pEntry[1]->pPrev == cs64_ini_get_prev_entry(pEntry[1]));
+
+    UNIT_TEST_ASSERT(pEntry[2]->pNext == pEntry[3]);
+    UNIT_TEST_ASSERT(pEntry[2]->pPrev == pEntry[1]);
+    UNIT_TEST_ASSERT(pEntry[2]->pNext == cs64_ini_get_next_entry(pEntry[2]));
+    UNIT_TEST_ASSERT(pEntry[2]->pPrev == cs64_ini_get_prev_entry(pEntry[2]));
+
+    UNIT_TEST_ASSERT(pEntry[3]->pNext == NULL);
+    UNIT_TEST_ASSERT(pEntry[3]->pPrev == pEntry[2]);
+    UNIT_TEST_ASSERT(pEntry[3]->pNext == cs64_ini_get_next_entry(pEntry[3]));
+    UNIT_TEST_ASSERT(pEntry[3]->pPrev == cs64_ini_get_prev_entry(pEntry[3]));
+
+    // Check if the variables can be found!
+
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[0])) != pEntry[0])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[1])) != pEntry[1])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) != pEntry[2])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) != pEntry[3])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[0])) != pEntry[0])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[1])) != pEntry[1])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) != pEntry[2])
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) != pEntry[3])
 
     cs64_ini_data_free(pData);
 
