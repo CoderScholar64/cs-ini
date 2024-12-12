@@ -385,15 +385,38 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[1]) != pEntry[2]);
     UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[3]) == pEntry[1]);
     UNIT_TEST_ASSERT(cs64_ini_get_next_entry(pEntry[1]) == pEntry[3]);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[3]);
     UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 3);
 
     state = cs64_ini_del_entry(pData, pEntry[3]); // Remove empty right.
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) == NULL)
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) == NULL)
+    UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[1]) != pEntry[3]);
+    UNIT_TEST_ASSERT(cs64_ini_get_next_entry(pEntry[1]) == NULL);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  != pEntry[3]); // the third element is supposed to be removed!
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[1]);
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 2);
+
     state = cs64_ini_del_entry(pData, pEntry[0]); // Remove empty left.
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[1]) != pEntry[0]);
+    UNIT_TEST_ASSERT(cs64_ini_get_next_entry(pEntry[1]) == NULL);
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[1]);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[1]);
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 1);
+
     state = cs64_ini_del_entry(pData, pEntry[1]); // Remove no child case.
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
-
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->globals.pFirstValue == NULL);
+    UNIT_TEST_ASSERT(pData->globals.pLastValue  == NULL);
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 0);
     cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
