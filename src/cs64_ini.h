@@ -1605,10 +1605,10 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
     }
 
     /* Standard Remove Element from double linked lists! */
-    if(pEntry->pPrev == NULL)
+    if(pEntry->pPrev != NULL)
         pEntry->pPrev->pNext = pEntry->pNext;
 
-    if(pEntry->pNext == NULL)
+    if(pEntry->pNext != NULL)
         pEntry->pNext->pPrev = pEntry->pPrev;
 
     /* Free Comment */
