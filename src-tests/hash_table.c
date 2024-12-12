@@ -293,6 +293,7 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == NULL);
     UNIT_TEST_ASSERT(pData->globals.pLastValue == NULL);
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 0);
 
     CS64INIEntry* pEntry[] = {NULL, NULL, NULL, NULL};
     CS64INIEntryState state;
@@ -306,6 +307,7 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[0]);
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 1);
 
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pEntry[1]);
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -316,6 +318,7 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[1]);
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 2);
 
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pEntry[2]);
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -326,6 +329,7 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[2]);
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 3);
 
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key_3", (const CS64UTF8*)"Value", &pEntry[3]);
     UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -336,6 +340,7 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(pData->globals.pLastValue  == pEntry[3]);
     UNIT_TEST_ASSERT(pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 4);
 
     // Check if the chain is correct.
 
@@ -369,6 +374,25 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[1])) == pEntry[1])
     UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) == pEntry[2])
     UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) == pEntry[3])
+
+    // Relational deletion test!
+
+    state = cs64_ini_del_entry(pData, pEntry[2]); // Remove middle case.
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) == NULL)
+    UNIT_TEST_ASSERT(cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) == NULL)
+    UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[3]) != pEntry[2]);
+    UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[1]) != pEntry[2]);
+    UNIT_TEST_ASSERT(cs64_ini_get_prev_entry(pEntry[3]) == pEntry[1]);
+    UNIT_TEST_ASSERT(cs64_ini_get_next_entry(pEntry[1]) == pEntry[3]);
+    UNIT_TEST_ASSERT(pData->hashTable.currentEntryAmount == 3);
+
+    state = cs64_ini_del_entry(pData, pEntry[3]); // Remove empty right.
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    state = cs64_ini_del_entry(pData, pEntry[0]); // Remove empty left.
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
+    state = cs64_ini_del_entry(pData, pEntry[1]); // Remove no child case.
+    UNIT_TEST_ASSERT_EQ(state, CS64_INI_ENTRY_SUCCESS, "%d");
 
     cs64_ini_data_free(pData);
 
