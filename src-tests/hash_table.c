@@ -356,10 +356,12 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
 
-    SET_AVAILABLE_MEM_PAGES(1)
-    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'a';
-
     // static to dynamic case.
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'a';
+    state = cs64_ini_set_entry_value(pEntry, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+    SET_AVAILABLE_MEM_PAGES(1)
+
     state = cs64_ini_set_entry_value(pEntry, value);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
@@ -371,7 +373,32 @@ void cs64_ini_variable_change_test() {
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
 
     // dynamic to dynamic case.
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'b';
+    state = cs64_ini_set_entry_value(pEntry, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+    SET_AVAILABLE_MEM_PAGES(1)
+
+    state = cs64_ini_set_entry_value(pEntry, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
+    UNIT_TEST_ASSERT(0, pEntry->type.value.pSection      == NULL);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.nameByteSize  ==  4);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.valueByteSize == 13);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
+        printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
+
     // dynamic to static case.
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = '\0';
+    state = cs64_ini_set_entry_value(pEntry, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO small for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pEntry->type.value.pSection      == NULL);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.nameByteSize  ==  4);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.valueByteSize == 12);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
+        printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
 
     cs64_ini_data_free(pData);
 
