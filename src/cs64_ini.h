@@ -273,7 +273,7 @@ CS64INIData* cs64_ini_data_alloc();
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry);
+CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry);
 CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
 CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSection);
 CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
@@ -1259,7 +1259,7 @@ void cs64_ini_data_free(CS64INIData* pData) {
     CS64_INI_FREE(pData);
 }
 
-CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) {
+CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) {
     /* If the programmer gives ppEntry an address */
     if(ppEntry != NULL)
         *ppEntry = NULL;
@@ -1798,7 +1798,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
     const CS64UTF8 *pOldSectionName = cs64_ini_get_entry_section_name(&backup);
     CS64INIEntry* pAddEntry;
 
-    /* cs64_ini_add_section or cs64_ini_add_value */
+    /* cs64_ini_add_section or cs64_ini_add_variable */
     if(cs64_ini_get_entry_type(&backup) == CS64_INI_ENTRY_SECTION) {
 
         entryState = cs64_ini_add_section(pData, pValue, &pAddEntry);
@@ -1830,7 +1830,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
         }
 
-        entryState = cs64_ini_add_value(pData, pOldSectionName, pValue, pOldValue, &pAddEntry);
+        entryState = cs64_ini_add_variable(pData, pOldSectionName, pValue, pOldValue, &pAddEntry);
 
         if(entryState != CS64_INI_ENTRY_SUCCESS) {
             if(pEntry->pComment != NULL)
