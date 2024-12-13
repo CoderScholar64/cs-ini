@@ -49,14 +49,14 @@ int mallocPagesLeft = 0;
 void cs64_ini_data_alloc_test();
 void cs64_ini_single_global_variable_test();
 void cs64_ini_variable_value_test();
-void cs64_ini_set_entry_value_test();
+void cs64_ini_entry_value_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
     cs64_ini_single_global_variable_test();
     cs64_ini_variable_value_test();
-    cs64_ini_set_entry_value_test();
+    cs64_ini_entry_value_test();
     cs64_ini_4_global_variables_test();
     return 0;
 }
@@ -321,7 +321,7 @@ void cs64_ini_variable_value_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_set_entry_value_test() {
+void cs64_ini_entry_value_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -359,18 +359,22 @@ void cs64_ini_set_entry_value_test() {
 
     state = cs64_ini_set_entry_value(NULL, value);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     wrongEntryType.entryType = CS64_INI_ENTRY_EMPTY;
     state = cs64_ini_set_entry_value(&wrongEntryType, value);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     wrongEntryType.entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
     state = cs64_ini_set_entry_value(&wrongEntryType, value);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     wrongEntryType.entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
     state = cs64_ini_set_entry_value(&wrongEntryType, value);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"null", NULL, &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
