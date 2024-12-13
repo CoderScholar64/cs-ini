@@ -49,12 +49,14 @@ int mallocPagesLeft = 0;
 void cs64_ini_data_alloc_test();
 void cs64_ini_single_global_variable_test();
 void cs64_ini_variable_value_test();
+void cs64_ini_variable_change_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
     cs64_ini_single_global_variable_test();
     cs64_ini_variable_value_test();
+    cs64_ini_variable_change_test();
     cs64_ini_4_global_variables_test();
     return 0;
 }
@@ -313,6 +315,39 @@ void cs64_ini_variable_value_test() {
     UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
     UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0);
     UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_variable_change_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    CS64UTF8 value[CS64_INI_IMP_DETAIL_VALUE_SIZE];
+
+    int i = 0;
+    while(i < CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+        value[i] = 'v';
+        i++;
+    }
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = '\0';
+
+    CS64INIEntryState state;
+    CS64INIEntry* pEntry = NULL;
+
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    // static to static case.
+    state = cs64_ini_set_entry_value(pEntry, (const CS64UTF8*)"value");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    // static to dynamic case.
+    // dynamic to dynamic case.
+    // dynamic to static case.
 
     cs64_ini_data_free(pData);
 
