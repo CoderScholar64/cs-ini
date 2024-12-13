@@ -1879,8 +1879,6 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
     if(pNewValue == NULL)
         pNewValue = emptyString;
 
-    CS64Size valueByteSize = cs64_ini_string_byte_size(pNewValue);
-
     CS64UTF8       *pOldName  = pEntry->type.value.data.fixed;
     const CS64UTF8 *pOldValue = pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize;
 
@@ -1888,6 +1886,8 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
         pOldName  = pEntry->type.value.data.dynamic.pName;
         pOldValue = pEntry->type.value.data.dynamic.pValue;
     }
+
+    CS64Size valueByteSize = cs64_ini_string_byte_size(pNewValue);
 
     CS64UTF8 *pName  = NULL;
     CS64UTF8 *pValue = NULL;
@@ -1898,13 +1898,13 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
         if(pNameAndValue == NULL)
             return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
-        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
 
         pName  = pNameAndValue;
         pValue = pNameAndValue + pEntry->type.value.nameByteSize;
     }
     else {
-        pEntry->entryType = CS64_INI_ENTRY_SECTION;
+        pEntry->entryType = CS64_INI_ENTRY_VALUE;
 
         pName  = pEntry->type.value.data.fixed;
         pValue = pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize;
