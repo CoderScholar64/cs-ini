@@ -273,7 +273,7 @@ CS64INIData* cs64_ini_data_alloc();
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues);
 void cs64_ini_data_free(CS64INIData* pData);
 
-CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry);
+CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry);
 CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry);
 CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSection);
 CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName);
@@ -1259,7 +1259,7 @@ void cs64_ini_data_free(CS64INIData* pData) {
     CS64_INI_FREE(pData);
 }
 
-CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *const pValue, CS64INIEntry** ppEntry) {
+CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pVariableName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) {
     /* If the programmer gives ppEntry an address */
     if(ppEntry != NULL)
         *ppEntry = NULL;
@@ -1308,9 +1308,12 @@ CS64INIEntryState cs64_ini_add_value(CS64INIData *pData, const CS64UTF8 *const p
 
     CS64UTF8 *pDynamicMemory = NULL;
     CS64Size valueByteSize = 0;
+    CS64UTF8 emptyValue[] = "";
 
-    if(IS_STRING_PRESENT(pValue))
-        valueByteSize = cs64_ini_string_byte_size(pValue);
+    if(pValue == NULL)
+        pValue = emptyValue;
+
+    valueByteSize = cs64_ini_string_byte_size(pValue);
 
     if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + valueByteSize) {
         pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + valueByteSize));

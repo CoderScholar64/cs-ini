@@ -48,13 +48,13 @@ int mallocPagesLeft = 0;
 // Prototypes here.
 void cs64_ini_data_alloc_test();
 void cs64_ini_single_global_variable_test();
-void cs64_ini_static_to_dynamic_variable_test();
+void cs64_ini_variable_value_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
     cs64_ini_single_global_variable_test();
-    cs64_ini_static_to_dynamic_variable_test();
+    cs64_ini_variable_value_test();
     cs64_ini_4_global_variables_test();
     return 0;
 }
@@ -199,7 +199,7 @@ void cs64_ini_single_global_variable_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_static_to_dynamic_variable_test() {
+void cs64_ini_variable_value_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -278,6 +278,40 @@ void cs64_ini_static_to_dynamic_variable_test() {
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = '\0';
     state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
     UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'A';
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'B';
+    state = cs64_ini_add_value(pData, NULL, value, NULL, &pEntry);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 1] = '\0';
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'C';
+    state = cs64_ini_add_value(pData, NULL, value, (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
+
+    value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 3] = 'D';
+    state = cs64_ini_add_value(pData, NULL, value, NULL, &pEntry);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0);
     UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
 
     cs64_ini_data_free(pData);
