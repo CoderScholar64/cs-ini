@@ -49,14 +49,14 @@ int mallocPagesLeft = 0;
 void cs64_ini_data_alloc_test();
 void cs64_ini_single_global_variable_test();
 void cs64_ini_variable_value_test();
-void cs64_ini_variable_change_test();
+void cs64_ini_set_entry_value_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
     cs64_ini_single_global_variable_test();
     cs64_ini_variable_value_test();
-    cs64_ini_variable_change_test();
+    cs64_ini_set_entry_value_test();
     cs64_ini_4_global_variables_test();
     return 0;
 }
@@ -321,7 +321,7 @@ void cs64_ini_variable_value_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_variable_change_test() {
+void cs64_ini_set_entry_value_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -342,8 +342,53 @@ void cs64_ini_variable_change_test() {
     CS64INIEntryState state;
     CS64INIEntry* pEntry = NULL;
 
+    CS64INIEntry wrongEntryType;
+    wrongEntryType.pNext = NULL;
+    wrongEntryType.pPrev = NULL;
+    wrongEntryType.commentSize = 0;
+    wrongEntryType.pComment = NULL;
+    wrongEntryType.inlineCommentSize = 0;
+    wrongEntryType.pInlineComment = NULL;
+    wrongEntryType.type.section.header.pFirstValue = NULL;
+    wrongEntryType.type.section.header.pLastValue = NULL;
+    wrongEntryType.type.section.nameByteSize = 4;
+    wrongEntryType.type.section.name.fixed[0] = 'N';
+    wrongEntryType.type.section.name.fixed[1] = '/';
+    wrongEntryType.type.section.name.fixed[2] = 'A';
+    wrongEntryType.type.section.name.fixed[3] = '\0';
+
+    state = cs64_ini_set_entry_value(NULL, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    wrongEntryType.entryType = CS64_INI_ENTRY_EMPTY;
+    state = cs64_ini_set_entry_value(&wrongEntryType, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    wrongEntryType.entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+    state = cs64_ini_set_entry_value(&wrongEntryType, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    wrongEntryType.entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+    state = cs64_ini_set_entry_value(&wrongEntryType, value);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"null", NULL, &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, pEntry->type.value.pSection      == NULL);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.nameByteSize  == 5);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.valueByteSize == 1);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0,
+        printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
+
     state = cs64_ini_add_value(pData, NULL, (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, pEntry->type.value.pSection      == NULL);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.nameByteSize  == 4);
+    UNIT_TEST_ASSERT(0, pEntry->type.value.valueByteSize == 1);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0,
+        printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
 
     // static to static case.
     state = cs64_ini_set_entry_value(pEntry, value);
