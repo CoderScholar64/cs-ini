@@ -1876,48 +1876,61 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
     if(pEntry == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
+    if(!IS_ENTRY_VALUE(pEntry))
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
     if(pNewValue == NULL)
         pNewValue = emptyString;
 
-    CS64UTF8       *pOldName  = pEntry->type.value.data.fixed;
-    const CS64UTF8 *pOldValue = pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize;
+    const CS64Size valueByteSize = cs64_ini_string_byte_size(pNewValue);
+    const CS64Size totalByteSize = valueByteSize + pEntry->type.value.nameByteSize;
 
     if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-        pOldName  = pEntry->type.value.data.dynamic.pName;
-        pOldValue = pEntry->type.value.data.dynamic.pValue;
-    }
+        if(totalByteSize > CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+            CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(totalByteSize);
 
-    CS64Size valueByteSize = cs64_ini_string_byte_size(pNewValue);
+            if(pNameAndValue == NULL)
+                return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
-    CS64UTF8 *pName  = NULL;
-    CS64UTF8 *pValue = NULL;
+            STRING_COPY( pNameAndValue,                                    pEntry->type.value.data.dynamic.pName)
+            STRING_COPY((pNameAndValue + pEntry->type.value.nameByteSize), pNewValue)
 
-    if(valueByteSize + pEntry->type.value.nameByteSize > CS64_INI_IMP_DETAIL_VALUE_SIZE) {
-        CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(valueByteSize + pEntry->type.value.nameByteSize);
+            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName);
 
-        if(pNameAndValue == NULL)
-            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+            pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
+            pEntry->type.value.data.dynamic.pName  = pNameAndValue;
+            pEntry->type.value.data.dynamic.pValue = pNameAndValue + pEntry->type.value.nameByteSize;
+        }
+        else {
+            STRING_COPY( pEntry->type.value.data.fixed,                                    pEntry->type.value.data.dynamic.pName)
+            STRING_COPY((pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize), pNewValue)
 
-        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
+            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName);
 
-        pName  = pNameAndValue;
-        pValue = pNameAndValue + pEntry->type.value.nameByteSize;
+            pEntry->entryType = CS64_INI_ENTRY_VALUE;
+        }
     }
     else {
-        pEntry->entryType = CS64_INI_ENTRY_VALUE;
+        if(totalByteSize > CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+            CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(totalByteSize);
 
-        pName  = pEntry->type.value.data.fixed;
-        pValue = pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize;
+            if(pNameAndValue == NULL)
+                return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+            STRING_COPY( pNameAndValue,                                    pEntry->type.value.data.fixed)
+            STRING_COPY((pNameAndValue + pEntry->type.value.nameByteSize), pNewValue)
+
+            pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
+            pEntry->type.value.data.dynamic.pName  = pNameAndValue;
+            pEntry->type.value.data.dynamic.pValue = pNameAndValue + pEntry->type.value.nameByteSize;
+        }
+        else {
+            STRING_COPY((pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize), pNewValue)
+
+            pEntry->entryType = CS64_INI_ENTRY_VALUE;
+        }
     }
-
     pEntry->type.value.valueByteSize = valueByteSize;
-
-    STRING_COPY(pName,  pOldName)
-    STRING_COPY(pValue, pOldValue)
-
-    if(pOldName != pEntry->type.value.data.fixed) {
-        CS64_INI_FREE(pOldName); /* This also frees pOldValue */
-    }
 
     return CS64_INI_ENTRY_SUCCESS;
 }
