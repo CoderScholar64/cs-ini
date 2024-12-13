@@ -1892,7 +1892,7 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
     CS64UTF8 *pName  = NULL;
     CS64UTF8 *pValue = NULL;
 
-    if(valueByteSize + pEntry->type.value.nameByteSize < CS64_INI_IMP_DETAIL_VALUE_SIZE) {
+    if(valueByteSize + pEntry->type.value.nameByteSize > CS64_INI_IMP_DETAIL_VALUE_SIZE) {
         CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(valueByteSize + pEntry->type.value.nameByteSize);
 
         if(pNameAndValue == NULL)
