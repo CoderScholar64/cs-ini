@@ -1902,10 +1902,12 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
             pEntry->type.value.data.dynamic.pValue = pNameAndValue + pEntry->type.value.nameByteSize;
         }
         else {
+            CS64UTF8 *pOldPointer = pEntry->type.value.data.dynamic.pName;
+
             STRING_COPY( pEntry->type.value.data.fixed,                                    pEntry->type.value.data.dynamic.pName)
             STRING_COPY((pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize), pNewValue)
 
-            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName);
+            CS64_INI_FREE(pOldPointer);
 
             pEntry->entryType = CS64_INI_ENTRY_VALUE;
         }
