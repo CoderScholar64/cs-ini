@@ -945,12 +945,12 @@ static CS64Size cs64_ini_string_byte_size(const CS64UTF8 *const str) {
 #define CALC_P2_LOWER_LIMIT(x) CALC_UPPER_LIMIT((x) / 2)
 #define CALC_LR_LOWER_LIMIT(x) CALC_UPPER_LIMIT((x) - P2_LIMIT)
 #define CALC_LOWER_LIMIT(x)\
-if((x.currentEntryAmount) <= INITIAL_CAPACITY)\
+if((x.entryCapacity) <= INITIAL_CAPACITY)\
     x.entryCapacityDownLimit = 0; /* This effectively prevents resizing. INITIAL_CAPACITY is also the minimum capacity. */\
-else if(x.currentEntryAmount > P2_LIMIT)\
-    x.entryCapacityDownLimit = CALC_LR_LOWER_LIMIT(x.currentEntryAmount);\
+else if(x.entryCapacity > P2_LIMIT)\
+    x.entryCapacityDownLimit = CALC_LR_LOWER_LIMIT(x.entryCapacity);\
 else\
-    x.entryCapacityDownLimit = CALC_P2_LOWER_LIMIT(x.currentEntryAmount);
+    x.entryCapacityDownLimit = CALC_P2_LOWER_LIMIT(x.entryCapacity);
 #define INIT_HASH_TABLE(hashTable, entryAmount, capacity, onFailureRoutine)\
     hashTable.currentEntryAmount = entryAmount;\
     hashTable.entryCapacity = capacity;\
@@ -1221,17 +1221,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     CS64_INI_FREE(pData->hashTable.pEntries);
 
     /* Set the variables of the INI library */
-    pData->hashTable.pEntries               = newINIData.hashTable.pEntries;
-    pData->hashTable.currentEntryAmount     = newINIData.hashTable.currentEntryAmount;
-    pData->hashTable.entryCapacity          = newINIData.hashTable.entryCapacity;
-    pData->hashTable.entryCapacityUpLimit   = newINIData.hashTable.entryCapacityUpLimit;
-    pData->hashTable.entryCapacityDownLimit = newINIData.hashTable.entryCapacityDownLimit;
-    pData->lastCommentSize                  = newINIData.lastCommentSize;
-    pData->pLastComment                     = newINIData.pLastComment;
-    pData->globals.pFirstValue              = newINIData.globals.pFirstValue;
-    pData->globals.pLastValue               = newINIData.globals.pLastValue;
-    pData->pFirstSection                    = newINIData.pFirstSection;
-    pData->pLastSection                     = newINIData.pLastSection;
+    *pData = newINIData;
 
     return 0;
 }
