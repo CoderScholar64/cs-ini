@@ -1064,15 +1064,15 @@ static CS64Size cs64_ini_decrement_table(CS64Size entryCapacity) {
 int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues) {
     /* pData is the INI file. */
     if(pData == NULL)
-        return 0;
+        return -1;
 
     /* pData make sure that the hash table has entries. */
     if(pData->hashTable.pEntries == NULL)
-        return 0;
+        return -2;
 
     /* This ensures that there will not be a crash to be made. */
     if(numberOfSectionsAndValues <= pData->hashTable.currentEntryAmount)
-        return 0;
+        return -3;
 
     /* Initialize a new hash table */
     CS64INIData newINIData = *pData;
@@ -1081,7 +1081,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     newINIData.pFirstSection = NULL;
     newINIData.pLastSection  = NULL;
 
-    INIT_HASH_TABLE(newINIData.hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return 0;})
+    INIT_HASH_TABLE(newINIData.hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return -4;})
 
     CS64Offset originalIndex;
     CS64Offset index;
@@ -1112,8 +1112,8 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
         ATTEMPT_TO_FIND_VARIABLE(
             pEntry, NULL, 0, pName, index, originalIndex, pData->hashTable,
-            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return -5;},
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return -6;})
 
         /* Copy source variable over to new table! */
         *pEntry = *pVariable;
@@ -1154,8 +1154,8 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         pSectionEntry = &newINIData.hashTable.pEntries[index];
 
         ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionLength, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pSectionEntry),
-            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-            {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return -7;},
+            {CS64_INI_FREE(newINIData.hashTable.pEntries); return -8;})
 
         /* Copy source section over to new table! */
         *pSectionEntry = *pSection;
@@ -1192,8 +1192,8 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
             ATTEMPT_TO_FIND_VARIABLE(
                 pEntry, pSectionName, sectionLength, pName, index, originalIndex, pData->hashTable,
-                {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                {CS64_INI_FREE(newINIData.hashTable.pEntries); return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+                {CS64_INI_FREE(newINIData.hashTable.pEntries); return -9;},
+                {CS64_INI_FREE(newINIData.hashTable.pEntries); return -10;})
 
             /* Copy source variable over to new table! */
             *pEntry = *pVariable;
