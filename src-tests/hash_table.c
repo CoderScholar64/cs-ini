@@ -139,13 +139,54 @@ void cs64_ini_data_reserve_empty_test() {
 
     // Malloc okay on empty case
     SET_AVAILABLE_MEM_PAGES(1)
-    returnResult = cs64_ini_data_reserve(pData, 32);
+    returnResult = cs64_ini_data_reserve(pData, 17);
     UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount,      0, "%zd");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity,          32, "%zd");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityUpLimit,   26, "%zd");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityDownLimit, 13, "%zd");
+    backupData = *pData;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    returnResult = cs64_ini_data_reserve(pData, 26);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount,      0, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity,          32, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityUpLimit,   26, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityDownLimit, 13, "%zd");
+    backupData = *pData;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    returnResult = cs64_ini_data_reserve(pData, 0);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount,      0, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity,          16, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityUpLimit,   13, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityDownLimit,  0, "%zd");
+    backupData = *pData;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    returnResult = cs64_ini_data_reserve(pData, 27);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount,      0, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity,          64, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityUpLimit,   52, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityDownLimit, 26, "%zd");
+    backupData = *pData;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    returnResult = cs64_ini_data_reserve(pData, 13);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount,      0, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity,          16, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityUpLimit,   13, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityDownLimit,  0, "%zd");
+    backupData = *pData;
 
     cs64_ini_data_free(pData);
 

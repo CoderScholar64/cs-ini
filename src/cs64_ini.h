@@ -1081,7 +1081,27 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     newINIData.pFirstSection = NULL;
     newINIData.pLastSection  = NULL;
 
-    INIT_HASH_TABLE(newINIData.hashTable, pData->hashTable.currentEntryAmount, numberOfSectionsAndValues, {return -4;})
+    CS64Size newCapacity = INITIAL_CAPACITY;
+
+    if(numberOfSectionsAndValues > INITIAL_CAPACITY) {
+        if(CALC_UPPER_LIMIT(P2_LIMIT) <= numberOfSectionsAndValues) {
+            CS64Size count = numberOfSectionsAndValues / CALC_UPPER_LIMIT(P2_LIMIT);
+            if(numberOfSectionsAndValues % CALC_UPPER_LIMIT(P2_LIMIT) != 0)
+                count++;
+
+            newCapacity = P2_LIMIT * count;
+        }
+        else {
+            CS64Size shift = 0;
+            while((CALC_UPPER_LIMIT(INITIAL_CAPACITY) << shift) < numberOfSectionsAndValues) {
+                shift++;
+            }
+
+            newCapacity = INITIAL_CAPACITY << shift;
+        }
+    }
+
+    INIT_HASH_TABLE(newINIData.hashTable, pData->hashTable.currentEntryAmount, newCapacity, {return -4;})
 
     CS64Offset originalIndex;
     CS64Offset index;
