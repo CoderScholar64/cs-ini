@@ -1221,7 +1221,17 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     CS64_INI_FREE(pData->hashTable.pEntries);
 
     /* Set the variables of the INI library */
-    *pData = newINIData;
+    pData->hashTable.pEntries               = newINIData.hashTable.pEntries;
+    pData->hashTable.currentEntryAmount     = newINIData.hashTable.currentEntryAmount;
+    pData->hashTable.entryCapacity          = newINIData.hashTable.entryCapacity;
+    pData->hashTable.entryCapacityUpLimit   = newINIData.hashTable.entryCapacityUpLimit;
+    pData->hashTable.entryCapacityDownLimit = newINIData.hashTable.entryCapacityDownLimit;
+    pData->lastCommentSize                  = newINIData.lastCommentSize;
+    pData->pLastComment                     = newINIData.pLastComment;
+    pData->globals.pFirstValue              = newINIData.globals.pFirstValue;
+    pData->globals.pLastValue               = newINIData.globals.pLastValue;
+    pData->pFirstSection                    = newINIData.pFirstSection;
+    pData->pLastSection                     = newINIData.pLastSection;
 
     return 0;
 }
