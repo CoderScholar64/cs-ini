@@ -36,7 +36,7 @@ int mallocPagesLeft = 0;
 #define UNIT_TEST_ASSERT_EQ(LOOP_INDEX, VALUE, EXPECT, FORMAT)\
     UNIT_TEST_DETAIL_ASSERT(LOOP_INDEX, VALUE == EXPECT, printf(#VALUE " = " FORMAT "\n", VALUE);)
 
-#define UNIT_TEST_ASSERT_NEQ(VALUE, EXPECT, FORMAT)\
+#define UNIT_TEST_ASSERT_NEQ(LOOP_INDEX, VALUE, EXPECT, FORMAT)\
     UNIT_TEST_DETAIL_ASSERT(LOOP_INDEX, VALUE != EXPECT, printf(#VALUE " = " FORMAT "\n", VALUE);)
 
 #define SET_AVAILABLE_MEM_PAGES(x)\
@@ -47,6 +47,7 @@ int mallocPagesLeft = 0;
 
 // Prototypes here.
 void cs64_ini_data_alloc_test();
+void cs64_ini_data_reserve_empty_test();
 void cs64_ini_single_global_variable_test();
 void cs64_ini_variable_declarations_test();
 void cs64_ini_variable_capacity_test();
@@ -55,6 +56,7 @@ void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
+    cs64_ini_data_reserve_empty_test();
     cs64_ini_single_global_variable_test();
     cs64_ini_variable_declarations_test();
     cs64_ini_variable_capacity_test();
@@ -89,6 +91,59 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT(0, pData->hashTable.entryCapacityDownLimit ==  0);
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == NULL);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == NULL);
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_data_reserve_empty_test() {
+    int returnResult;
+
+    returnResult = cs64_ini_data_reserve(NULL, 32);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, -1, "%d");
+
+    // This CS64INIData structure is built to be invalid on purpose!
+    CS64INIData badData;
+    badData.hashTable.pEntries = NULL;
+    badData.hashTable.entryCapacity = 64;
+    badData.hashTable.currentEntryAmount = 32;
+    badData.hashTable.entryCapacityUpLimit = 52;
+    badData.hashTable.entryCapacityDownLimit = 26;
+    badData.lastCommentSize = 0;
+    badData.pLastComment    = NULL;
+    badData.globals.pFirstValue = NULL;
+    badData.globals.pLastValue  = NULL;
+    badData.pFirstSection = NULL;
+    badData.pLastSection  = NULL;
+
+    // Just in case pEntries end up as a NULL.
+    returnResult = cs64_ini_data_reserve(&badData, 32);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, -2, "%d");
+
+    // Cancel if the amount for reserving if the amount of reserving if the entry amounts do not increase.
+    badData.hashTable.pEntries = (CS64INIHashTable*)&returnResult;
+    returnResult = cs64_ini_data_reserve(&badData, 32);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, -3, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    CS64INIData backupData = *pData;
+
+    // Malloc failure case
+    returnResult = cs64_ini_data_reserve(pData, 32);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, -4, "%d");
+    UNIT_TEST_ASSERT(0, memcmp(&backupData, pData, sizeof(CS64INIData)) == 0);
+
+    // Malloc okay on empty case
+    SET_AVAILABLE_MEM_PAGES(1)
+    returnResult = cs64_ini_data_reserve(pData, 32);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount, 0, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
 
     cs64_ini_data_free(pData);
 
@@ -333,7 +388,7 @@ void cs64_ini_variable_capacity_test() {
     CS64INIEntryState state;
     CS64INIEntry* pEntry = NULL;
 
-    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 16, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 16, "%zd");
 
     int loop = 0;
     while(loop < pData->hashTable.entryCapacity) {
@@ -354,7 +409,7 @@ void cs64_ini_variable_capacity_test() {
         loop++;
     }
 
-    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
 
     cs64_ini_data_free(pData);
     UNIT_TEST_MEM_CHECK_ASSERT
