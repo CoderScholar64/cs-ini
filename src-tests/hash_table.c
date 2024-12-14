@@ -48,15 +48,17 @@ int mallocPagesLeft = 0;
 // Prototypes here.
 void cs64_ini_data_alloc_test();
 void cs64_ini_single_global_variable_test();
-void cs64_ini_variable_value_test();
-void cs64_ini_entry_value_test();
+void cs64_ini_variable_declarations_test();
+void cs64_ini_variable_capacity_test();
+void cs64_ini_variable_change_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
     cs64_ini_data_alloc_test();
     cs64_ini_single_global_variable_test();
-    cs64_ini_variable_value_test();
-    cs64_ini_entry_value_test();
+    cs64_ini_variable_declarations_test();
+    cs64_ini_variable_capacity_test();
+    cs64_ini_variable_change_test();
     cs64_ini_4_global_variables_test();
     return 0;
 }
@@ -201,7 +203,7 @@ void cs64_ini_single_global_variable_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_variable_value_test() {
+void cs64_ini_variable_declarations_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -321,7 +323,44 @@ void cs64_ini_variable_value_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_entry_value_test() {
+void cs64_ini_variable_capacity_test() {
+    SET_AVAILABLE_MEM_PAGES(3) // 3 instead of 2.
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    CS64UTF8 name[2] = "A";
+
+    CS64INIEntryState state;
+    CS64INIEntry* pEntry = NULL;
+
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 16, "%d");
+
+    int loop = 0;
+    while(loop < pData->hashTable.entryCapacity) {
+        name[0] = 'A' + loop;
+
+        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        UNIT_TEST_ASSERT(loop, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT_EQ(loop, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+
+        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+        }
+
+        loop++;
+    }
+
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%d");
+
+    cs64_ini_data_free(pData);
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_variable_change_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
