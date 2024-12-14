@@ -562,7 +562,7 @@ void cs64_ini_variable_declarations_test() {
 }
 
 void cs64_ini_variable_capacity_test() {
-    SET_AVAILABLE_MEM_PAGES(3) // 3 instead of 2.
+    SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
 
@@ -592,6 +592,9 @@ void cs64_ini_variable_capacity_test() {
         loop++;
     }
 
+    SET_AVAILABLE_MEM_PAGES(1)
+    int returnResult = cs64_ini_data_reserve(pData, pData->hashTable.entryCapacity + 1);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
 
     cs64_ini_data_free(pData);
