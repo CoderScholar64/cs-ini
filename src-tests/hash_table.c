@@ -142,8 +142,10 @@ void cs64_ini_data_reserve_empty_test() {
     returnResult = cs64_ini_data_reserve(pData, 32);
     UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->hashTable.pEntries, backupData.hashTable.pEntries, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount, 0, "%zd");
-    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.currentEntryAmount,      0, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity,          32, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityUpLimit,   26, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacityDownLimit, 13, "%zd");
 
     cs64_ini_data_free(pData);
 
