@@ -1043,15 +1043,6 @@ CS64INIData* cs64_ini_data_alloc() {
     return pData;
 }
 
-static CS64Size cs64_ini_increment_table(CS64Size entryCapacity) {
-    if(entryCapacity < INITIAL_CAPACITY)
-        return INITIAL_CAPACITY;
-    else if(entryCapacity >= P2_LIMIT)
-        return entryCapacity + P2_LIMIT;
-    else
-        return 2 * entryCapacity;
-}
-
 static CS64Size cs64_ini_decrement_table(CS64Size entryCapacity) {
     if(entryCapacity < INITIAL_CAPACITY)
         return INITIAL_CAPACITY;
@@ -1302,7 +1293,7 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
     /* Check if it is time for a resize */
     if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
-        cs64_ini_data_reserve(pData, cs64_ini_increment_table(pData->hashTable.entryCapacity));
+        cs64_ini_data_reserve(pData, pData->hashTable.entryCapacity + 1);
 
     /* Check if table is full. */
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
@@ -1442,7 +1433,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
     /* Check if it is time for a resize */
     if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
-        cs64_ini_data_reserve(pData, cs64_ini_increment_table(pData->hashTable.entryCapacity));
+        cs64_ini_data_reserve(pData, pData->hashTable.entryCapacity + 1);
 
     /* Check if table is full. */
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
