@@ -124,7 +124,7 @@ void cs64_ini_data_reserve_empty_test() {
     UNIT_TEST_ASSERT_EQ(0, returnResult, -2, "%d");
 
     // Cancel if the amount for reserving if the amount of reserving if the entry amounts do not increase.
-    badData.hashTable.pEntries = (CS64INIHashTable*)&returnResult;
+    badData.hashTable.pEntries = (CS64INIEntry*)&returnResult;
     returnResult = cs64_ini_data_reserve(&badData, 32);
     UNIT_TEST_ASSERT_EQ(0, returnResult, -3, "%d");
 
@@ -579,11 +579,11 @@ void cs64_ini_variable_capacity_test() {
     while(loop < pData->hashTable.entryCapacity) {
         name[0] = 'A' + loop;
 
-        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        state = cs64_ini_add_variable(pData, NULL, name, (const CS64UTF8*)"val", &pEntry);
         UNIT_TEST_ASSERT(loop, state == CS64_INI_ENTRY_SUCCESS);
         UNIT_TEST_ASSERT_EQ(loop, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
 
-        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        state = cs64_ini_add_variable(pData, NULL, name, (const CS64UTF8*)"val", &pEntry);
         if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
             UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
         }
@@ -640,11 +640,11 @@ void cs64_ini_variable_rehash_test() {
     while(loop < pData->hashTable.entryCapacity) {
         name[0] = ' ' + loop;
 
-        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        state = cs64_ini_add_variable(pData, NULL, name, (const CS64UTF8*)"val", &pEntry);
         UNIT_TEST_ASSERT(loop, state == CS64_INI_ENTRY_SUCCESS);
         UNIT_TEST_ASSERT_EQ(loop, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
 
-        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        state = cs64_ini_add_variable(pData, NULL, name, (const CS64UTF8*)"val", &pEntry);
         if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
             UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
         }
