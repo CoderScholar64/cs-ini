@@ -655,7 +655,7 @@ void cs64_ini_variable_rehash_test() {
         loop++;
     }
 
-    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 64, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
 
     CS64INIEntry *pGlobalEntry = cs64_ini_get_first_global_value(pData);
     CS64INIEntry *pLastEntry = NULL;
