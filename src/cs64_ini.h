@@ -1141,9 +1141,9 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         pEntry->pNext = NULL;
         pEntry->pPrev = newINIData.globals.pLastValue;
 
-        if(pData->globals.pLastValue != NULL) {
+        if(pData->globals.pLastValue != NULL && newINIData.globals.pLastValue) {
             newINIData.globals.pLastValue->pNext = pEntry;
-            pEntry->pPrev = pData->globals.pLastValue;
+            pEntry->pPrev = newINIData.globals.pLastValue;
         }
 
         if(pData->globals.pFirstValue == pVariable)
@@ -1924,7 +1924,7 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
         else {
             CS64UTF8 *pOldPointer = pEntry->type.value.data.dynamic.pName;
 
-            STRING_COPY( pEntry->type.value.data.fixed,                                    pEntry->type.value.data.dynamic.pName)
+            STRING_COPY( pEntry->type.value.data.fixed,                                    pOldPointer)
             STRING_COPY((pEntry->type.value.data.fixed + pEntry->type.value.nameByteSize), pNewValue)
 
             CS64_INI_FREE(pOldPointer);
