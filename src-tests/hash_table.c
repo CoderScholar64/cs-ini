@@ -597,6 +597,23 @@ void cs64_ini_variable_capacity_test() {
     UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
 
+    int amount = loop;
+
+    loop = 0;
+
+    CS64INIEntry *pGlobalEntry = cs64_ini_get_first_global_value(pData);
+
+    while(loop < amount) {
+        name[0] = 'A' + loop;
+
+        pEntry = cs64_ini_get_variable(pData, NULL, name);
+        UNIT_TEST_ASSERT(loop, pEntry != NULL);
+        UNIT_TEST_ASSERT(loop, pEntry == pGlobalEntry);
+
+        loop++;
+        pGlobalEntry = cs64_ini_get_next_entry(pGlobalEntry);
+    }
+
     cs64_ini_data_free(pData);
     UNIT_TEST_MEM_CHECK_ASSERT
 }
