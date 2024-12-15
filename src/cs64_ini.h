@@ -1417,6 +1417,10 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 }
 
 CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSectionName, CS64INIEntry** ppEntry) {
+    /* If the programmer gives ppEntry an address */
+    if(ppEntry != NULL)
+        *ppEntry = NULL;
+
     /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
 
     /* Data must be present for this function to work */
@@ -1428,7 +1432,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
     /* There already is a global section. */
-    if(IS_STRING_PRESENT(pSectionName))
+    if(!IS_STRING_PRESENT(pSectionName))
         return CS64_INI_ENTRY_ERROR_SECTION_EMPTY;
 
     /* Check if it is time for a resize */

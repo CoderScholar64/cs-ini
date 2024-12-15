@@ -53,7 +53,7 @@ void cs64_ini_variable_declarations_test();
 void cs64_ini_variable_capacity_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_variable_rehash_test();
-void cs64_ini_4_global_variables_test();
+void cs64_ini_4_data_test();
 
 int main() {
     cs64_ini_data_alloc_test();
@@ -63,7 +63,7 @@ int main() {
     cs64_ini_variable_capacity_test();
     cs64_ini_variable_change_test();
     cs64_ini_variable_rehash_test();
-    cs64_ini_4_global_variables_test();
+    cs64_ini_4_data_test();
     return 0;
 }
 
@@ -812,7 +812,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_4_global_variables_test() {
+void cs64_ini_4_data_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -893,14 +893,38 @@ void cs64_ini_4_global_variables_test() {
 
     // Check if the variables can be found!
 
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[0])) == pEntry[0])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[1])) == pEntry[1])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) == pEntry[2])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) == pEntry[3])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[0])) == pEntry[0])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[1])) == pEntry[1])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) == pEntry[2])
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) == pEntry[3])
+    int loop = 0;
+    while(loop < sizeof(pEntry) / sizeof(pEntry[0])) {
+        UNIT_TEST_ASSERT(loop, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[loop])) == pEntry[loop])
+        UNIT_TEST_ASSERT(loop, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[loop])) == pEntry[loop])
+        loop++;
+    }
+
+    CS64INIEntry* pSectionEntry[] = {NULL, NULL, NULL, NULL};
+
+    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s0", &pSectionEntry[0]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[0]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionEntry[0]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[0]->pPrev == NULL);
+
+    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s1", &pSectionEntry[1]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[1]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionEntry[1]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[1]->pPrev == pSectionEntry[0]);
+
+    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s2", &pSectionEntry[2]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[2]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionEntry[2]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[2]->pPrev == pSectionEntry[1]);
+
+    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s3", &pSectionEntry[3]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[3]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->pPrev == pSectionEntry[2]);
 
     // Relational deletion test!
 
@@ -944,6 +968,7 @@ void cs64_ini_4_global_variables_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == NULL);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == NULL);
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 0);
+
     cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
