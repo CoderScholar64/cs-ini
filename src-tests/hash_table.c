@@ -602,15 +602,19 @@ void cs64_ini_variable_capacity_test() {
     loop = 0;
 
     CS64INIEntry *pGlobalEntry = cs64_ini_get_first_global_value(pData);
+    CS64INIEntry *pLastEntry = NULL;
 
     while(loop < amount) {
         name[0] = 'A' + loop;
 
         pEntry = cs64_ini_get_variable(pData, NULL, name);
+
         UNIT_TEST_ASSERT(loop, pEntry != NULL);
         UNIT_TEST_ASSERT(loop, pEntry == pGlobalEntry);
+        UNIT_TEST_ASSERT(loop, cs64_ini_get_prev_entry(pEntry) == pLastEntry);
 
         loop++;
+        pLastEntry = pEntry;
         pGlobalEntry = cs64_ini_get_next_entry(pGlobalEntry);
     }
 
