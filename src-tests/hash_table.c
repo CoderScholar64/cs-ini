@@ -900,6 +900,8 @@ void cs64_ini_4_data_test() {
         loop++;
     }
 
+    // Sections
+
     CS64INIEntry* pSectionEntry[] = {NULL, NULL, NULL, NULL};
 
     state = cs64_ini_add_section(pData, (const CS64UTF8*)"s0", &pSectionEntry[0]);
@@ -926,7 +928,64 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pSectionEntry[3]->pNext == NULL);
     UNIT_TEST_ASSERT(0, pSectionEntry[3]->pPrev == pSectionEntry[2]);
 
+    // Section variables
+
+    CS64INIEntry* pSectionVarEntry[] = {
+        NULL,
+        NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL};
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s1", (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pSectionVarEntry[0]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pPrev == NULL);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s2", (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pSectionVarEntry[1]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pPrev == NULL);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s2", (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pSectionVarEntry[2]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pPrev == pSectionVarEntry[1]);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s2", (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pSectionVarEntry[3]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pPrev == pSectionVarEntry[2]);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pSectionVarEntry[4]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pPrev == NULL);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pSectionVarEntry[5]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pPrev == pSectionVarEntry[4]);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pSectionVarEntry[6]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pPrev == pSectionVarEntry[5]);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_3", (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pNext == NULL);
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
+
     // Relational deletion test!
+
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 16);
 
     state = cs64_ini_del_entry(pData, pEntry[2]); // Remove middle case.
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
