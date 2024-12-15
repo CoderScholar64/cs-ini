@@ -52,6 +52,7 @@ void cs64_ini_single_global_variable_test();
 void cs64_ini_variable_declarations_test();
 void cs64_ini_variable_capacity_test();
 void cs64_ini_variable_change_test();
+void cs64_ini_variable_rehash_test();
 void cs64_ini_4_global_variables_test();
 
 int main() {
@@ -61,6 +62,7 @@ int main() {
     cs64_ini_variable_declarations_test();
     cs64_ini_variable_capacity_test();
     cs64_ini_variable_change_test();
+    cs64_ini_variable_rehash_test();
     cs64_ini_4_global_variables_test();
     return 0;
 }
@@ -606,6 +608,61 @@ void cs64_ini_variable_capacity_test() {
 
     while(loop < amount) {
         name[0] = 'A' + loop;
+
+        pEntry = cs64_ini_get_variable(pData, NULL, name);
+
+        UNIT_TEST_ASSERT(loop, pEntry != NULL);
+        UNIT_TEST_ASSERT(loop, pEntry == pGlobalEntry);
+        UNIT_TEST_ASSERT(loop, cs64_ini_get_prev_entry(pEntry) == pLastEntry);
+
+        loop++;
+        pLastEntry = pEntry;
+        pGlobalEntry = cs64_ini_get_next_entry(pGlobalEntry);
+    }
+
+    cs64_ini_data_free(pData);
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_variable_rehash_test() {
+    SET_AVAILABLE_MEM_PAGES(3)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    CS64UTF8 name[2] = " ";
+
+    CS64INIEntryState state;
+    CS64INIEntry* pEntry = NULL;
+
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 16, "%zd");
+
+    int loop = 0;
+    while(loop < pData->hashTable.entryCapacity) {
+        name[0] = ' ' + loop;
+
+        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        UNIT_TEST_ASSERT(loop, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT_EQ(loop, pEntry->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+
+        state = cs64_ini_add_variable(pData, NULL, name, "val", &pEntry);
+        if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+        }
+
+        loop++;
+    }
+
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 64, "%zd");
+
+    CS64INIEntry *pGlobalEntry = cs64_ini_get_first_global_value(pData);
+    CS64INIEntry *pLastEntry = NULL;
+
+    loop = 0;
+    while(loop < pData->hashTable.entryCapacity) {
+        name[0] = ' ' + loop;
 
         pEntry = cs64_ini_get_variable(pData, NULL, name);
 
