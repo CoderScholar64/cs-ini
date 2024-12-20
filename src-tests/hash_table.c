@@ -1137,6 +1137,39 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
 
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 12);
+
+    // Sections removal
+
+    // Remove middle section case.
+    state = cs64_ini_del_entry(pData, pSectionEntry[2]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[2])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[2])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[3]) != pSectionEntry[2]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[2]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[3]) == pSectionEntry[1]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionEntry[1]) == pSectionEntry[3]);
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
+    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[3]);
+
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 8);
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+
+    // Remove empty
+    state = cs64_ini_del_entry(pData, pSectionEntry[3]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[3])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[3])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[3]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionEntry[1]) == NULL);
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
+    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
+
     // Globals removal
 
     state = cs64_ini_del_entry(pData, pEntry[2]); // Remove middle case.
