@@ -1061,6 +1061,9 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[6]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[7]) == pSectionVarEntry[5]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == pSectionVarEntry[7]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[4]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[7]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
@@ -1081,6 +1084,9 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == NULL)
     UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[7]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[4]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[5]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
@@ -1103,6 +1109,9 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[5]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[5]);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
@@ -1121,6 +1130,9 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->type.value.pSection != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == NULL)
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == NULL);
+    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
