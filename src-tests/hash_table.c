@@ -1039,8 +1039,6 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
-    cs64_ini_display_data(pData);
-
     // Relational deletion test!
 
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 16);
