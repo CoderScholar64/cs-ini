@@ -1046,7 +1046,7 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 16);
     state = cs64_ini_del_entry(pData, pSectionVarEntry[6]); // Remove middle case.
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->type.value.pSection != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
