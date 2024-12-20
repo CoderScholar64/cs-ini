@@ -1045,10 +1045,12 @@ void cs64_ini_4_data_test() {
 
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 16);
 
+     // Remove middle case section variable case.
+
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
 
-    state = cs64_ini_del_entry(pData, pSectionVarEntry[6]); // Remove middle case.
+    state = cs64_ini_del_entry(pData, pSectionVarEntry[6]);
 
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
@@ -1064,6 +1066,64 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
 
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 15);
+
+    // Remove empty right section variable case.
+
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) != NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
+
+    state = cs64_ini_del_entry(pData, pSectionVarEntry[7]);
+
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->type.value.pSection != NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) == NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[7]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
+    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
+
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 14);
+
+    // Remove empty left section variable case.
+
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) != NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) == pSectionEntry[3]);
+
+    state = cs64_ini_del_entry(pData, pSectionVarEntry[4]);
+
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->type.value.pSection != NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) == NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[4]), cs64_ini_get_entry_name(pSectionVarEntry[4])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) == NULL);
+    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
+
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 13);
+
+    // Remove no child section variable case.
+
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
+
+    state = cs64_ini_del_entry(pData, pSectionVarEntry[5]);
+
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->type.value.pSection != NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == NULL);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == NULL)
+    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
+    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
 
     // Globals removal
 
