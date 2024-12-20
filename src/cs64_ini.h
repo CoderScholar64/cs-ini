@@ -1620,6 +1620,14 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
 
             pVariable = pVariable->pNext;
         }
+
+        if(pEntry == pData->pFirstSection) {
+            pData->pFirstSection = pEntry->pNext;
+        }
+
+        if(pEntry == pData->pLastSection) {
+            pData->pLastSection = pEntry->pPrev;
+        }
     } else if(IS_ENTRY_VALUE(pEntry)) {
         CS64SectionHeader *pSectionHeader = &pData->globals;
 
