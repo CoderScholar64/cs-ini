@@ -1169,6 +1169,36 @@ void cs64_ini_4_data_test() {
     UNIT_TEST_ASSERT(0, pData->pLastSection  != pSectionEntry[3]);
     UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
 
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 7);
+
+    // Remove empty section right.
+    state = cs64_ini_del_entry(pData, pSectionEntry[0]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[0])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[0])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[0]);
+    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionEntry[1]) == NULL);
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
+    UNIT_TEST_ASSERT(0, pData->pFirstSection != pSectionEntry[0]);
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[1]);
+    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
+
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 6);
+
+    // Remove empty section no child case.
+    state = cs64_ini_del_entry(pData, pSectionEntry[1]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[1])) == NULL)
+    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[1])) == NULL)
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
+    UNIT_TEST_ASSERT(0, pData->pFirstSection != pSectionEntry[1]);
+    UNIT_TEST_ASSERT(0, pData->pFirstSection == NULL);
+    UNIT_TEST_ASSERT(0, pData->pFirstSection != pSectionEntry[1]);
+    UNIT_TEST_ASSERT(0, pData->pLastSection  == NULL);
+
+    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 4);
+    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+
     // Globals removal
 
     state = cs64_ini_del_entry(pData, pEntry[2]); // Remove middle case.
