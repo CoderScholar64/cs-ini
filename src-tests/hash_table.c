@@ -53,7 +53,7 @@ void cs64_ini_variable_declarations_test();
 void cs64_ini_variable_capacity_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_variable_rehash_test();
-void cs64_ini_4_data_test();
+void cs64_ini_del_entry_no_rehash_test();
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
 void cs64_ini_display_data(const CS64INIData *const pData);
 
@@ -65,7 +65,7 @@ int main() {
     cs64_ini_variable_capacity_test();
     cs64_ini_variable_change_test();
     cs64_ini_variable_rehash_test();
-    cs64_ini_4_data_test();
+    cs64_ini_del_entry_no_rehash_test();
     return 0;
 }
 
@@ -814,7 +814,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_4_data_test() {
+void cs64_ini_del_entry_no_rehash_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
