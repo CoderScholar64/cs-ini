@@ -847,6 +847,9 @@ void cs64_ini_variable_change_test() {
 }
 
 void cs64_ini_del_entry_no_rehash_test() {
+    CS64UTF8 varNames[4][8] = {"key_0", "key_1", "key_2", "key_3"};
+    CS64UTF8 secNames[4][8] = {"s0", "s1", "s2", "s3"};
+
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -859,7 +862,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     CS64INIEntry* pEntry[] = {NULL, NULL, NULL, NULL};
     CS64INIEntryState state;
 
-    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pEntry[0]);
+    state = cs64_ini_add_variable(pData, NULL, varNames[0], (const CS64UTF8*)"Value", &pEntry[0]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pEntry[0]->pNext == NULL);
@@ -870,7 +873,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 1);
 
-    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pEntry[1]);
+    state = cs64_ini_add_variable(pData, NULL, varNames[1], (const CS64UTF8*)"Value", &pEntry[1]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pEntry[1]->pNext == NULL);
@@ -881,7 +884,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 2);
 
-    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pEntry[2]);
+    state = cs64_ini_add_variable(pData, NULL, varNames[2], (const CS64UTF8*)"Value", &pEntry[2]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pEntry[2]->pNext == NULL);
@@ -892,7 +895,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 3);
 
-    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key_3", (const CS64UTF8*)"Value", &pEntry[3]);
+    state = cs64_ini_add_variable(pData, NULL, varNames[3], (const CS64UTF8*)"Value", &pEntry[3]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pEntry[3]->pNext == NULL);
@@ -925,15 +928,6 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pEntry[3]->pNext == cs64_ini_get_next_entry(pEntry[3]));
     UNIT_TEST_ASSERT(0, pEntry[3]->pPrev == cs64_ini_get_prev_entry(pEntry[3]));
 
-    // Check if the variables can be found!
-
-    int loop = 0;
-    while(loop < sizeof(pEntry) / sizeof(pEntry[0])) {
-        UNIT_TEST_ASSERT(loop, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[loop])) == pEntry[loop])
-        UNIT_TEST_ASSERT(loop, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[loop])) == pEntry[loop])
-        loop++;
-    }
-
     // Sections
 
     CS64INIEntry* pSectionEntry[] = {NULL, NULL, NULL, NULL};
@@ -942,7 +936,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->pLastSection  == NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
-    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s0", &pSectionEntry[0]);
+    state = cs64_ini_add_section(pData, secNames[0], &pSectionEntry[0]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionEntry[0]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionEntry[0]->pNext == NULL);
@@ -954,7 +948,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[0]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
-    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s1", &pSectionEntry[1]);
+    state = cs64_ini_add_section(pData, secNames[1], &pSectionEntry[1]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionEntry[1]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionEntry[1]->pNext == NULL);
@@ -966,7 +960,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
-    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s2", &pSectionEntry[2]);
+    state = cs64_ini_add_section(pData, secNames[2], &pSectionEntry[2]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionEntry[2]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionEntry[2]->pNext == NULL);
@@ -978,7 +972,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[2]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
-    state = cs64_ini_add_section(pData, (const CS64UTF8*)"s3", &pSectionEntry[3]);
+    state = cs64_ini_add_section(pData, secNames[3], &pSectionEntry[3]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionEntry[3]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionEntry[3]->pNext == NULL);
@@ -999,7 +993,7 @@ void cs64_ini_del_entry_no_rehash_test() {
 
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[0]) == NULL);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s1", (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pSectionVarEntry[0]);
+    state = cs64_ini_add_variable(pData, secNames[1], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[0]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pNext == NULL);
@@ -1008,7 +1002,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[0]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[1]) == pSectionVarEntry[0]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s2", (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pSectionVarEntry[1]);
+    state = cs64_ini_add_variable(pData, secNames[2], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[1]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pNext == NULL);
@@ -1017,7 +1011,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[1]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s2", (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pSectionVarEntry[2]);
+    state = cs64_ini_add_variable(pData, secNames[2], varNames[1], (const CS64UTF8*)"Value", &pSectionVarEntry[2]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pNext == NULL);
@@ -1026,7 +1020,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[2]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s2", (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pSectionVarEntry[3]);
+    state = cs64_ini_add_variable(pData, secNames[2], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[3]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pNext == NULL);
@@ -1035,7 +1029,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[3]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_0", (const CS64UTF8*)"Value", &pSectionVarEntry[4]);
+    state = cs64_ini_add_variable(pData, secNames[3], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[4]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pNext == NULL);
@@ -1044,7 +1038,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[4]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_1", (const CS64UTF8*)"Value", &pSectionVarEntry[5]);
+    state = cs64_ini_add_variable(pData, secNames[3], varNames[1], (const CS64UTF8*)"Value", &pSectionVarEntry[5]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pNext == NULL);
@@ -1053,7 +1047,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[5]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_2", (const CS64UTF8*)"Value", &pSectionVarEntry[6]);
+    state = cs64_ini_add_variable(pData, secNames[3], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[6]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pNext == NULL);
@@ -1062,7 +1056,7 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[6]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"s3", (const CS64UTF8*)"key_3", (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
+    state = cs64_ini_add_variable(pData, secNames[3], varNames[3], (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pNext == NULL);
@@ -1071,9 +1065,18 @@ void cs64_ini_del_entry_no_rehash_test() {
     UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
     UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
-    // Relational deletion test!
-
     UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 16);
+
+    // Check if the variables can be found!
+    int loop = 0;
+    while(loop < sizeof(pEntry) / sizeof(pEntry[0])) {
+        pEntry[loop] = cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[loop]));
+
+        UNIT_TEST_ASSERT(loop, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[loop])) == pEntry[loop])
+        loop++;
+    }
+
+    // Relational deletion test!
 
      // Remove middle case section variable case.
 
