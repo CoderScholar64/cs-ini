@@ -1090,41 +1090,49 @@ void cs64_ini_del_entry_no_rehash_test() {
     pSectionVarEntry[0] = cs64_ini_get_variable(pData, secNames[1], varNames[0]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[0]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[0]) == pSectionEntry[1]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[1], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[0])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[0]), cs64_ini_get_entry_name(pSectionVarEntry[0])) == pSectionVarEntry[0])
 
     pSectionVarEntry[1] = cs64_ini_get_variable(pData, secNames[2], varNames[0]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[1]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[1]) == pSectionEntry[2]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[1])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[1]), cs64_ini_get_entry_name(pSectionVarEntry[1])) == pSectionVarEntry[1])
 
     pSectionVarEntry[2] = cs64_ini_get_variable(pData, secNames[2], varNames[1]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[2]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[2]) == pSectionEntry[2]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[2])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[2]), cs64_ini_get_entry_name(pSectionVarEntry[2])) == pSectionVarEntry[2])
 
     pSectionVarEntry[3] = cs64_ini_get_variable(pData, secNames[2], varNames[2]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[3]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[3]) == pSectionEntry[2]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[3])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[3]), cs64_ini_get_entry_name(pSectionVarEntry[3])) == pSectionVarEntry[3])
 
     pSectionVarEntry[4] = cs64_ini_get_variable(pData, secNames[3], varNames[0]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) == pSectionEntry[3]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[4])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[4]), cs64_ini_get_entry_name(pSectionVarEntry[4])) == pSectionVarEntry[4])
 
     pSectionVarEntry[5] = cs64_ini_get_variable(pData, secNames[3], varNames[1]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[5])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == pSectionVarEntry[5])
 
     pSectionVarEntry[6] = cs64_ini_get_variable(pData, secNames[3], varNames[2]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[6])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[6]), cs64_ini_get_entry_name(pSectionVarEntry[6])) == pSectionVarEntry[6])
 
     pSectionVarEntry[7] = cs64_ini_get_variable(pData, secNames[3], varNames[3]);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) != NULL);
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
+    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[7])) == 0);
     UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == pSectionVarEntry[7])
 
     // Relational deletion test!
