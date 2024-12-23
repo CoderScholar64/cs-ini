@@ -1756,8 +1756,8 @@ const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const 
         return NULL;
 
     if(pSectionEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-        return pEntry->type.section.name.pDynamic;
-    return pEntry->type.section.name.fixed;
+        return pSectionEntry->type.section.name.pDynamic;
+    return pSectionEntry->type.section.name.fixed;
 }
 
 CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
