@@ -1066,19 +1066,18 @@ void cs64_ini_del_entry_no_rehash_test() {
 
         state = cs64_ini_add_variable(pData, secNames[3], varNames[3], (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
 
-        cs64_ini_display_data(pData);
-
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
         UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == NULL);
-        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
-        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[7]));
-        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
-        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
         if(loop[0] == 0) {
             state = cs64_ini_add_variable(pData, secNames[0], varNames[0], (const CS64UTF8*)"Value", NULL);
             UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+
+            UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
+            UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[7]));
+            UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
+            UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
             UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  0);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.pEntries               == pFormalPointer);
