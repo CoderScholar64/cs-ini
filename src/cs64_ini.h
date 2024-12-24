@@ -1199,10 +1199,10 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
             index = originalIndex;
 
-            pEntry = &pData->hashTable.pEntries[index];
+            pEntry = &newINIData.hashTable.pEntries[index];
 
             ATTEMPT_TO_FIND_VARIABLE(
-                pEntry, pSectionName, sectionLength, pName, index, originalIndex, pData->hashTable,
+                pEntry, pSectionName, sectionLength, pName, index, originalIndex, newINIData.hashTable,
                 {CS64_INI_FREE(newINIData.hashTable.pEntries); return -9;},
                 {CS64_INI_FREE(newINIData.hashTable.pEntries); return -10;})
 
