@@ -847,498 +847,508 @@ void cs64_ini_variable_change_test() {
 }
 
 void cs64_ini_del_entry_no_rehash_test() {
-    CS64UTF8 varNames[4][8] = {"key_0", "key_1", "key_2", "key_3"};
-    CS64UTF8 secNames[4][8] = {"s0", "s1", "s2", "s3"};
-
-    SET_AVAILABLE_MEM_PAGES(2)
-    CS64INIData* pData = cs64_ini_data_alloc();
-    UNIT_TEST_ASSERT(0, pData != NULL);
-
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == NULL);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue == NULL);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 0);
+    const CS64UTF8 varNames[4][8] = {"key_0", "key_1", "key_2", "key_3"};
+    const CS64UTF8 secNames[4][8] = {"s0", "s1", "s2", "s3"};
 
     CS64INIEntry* pEntry[] = {NULL, NULL, NULL, NULL};
-    CS64INIEntryState state;
-
-    state = cs64_ini_add_variable(pData, NULL, varNames[0], (const CS64UTF8*)"Value", &pEntry[0]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pEntry[0]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pEntry[0]->pPrev == NULL);
-
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 1);
-
-    state = cs64_ini_add_variable(pData, NULL, varNames[1], (const CS64UTF8*)"Value", &pEntry[1]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pEntry[1]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pEntry[1]->pPrev == pEntry[0]);
-
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 2);
-
-    state = cs64_ini_add_variable(pData, NULL, varNames[2], (const CS64UTF8*)"Value", &pEntry[2]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pEntry[2]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pEntry[2]->pPrev == pEntry[1]);
-
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[2]);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 3);
-
-    state = cs64_ini_add_variable(pData, NULL, varNames[3], (const CS64UTF8*)"Value", &pEntry[3]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pEntry[3]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pEntry[3]->pPrev == pEntry[2]);
-
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 4);
-
-    // Check if the chain is correct.
-
-    UNIT_TEST_ASSERT(0, pEntry[0]->pNext == pEntry[1]);
-    UNIT_TEST_ASSERT(0, pEntry[0]->pPrev == NULL);
-    UNIT_TEST_ASSERT(0, pEntry[0]->pNext == cs64_ini_get_next_entry(pEntry[0]));
-    UNIT_TEST_ASSERT(0, pEntry[0]->pPrev == cs64_ini_get_prev_entry(pEntry[0]));
-
-    UNIT_TEST_ASSERT(0, pEntry[1]->pNext == pEntry[2]);
-    UNIT_TEST_ASSERT(0, pEntry[1]->pPrev == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pEntry[1]->pNext == cs64_ini_get_next_entry(pEntry[1]));
-    UNIT_TEST_ASSERT(0, pEntry[1]->pPrev == cs64_ini_get_prev_entry(pEntry[1]));
-
-    UNIT_TEST_ASSERT(0, pEntry[2]->pNext == pEntry[3]);
-    UNIT_TEST_ASSERT(0, pEntry[2]->pPrev == pEntry[1]);
-    UNIT_TEST_ASSERT(0, pEntry[2]->pNext == cs64_ini_get_next_entry(pEntry[2]));
-    UNIT_TEST_ASSERT(0, pEntry[2]->pPrev == cs64_ini_get_prev_entry(pEntry[2]));
-
-    UNIT_TEST_ASSERT(0, pEntry[3]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pEntry[3]->pPrev == pEntry[2]);
-    UNIT_TEST_ASSERT(0, pEntry[3]->pNext == cs64_ini_get_next_entry(pEntry[3]));
-    UNIT_TEST_ASSERT(0, pEntry[3]->pPrev == cs64_ini_get_prev_entry(pEntry[3]));
-
-    // Sections
-
     CS64INIEntry* pSectionEntry[] = {NULL, NULL, NULL, NULL};
-
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == NULL);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
-
-    state = cs64_ini_add_section(pData, secNames[0], &pSectionEntry[0]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[0]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionEntry[0]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[0]->pPrev == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[0]->pNext == cs64_ini_get_next_entry(pSectionEntry[0]));
-    UNIT_TEST_ASSERT(0, pSectionEntry[0]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[0]));
-
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
-
-    state = cs64_ini_add_section(pData, secNames[1], &pSectionEntry[1]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[1]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionEntry[1]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[1]->pPrev == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[1]->pNext == cs64_ini_get_next_entry(pSectionEntry[1]));
-    UNIT_TEST_ASSERT(0, pSectionEntry[1]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[1]));
-
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
-
-    state = cs64_ini_add_section(pData, secNames[2], &pSectionEntry[2]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[2]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionEntry[2]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[2]->pPrev == pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[2]->pNext == cs64_ini_get_next_entry(pSectionEntry[2]));
-    UNIT_TEST_ASSERT(0, pSectionEntry[2]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[2]));
-
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
-
-    state = cs64_ini_add_section(pData, secNames[3], &pSectionEntry[3]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionEntry[3]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->pPrev == pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->pNext == cs64_ini_get_next_entry(pSectionEntry[3]));
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[3]));
-
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section(pData) == pData->pFirstSection);
-
-    // Section variables
-
     CS64INIEntry* pSectionVarEntry[] = {
         NULL,
         NULL, NULL, NULL,
         NULL, NULL, NULL, NULL};
+    CS64INIEntryState state;
 
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[0]) == NULL);
+    int loop[2];
 
-    state = cs64_ini_add_variable(pData, secNames[1], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[0]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pPrev == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[0]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[0]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[0]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[1]) == pSectionVarEntry[0]);
+    loop[0] = 0;
+    while(loop[0] < 2) {
+        SET_AVAILABLE_MEM_PAGES(2)
+        CS64INIData* pData = cs64_ini_data_alloc();
+        UNIT_TEST_ASSERT(loop[0], pData != NULL);
 
-    state = cs64_ini_add_variable(pData, secNames[2], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[1]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pPrev == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[1]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[1]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[1]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 0);
 
-    state = cs64_ini_add_variable(pData, secNames[2], varNames[1], (const CS64UTF8*)"Value", &pSectionVarEntry[2]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pPrev == pSectionVarEntry[1]);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[2]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[2]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[2]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+        state = cs64_ini_add_variable(pData, NULL, varNames[0], (const CS64UTF8*)"Value", &pEntry[0]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pEntry[0]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pEntry[0]->pPrev == NULL);
 
-    state = cs64_ini_add_variable(pData, secNames[2], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[3]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pPrev == pSectionVarEntry[2]);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[3]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[3]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[3]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 1);
 
-    state = cs64_ini_add_variable(pData, secNames[3], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[4]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pPrev == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[4]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[4]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+        state = cs64_ini_add_variable(pData, NULL, varNames[1], (const CS64UTF8*)"Value", &pEntry[1]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pEntry[1]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pEntry[1]->pPrev == pEntry[0]);
 
-    state = cs64_ini_add_variable(pData, secNames[3], varNames[1], (const CS64UTF8*)"Value", &pSectionVarEntry[5]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pPrev == pSectionVarEntry[4]);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[5]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[5]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 2);
 
-    state = cs64_ini_add_variable(pData, secNames[3], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[6]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pPrev == pSectionVarEntry[5]);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[6]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[6]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+        state = cs64_ini_add_variable(pData, NULL, varNames[2], (const CS64UTF8*)"Value", &pEntry[2]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pEntry[2]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pEntry[2]->pPrev == pEntry[1]);
 
-    state = cs64_ini_add_variable(pData, secNames[3], varNames[3], (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pNext == NULL);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[7]));
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
-    UNIT_TEST_ASSERT(0, cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 3);
 
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 16);
+        state = cs64_ini_add_variable(pData, NULL, varNames[3], (const CS64UTF8*)"Value", &pEntry[3]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pEntry[3]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pEntry[3]->pPrev == pEntry[2]);
 
-    int loop;
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 4);
 
-    // Check if the variables can be found!
-    loop = 0;
-    while(loop < sizeof(pEntry) / sizeof(pEntry[0])) {
-        pEntry[loop] = cs64_ini_get_variable(pData, NULL, varNames[loop]);
-        UNIT_TEST_ASSERT(loop, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[loop])) == pEntry[loop])
+        // Check if the chain is correct.
 
-        loop++;
+        UNIT_TEST_ASSERT(loop[0], pEntry[0]->pNext == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pEntry[0]->pPrev == NULL);
+        UNIT_TEST_ASSERT(loop[0], pEntry[0]->pNext == cs64_ini_get_next_entry(pEntry[0]));
+        UNIT_TEST_ASSERT(loop[0], pEntry[0]->pPrev == cs64_ini_get_prev_entry(pEntry[0]));
+
+        UNIT_TEST_ASSERT(loop[0], pEntry[1]->pNext == pEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], pEntry[1]->pPrev == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pEntry[1]->pNext == cs64_ini_get_next_entry(pEntry[1]));
+        UNIT_TEST_ASSERT(loop[0], pEntry[1]->pPrev == cs64_ini_get_prev_entry(pEntry[1]));
+
+        UNIT_TEST_ASSERT(loop[0], pEntry[2]->pNext == pEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], pEntry[2]->pPrev == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pEntry[2]->pNext == cs64_ini_get_next_entry(pEntry[2]));
+        UNIT_TEST_ASSERT(loop[0], pEntry[2]->pPrev == cs64_ini_get_prev_entry(pEntry[2]));
+
+        UNIT_TEST_ASSERT(loop[0], pEntry[3]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pEntry[3]->pPrev == pEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], pEntry[3]->pNext == cs64_ini_get_next_entry(pEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pEntry[3]->pPrev == cs64_ini_get_prev_entry(pEntry[3]));
+
+        // Sections
+
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
+
+        state = cs64_ini_add_section(pData, secNames[0], &pSectionEntry[0]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[0]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[0]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[0]->pPrev == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[0]->pNext == cs64_ini_get_next_entry(pSectionEntry[0]));
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[0]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[0]));
+
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
+
+        state = cs64_ini_add_section(pData, secNames[1], &pSectionEntry[1]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[1]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pPrev == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pNext == cs64_ini_get_next_entry(pSectionEntry[1]));
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[1]));
+
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
+
+        state = cs64_ini_add_section(pData, secNames[2], &pSectionEntry[2]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[2]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[2]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[2]->pPrev == pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[2]->pNext == cs64_ini_get_next_entry(pSectionEntry[2]));
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[2]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[2]));
+
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
+
+        state = cs64_ini_add_section(pData, secNames[3], &pSectionEntry[3]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[3]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->pPrev == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->pNext == cs64_ini_get_next_entry(pSectionEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->pPrev == cs64_ini_get_prev_entry(pSectionEntry[3]));
+
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
+
+        // Section variables
+
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[0]) == NULL);
+
+        state = cs64_ini_add_variable(pData, secNames[1], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[0]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[0]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[0]->pPrev == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[0]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[0]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[0]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[0]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[1]) == pSectionVarEntry[0]);
+
+        state = cs64_ini_add_variable(pData, secNames[2], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[1]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[1]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[1]->pPrev == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[1]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[1]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[1]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[1]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+
+        state = cs64_ini_add_variable(pData, secNames[2], varNames[1], (const CS64UTF8*)"Value", &pSectionVarEntry[2]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[2]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[2]->pPrev == pSectionVarEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[2]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[2]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[2]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[2]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+
+        state = cs64_ini_add_variable(pData, secNames[2], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[3]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[3]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[3]->pPrev == pSectionVarEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[3]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[3]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+
+        state = cs64_ini_add_variable(pData, secNames[3], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[4]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[4]->pPrev == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[4]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[4]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[4]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[4]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+
+        state = cs64_ini_add_variable(pData, secNames[3], varNames[1], (const CS64UTF8*)"Value", &pSectionVarEntry[5]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->pPrev == pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[5]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[5]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+
+        state = cs64_ini_add_variable(pData, secNames[3], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[6]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[6]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[6]->pPrev == pSectionVarEntry[5]);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[6]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[6]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[6]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[6]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+
+        state = cs64_ini_add_variable(pData, secNames[3], varNames[3], (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[7]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
+
+        if(loop[0] == 0) {
+            CS64INIEntry *pFailEntry;
+
+            state = cs64_ini_add_variable(pData, secNames[0], varNames[0], (const CS64UTF8*)"Value", &pFailEntry);
+            UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+        }
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 16);
+
+        // Check if the variables can be found!
+        loop[1] = 0;
+        while(loop[1] < sizeof(pEntry) / sizeof(pEntry[0])) {
+            pEntry[loop[1]] = cs64_ini_get_variable(pData, NULL, varNames[loop[1]]);
+            UNIT_TEST_ASSERT(loop[1], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[loop[1]])) == pEntry[loop[1]])
+
+            loop[1]++;
+        }
+
+        // Check if the sections can be found!
+        loop[1] = 0;
+        while(loop[1] < sizeof(pSectionEntry) / sizeof(pSectionEntry[0])) {
+            pSectionEntry[loop[1]] = cs64_ini_get_section(pData, secNames[loop[1]]);
+            UNIT_TEST_ASSERT(loop[1], cs64_ini_get_section(pData, cs64_ini_get_entry_name(pSectionEntry[loop[1]])) == pSectionEntry[loop[1]])
+
+            loop[1]++;
+        }
+
+        pSectionVarEntry[0] = cs64_ini_get_variable(pData, secNames[1], varNames[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) == pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[1], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[0])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[0]), cs64_ini_get_entry_name(pSectionVarEntry[0])) == pSectionVarEntry[0])
+
+        pSectionVarEntry[1] = cs64_ini_get_variable(pData, secNames[2], varNames[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[1]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[1]) == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[1])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[1]), cs64_ini_get_entry_name(pSectionVarEntry[1])) == pSectionVarEntry[1])
+
+        pSectionVarEntry[2] = cs64_ini_get_variable(pData, secNames[2], varNames[1]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[2]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[2]) == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[2])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[2]), cs64_ini_get_entry_name(pSectionVarEntry[2])) == pSectionVarEntry[2])
+
+        pSectionVarEntry[3] = cs64_ini_get_variable(pData, secNames[2], varNames[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[3]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[3]) == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[3])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[3]), cs64_ini_get_entry_name(pSectionVarEntry[3])) == pSectionVarEntry[3])
+
+        pSectionVarEntry[4] = cs64_ini_get_variable(pData, secNames[3], varNames[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[4]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[4]) == pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[4])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[4]), cs64_ini_get_entry_name(pSectionVarEntry[4])) == pSectionVarEntry[4])
+
+        pSectionVarEntry[5] = cs64_ini_get_variable(pData, secNames[3], varNames[1]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[5])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == pSectionVarEntry[5])
+
+        pSectionVarEntry[6] = cs64_ini_get_variable(pData, secNames[3], varNames[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[6])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[6]), cs64_ini_get_entry_name(pSectionVarEntry[6])) == pSectionVarEntry[6])
+
+        pSectionVarEntry[7] = cs64_ini_get_variable(pData, secNames[3], varNames[3]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[7]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[7])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == pSectionVarEntry[7])
+
+        // Relational deletion test!
+
+        // Remove middle case section variable case.
+
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
+
+        state = cs64_ini_del_entry(pData, pSectionVarEntry[6]);
+
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[6]->type.value.pSection != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[6]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[6]), cs64_ini_get_entry_name(pSectionVarEntry[6])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionVarEntry[7]) != pSectionVarEntry[6]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[6]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionVarEntry[7]) == pSectionVarEntry[5]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionVarEntry[5]) == pSectionVarEntry[7]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[7]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 15);
+
+        // Remove empty right section variable case.
+
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[7]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
+
+        state = cs64_ini_del_entry(pData, pSectionVarEntry[7]);
+
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->type.value.pSection != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[7]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[7]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[5]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 14);
+
+        // Remove empty left section variable case.
+
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[4]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[4]) == pSectionEntry[3]);
+
+        state = cs64_ini_del_entry(pData, pSectionVarEntry[4]);
+
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[4]->type.value.pSection != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[4]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[4]), cs64_ini_get_entry_name(pSectionVarEntry[4])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionVarEntry[5]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[5]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[5]);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 13);
+
+        // Remove no child section variable case.
+
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
+
+        state = cs64_ini_del_entry(pData, pSectionVarEntry[5]);
+
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->type.value.pSection != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pLastValue  == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 12);
+
+        // Sections removal
+
+        // Remove middle section case.
+        state = cs64_ini_del_entry(pData, pSectionEntry[2]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[2])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[2])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionEntry[3]) != pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionEntry[3]) == pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionEntry[1]) == pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == cs64_ini_get_first_section(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[3]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 8);
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+
+        // Remove empty section right.
+        state = cs64_ini_del_entry(pData, pSectionEntry[3]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[3])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[3])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionEntry[1]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == cs64_ini_get_first_section(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  != pSectionEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[1]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 7);
+
+        // Remove empty section right.
+        state = cs64_ini_del_entry(pData, pSectionEntry[0]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[0])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[0])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pSectionEntry[1]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == cs64_ini_get_first_section(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection != pSectionEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[1]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 6);
+
+        // Remove empty section no child case.
+        state = cs64_ini_del_entry(pData, pSectionEntry[1]);
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[1])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[1])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == cs64_ini_get_first_section(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection != pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->pFirstSection != pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == NULL);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 4);
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
+
+        // Globals removal
+
+        state = cs64_ini_del_entry(pData, pEntry[2]); // Remove middle case.
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pEntry[3]) != pEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pEntry[1]) != pEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pEntry[3]) == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pEntry[1]) == pEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 3);
+
+        state = cs64_ini_del_entry(pData, pEntry[3]); // Remove empty right.
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pEntry[1]) != pEntry[3]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pEntry[1]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  != pEntry[3]); // the third element is supposed to be removed!
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 2);
+
+        state = cs64_ini_del_entry(pData, pEntry[0]); // Remove empty left.
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_prev_entry(pEntry[1]) != pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_next_entry(pEntry[1]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 1);
+
+        state = cs64_ini_del_entry(pData, pEntry[1]); // Remove no child case.
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == NULL);
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 0);
+
+        cs64_ini_data_free(pData);
+
+        UNIT_TEST_MEM_CHECK_ASSERT
+
+        loop[0]++;
     }
-
-    // Check if the sections can be found!
-    loop = 0;
-    while(loop < sizeof(pSectionEntry) / sizeof(pSectionEntry[0])) {
-        pSectionEntry[loop] = cs64_ini_get_section(pData, secNames[loop]);
-        UNIT_TEST_ASSERT(loop, cs64_ini_get_section(pData, cs64_ini_get_entry_name(pSectionEntry[loop])) == pSectionEntry[loop])
-
-        loop++;
-    }
-
-    pSectionVarEntry[0] = cs64_ini_get_variable(pData, secNames[1], varNames[0]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[0]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[0]) == pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[1], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[0])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[0]), cs64_ini_get_entry_name(pSectionVarEntry[0])) == pSectionVarEntry[0])
-
-    pSectionVarEntry[1] = cs64_ini_get_variable(pData, secNames[2], varNames[0]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[1]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[1]) == pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[1])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[1]), cs64_ini_get_entry_name(pSectionVarEntry[1])) == pSectionVarEntry[1])
-
-    pSectionVarEntry[2] = cs64_ini_get_variable(pData, secNames[2], varNames[1]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[2]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[2]) == pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[2])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[2]), cs64_ini_get_entry_name(pSectionVarEntry[2])) == pSectionVarEntry[2])
-
-    pSectionVarEntry[3] = cs64_ini_get_variable(pData, secNames[2], varNames[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[3]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[3]) == pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[3])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[3]), cs64_ini_get_entry_name(pSectionVarEntry[3])) == pSectionVarEntry[3])
-
-    pSectionVarEntry[4] = cs64_ini_get_variable(pData, secNames[3], varNames[0]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) == pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[4])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[4]), cs64_ini_get_entry_name(pSectionVarEntry[4])) == pSectionVarEntry[4])
-
-    pSectionVarEntry[5] = cs64_ini_get_variable(pData, secNames[3], varNames[1]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[5])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == pSectionVarEntry[5])
-
-    pSectionVarEntry[6] = cs64_ini_get_variable(pData, secNames[3], varNames[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[6])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[6]), cs64_ini_get_entry_name(pSectionVarEntry[6])) == pSectionVarEntry[6])
-
-    pSectionVarEntry[7] = cs64_ini_get_variable(pData, secNames[3], varNames[3]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[7])) == 0);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == pSectionVarEntry[7])
-
-    // Relational deletion test!
-
-     // Remove middle case section variable case.
-
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) == pSectionEntry[3]);
-
-    state = cs64_ini_del_entry(pData, pSectionVarEntry[6]);
-
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[6]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[6]->type.value.pSection != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[6]) == NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[6]), cs64_ini_get_entry_name(pSectionVarEntry[6])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[7]) != pSectionVarEntry[6]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[6]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[7]) == pSectionVarEntry[5]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == pSectionVarEntry[7]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[4]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[7]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 15);
-
-    // Remove empty right section variable case.
-
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
-
-    state = cs64_ini_del_entry(pData, pSectionVarEntry[7]);
-
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[7]->type.value.pSection != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[7]) == NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[7]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[4]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[5]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 14);
-
-    // Remove empty left section variable case.
-
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) == pSectionEntry[3]);
-
-    state = cs64_ini_del_entry(pData, pSectionVarEntry[4]);
-
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[4]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[4]->type.value.pSection != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[4]) == NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[4]), cs64_ini_get_entry_name(pSectionVarEntry[4])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionVarEntry[5]) == NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) != pSectionVarEntry[4]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionVarEntry[5]) == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == pSectionVarEntry[5]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == pSectionVarEntry[5]);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 13);
-
-    // Remove no child section variable case.
-
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
-
-    state = cs64_ini_del_entry(pData, pSectionVarEntry[5]);
-
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
-    UNIT_TEST_ASSERT(0, pSectionVarEntry[5]->type.value.pSection != NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_entry_section(pSectionVarEntry[5]) == NULL);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == NULL)
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pLastValue  == NULL);
-    UNIT_TEST_ASSERT(0, pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 12);
-
-    // Sections removal
-
-    // Remove middle section case.
-    state = cs64_ini_del_entry(pData, pSectionEntry[2]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[2])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[2])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[3]) != pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[3]) == pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionEntry[1]) == pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[3]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 8);
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[3]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
-
-    // Remove empty section right.
-    state = cs64_ini_del_entry(pData, pSectionEntry[3]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[3])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[3])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionEntry[1]) == NULL);
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  != pSectionEntry[3]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 7);
-
-    // Remove empty section right.
-    state = cs64_ini_del_entry(pData, pSectionEntry[0]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[0])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[0])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pSectionEntry[1]) != pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pSectionEntry[1]) == NULL);
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
-    UNIT_TEST_ASSERT(0, pData->pFirstSection != pSectionEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == pSectionEntry[1]);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 6);
-
-    // Remove empty section no child case.
-    state = cs64_ini_del_entry(pData, pSectionEntry[1]);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pSectionEntry[1])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pSectionEntry[1])) == NULL)
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == cs64_ini_get_first_section(pData));
-    UNIT_TEST_ASSERT(0, pData->pFirstSection != pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->pFirstSection == NULL);
-    UNIT_TEST_ASSERT(0, pData->pFirstSection != pSectionEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->pLastSection  == NULL);
-
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 4);
-    UNIT_TEST_ASSERT_EQ(0, pSectionVarEntry[0]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
-
-    // Globals removal
-
-    state = cs64_ini_del_entry(pData, pEntry[2]); // Remove middle case.
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[2])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[2])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pEntry[3]) != pEntry[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pEntry[1]) != pEntry[2]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pEntry[3]) == pEntry[1]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pEntry[1]) == pEntry[3]);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[3]);
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 3);
-
-    state = cs64_ini_del_entry(pData, pEntry[3]); // Remove empty right.
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, NULL, cs64_ini_get_entry_name(pEntry[3])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[3])) == NULL)
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pEntry[1]) != pEntry[3]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pEntry[1]) == NULL);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[0]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  != pEntry[3]); // the third element is supposed to be removed!
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 2);
-
-    state = cs64_ini_del_entry(pData, pEntry[0]); // Remove empty left.
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, cs64_ini_get_prev_entry(pEntry[1]) != pEntry[0]);
-    UNIT_TEST_ASSERT(0, cs64_ini_get_next_entry(pEntry[1]) == NULL);
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == pEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == pEntry[1]);
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 1);
-
-    state = cs64_ini_del_entry(pData, pEntry[1]); // Remove no child case.
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-    UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == NULL);
-    UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == NULL);
-    UNIT_TEST_ASSERT(0, pData->hashTable.currentEntryAmount == 0);
-
-    cs64_ini_data_free(pData);
-
-    UNIT_TEST_MEM_CHECK_ASSERT
 }
 
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
