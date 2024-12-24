@@ -1675,7 +1675,7 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
     pData->hashTable.currentEntryAmount--;
 
     if(pData->hashTable.currentEntryAmount < pData->hashTable.entryCapacityDownLimit)
-        cs64_ini_data_reserve(pData, cs64_ini_decrement_table(pData->hashTable.entryCapacity));
+        cs64_ini_data_reserve(pData, pData->hashTable.currentEntryAmount);
 
     return CS64_INI_ENTRY_SUCCESS;
 }

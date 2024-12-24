@@ -1058,6 +1058,8 @@ void cs64_ini_del_entry_no_rehash_test() {
         UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[6]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[6]));
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
+        void *pFormalPointer = pData->hashTable.pEntries;
+
         if(loop[0] == 1) {
             SET_AVAILABLE_MEM_PAGES(1)
         }
@@ -1072,10 +1074,20 @@ void cs64_ini_del_entry_no_rehash_test() {
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
         if(loop[0] == 0) {
-            CS64INIEntry *pFailEntry;
-
-            state = cs64_ini_add_variable(pData, secNames[0], varNames[0], (const CS64UTF8*)"Value", &pFailEntry);
+            state = cs64_ini_add_variable(pData, secNames[0], varNames[0], (const CS64UTF8*)"Value", NULL);
             UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+
+            UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  0);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.pEntries               == pFormalPointer);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacity          == 16);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityUpLimit   == 13);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityDownLimit ==  0);
+        } else if(loop[0] == 1) {
+            UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  0);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.pEntries               != pFormalPointer);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacity          == 32);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityUpLimit   == 26);
+            UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityDownLimit == 13);
         }
 
         UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 16);
