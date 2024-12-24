@@ -1065,6 +1065,9 @@ void cs64_ini_del_entry_no_rehash_test() {
         }
 
         state = cs64_ini_add_variable(pData, secNames[3], varNames[3], (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
+
+        cs64_ini_display_data(pData);
+
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[7]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
         UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == NULL);
@@ -1382,7 +1385,9 @@ void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
             return;
         case CS64_INI_ENTRY_SECTION:
         case CS64_INI_ENTRY_DYNAMIC_SECTION:
-            printf("ENTRY IS A SECTION!\n");
+            printf("ENTRY IS A SECTION! %p\n", pEntry);
+            printf("\tnext           = %p\n",  pEntry->pNext);
+            printf("\tprevious       = %p\n",  pEntry->pPrev);
             printf("\tfirst    value = %p\n",  pEntry->type.section.header.pFirstValue);
             printf("\tlast     value = %p\n",  pEntry->type.section.header.pLastValue);
             printf("\tname byte size = %zd\n", pEntry->type.section.nameByteSize);
@@ -1397,12 +1402,14 @@ void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
             break;
         case CS64_INI_ENTRY_VALUE:
         case CS64_INI_ENTRY_DYNAMIC_VALUE:
-            printf("ENTRY IS A VALUE!\n");
+            printf("ENTRY IS A VALUE! %p\n", pEntry);
+            printf("\tnext            = %p\n",  pEntry->pNext);
+            printf("\tprevious        = %p\n",  pEntry->pPrev);
             printf("\tparent  section = %p\n",  pEntry->type.value.pSection);
             printf("\tname  byte size = %zd\n", pEntry->type.value.nameByteSize);
             printf("\tvalue byte size = %zd\n", pEntry->type.value.valueByteSize);
-            printf("\tname  = %s\n", cs64_ini_get_entry_name(pEntry));
-            printf("\tvalue = %s\n", cs64_ini_get_entry_value(pEntry));
+            printf("\tname            = %s\n", cs64_ini_get_entry_name(pEntry));
+            printf("\tvalue           = %s\n", cs64_ini_get_entry_value(pEntry));
             break;
         default:
             printf("ENTRY is corrupted with a value %d!\n", pEntry->entryType);
@@ -1423,12 +1430,6 @@ void cs64_ini_display_data(const CS64INIData *const pData) {
     printf("\tentry capacity up limit   = %zd\n", pData->hashTable.entryCapacityUpLimit);
     printf("\tentry capacity down limit = %zd\n", pData->hashTable.entryCapacityDownLimit);
 
-    CS64Size l = 0;
-    while(l < pData->hashTable.entryCapacity) {
-        cs64_ini_display_entry( &pData->hashTable.pEntries[l] );
-        l++;
-    }
-
     printf("\tlast comment size    = %zd\n", pData->lastCommentSize);
     printf("\tlast comment pointer = %p\n",  pData->pLastComment);
     if(pData->pLastComment != NULL) {
@@ -1439,6 +1440,12 @@ void cs64_ini_display_data(const CS64INIData *const pData) {
     printf("\tglobals last  value = %p\n", pData->globals.pLastValue);
     printf("\tfirst section = %p\n", pData->pFirstSection);
     printf("\tlast  section = %p\n", pData->pLastSection);
+
+    CS64Size l = 0;
+    while(l < pData->hashTable.entryCapacity) {
+        cs64_ini_display_entry( &pData->hashTable.pEntries[l] );
+        l++;
+    }
 }
 
 void *test_malloc(size_t size) {
