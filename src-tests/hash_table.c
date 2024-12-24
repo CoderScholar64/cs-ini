@@ -126,9 +126,9 @@ void cs64_ini_data_reserve_empty_test() {
     returnResult = cs64_ini_data_reserve(&badData, 32);
     UNIT_TEST_ASSERT_EQ(0, returnResult, -2, "%d");
 
-    // Cancel if the amount for reserving if the amount of reserving if the entry amounts do not increase.
+    // Cancel if the amount for reserving if the amount of reserving if there lacks enough memory.
     badData.hashTable.pEntries = (CS64INIEntry*)&returnResult;
-    returnResult = cs64_ini_data_reserve(&badData, 32);
+    returnResult = cs64_ini_data_reserve(&badData, 31);
     UNIT_TEST_ASSERT_EQ(0, returnResult, -3, "%d");
 
     SET_AVAILABLE_MEM_PAGES(2)
@@ -1246,22 +1246,7 @@ void cs64_ini_del_entry_no_rehash_test() {
 
         state = cs64_ini_del_entry(pData, pSectionVarEntry[5]);
 
-        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
-        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
-        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->type.value.pSection != NULL);
-        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) == NULL);
-        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == NULL)
-        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == NULL);
-        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pLastValue  == NULL);
-        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
-        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
-        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
-        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
-
-        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 12);
-        UNIT_TEST_ASSERT(loop[0], mallocPagesLeft == 0);
-
-        // Since a reallocation had happened this pointers needs to be updated.
+        // Since a reallocation happens in loop[0] being 1 these pointers needs to be updated.
 
         // Check if the variables can be found!
         loop[1] = 0;
@@ -1305,6 +1290,22 @@ void cs64_ini_del_entry_no_rehash_test() {
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[3]) == pSectionEntry[2]);
         UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[3])) == 0);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[3]), cs64_ini_get_entry_name(pSectionVarEntry[3])) == pSectionVarEntry[3])
+
+
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[5]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been deleted %d");
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[5]->type.value.pSection != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) == NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[5]), cs64_ini_get_entry_name(pSectionVarEntry[5])) == NULL)
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pLastValue  == NULL);
+        UNIT_TEST_ASSERT(loop[0], pSectionEntry[3]->type.section.header.pFirstValue == cs64_ini_get_first_section_value(pSectionEntry[3]));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
+        UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
+
+        UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 12);
+        UNIT_TEST_ASSERT(loop[0], mallocPagesLeft == 0);
 
         // Sections removal
 

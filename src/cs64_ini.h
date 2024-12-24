@@ -1066,7 +1066,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         return -2;
 
     /* This ensures that there will not be a crash to be made. */
-    if(pData->hashTable.currentEntryAmount != 0 && numberOfSectionsAndValues <= pData->hashTable.currentEntryAmount)
+    if(pData->hashTable.currentEntryAmount != 0 && numberOfSectionsAndValues < pData->hashTable.currentEntryAmount)
         return -3;
 
     /* Initialize a new hash table */
