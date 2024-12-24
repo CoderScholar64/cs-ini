@@ -1160,6 +1160,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         else
             pSectionName = pSection->type.section.name.pDynamic;
 
+        sectionByteSize = 0;
         sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionByteSize);
 
         originalIndex = sectionHash % newINIData.hashTable.entryCapacity;
@@ -1194,7 +1195,6 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
     /* Lastly write down the section values */
     pSection      = pData->pFirstSection;
     pSectionEntry = newINIData.pFirstSection;
-    sectionByteSize = 0;
     while(pSection != NULL && pSectionEntry != NULL) {
         const CS64UTF8 *pSectionName;
 
@@ -1203,6 +1203,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
         else
             pSectionName = pSection->type.section.name.pDynamic;
 
+        sectionByteSize = 0;
         sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionByteSize);
 
         pVariable = pSection->type.section.header.pFirstValue;
