@@ -1061,7 +1061,7 @@ void cs64_ini_del_entry_no_rehash_test() {
         void *pFormalPointer = pData->hashTable.pEntries;
 
         if(loop[0] == 1) {
-            SET_AVAILABLE_MEM_PAGES(1)
+            SET_AVAILABLE_MEM_PAGES(2)
         }
 
         state = cs64_ini_add_variable(pData, secNames[3], varNames[3], (const CS64UTF8*)"Value", &pSectionVarEntry[7]);
@@ -1074,18 +1074,13 @@ void cs64_ini_del_entry_no_rehash_test() {
             state = cs64_ini_add_variable(pData, secNames[0], varNames[0], (const CS64UTF8*)"Value", NULL);
             UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
 
-            UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
-            UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[7]));
-            UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
-            UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
-
             UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  0);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.pEntries               == pFormalPointer);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacity          == 16);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityUpLimit   == 13);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityDownLimit ==  0);
         } else if(loop[0] == 1) {
-            UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  0);
+            UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  1);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.pEntries               != pFormalPointer);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacity          == 32);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.entryCapacityUpLimit   == 26);
@@ -1160,6 +1155,11 @@ void cs64_ini_del_entry_no_rehash_test() {
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[7]) == pSectionEntry[3]);
         UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[3], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[7])) == 0);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[7]), cs64_ini_get_entry_name(pSectionVarEntry[7])) == pSectionVarEntry[7])
+
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == pSectionVarEntry[6]);
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[7]));
+        UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[7]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[7]));
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[3]) == pSectionVarEntry[4]);
 
         // Relational deletion test!
 
@@ -1241,6 +1241,9 @@ void cs64_ini_del_entry_no_rehash_test() {
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) != NULL);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[5]) == pSectionEntry[3]);
 
+        if(loop[0] == 1)
+            UNIT_TEST_ASSERT(loop[0], mallocPagesLeft == 1);
+
         state = cs64_ini_del_entry(pData, pSectionVarEntry[5]);
 
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -1256,6 +1259,52 @@ void cs64_ini_del_entry_no_rehash_test() {
         UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[3]);
 
         UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 12);
+        UNIT_TEST_ASSERT(loop[0], mallocPagesLeft == 0);
+
+        // Since a reallocation had happened this pointers needs to be updated.
+
+        // Check if the variables can be found!
+        loop[1] = 0;
+        while(loop[1] < sizeof(pEntry) / sizeof(pEntry[0])) {
+            pEntry[loop[1]] = cs64_ini_get_variable(pData, NULL, varNames[loop[1]]);
+            UNIT_TEST_ASSERT(loop[1], cs64_ini_get_variable(pData, (const CS64UTF8*)"", cs64_ini_get_entry_name(pEntry[loop[1]])) == pEntry[loop[1]])
+
+            loop[1]++;
+        }
+
+        // Check if the sections can be found!
+        loop[1] = 0;
+        while(loop[1] < sizeof(pSectionEntry) / sizeof(pSectionEntry[0])) {
+            pSectionEntry[loop[1]] = cs64_ini_get_section(pData, secNames[loop[1]]);
+            UNIT_TEST_ASSERT(loop[1], cs64_ini_get_section(pData, cs64_ini_get_entry_name(pSectionEntry[loop[1]])) == pSectionEntry[loop[1]])
+
+            loop[1]++;
+        }
+
+        pSectionVarEntry[0] = cs64_ini_get_variable(pData, secNames[1], varNames[0]);
+        cs64_ini_display_entry( pSectionVarEntry[0] );
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) == pSectionEntry[1]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[1], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[0])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[0]), cs64_ini_get_entry_name(pSectionVarEntry[0])) == pSectionVarEntry[0])
+
+        pSectionVarEntry[1] = cs64_ini_get_variable(pData, secNames[2], varNames[0]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[1]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[1]) == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[1])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[1]), cs64_ini_get_entry_name(pSectionVarEntry[1])) == pSectionVarEntry[1])
+
+        pSectionVarEntry[2] = cs64_ini_get_variable(pData, secNames[2], varNames[1]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[2]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[2]) == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[2])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[2]), cs64_ini_get_entry_name(pSectionVarEntry[2])) == pSectionVarEntry[2])
+
+        pSectionVarEntry[3] = cs64_ini_get_variable(pData, secNames[2], varNames[2]);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[3]) != NULL);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[3]) == pSectionEntry[2]);
+        UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[2], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[3])) == 0);
+        UNIT_TEST_ASSERT(loop[0], cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pSectionVarEntry[3]), cs64_ini_get_entry_name(pSectionVarEntry[3])) == pSectionVarEntry[3])
 
         // Sections removal
 
