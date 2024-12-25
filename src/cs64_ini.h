@@ -1469,16 +1469,32 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
         return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
 
-    CS64Size sectionLength = 0;
+    CS64Size sectionByteSize = 0;
 
-    CS64Offset originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionLength) % pData->hashTable.entryCapacity;
+    CS64Offset originalIndex = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionByteSize) % pData->hashTable.entryCapacity;
     CS64Offset index = originalIndex;
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
+    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+
+    if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE < sectionByteSize) {
+        void *pAttempt = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionByteSize);
+
+        if(pAttempt == NULL)
+            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+        pEntry->type.section.name.pDynamic = pAttempt;
+
+        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+        STRING_COPY(pEntry->type.section.name.pDynamic, pSectionName);
+    }
+    else {
+        pEntry->entryType = CS64_INI_ENTRY_SECTION;
+        STRING_COPY(pEntry->type.section.name.fixed, pSectionName);
+    }
 
     pData->hashTable.currentEntryAmount++;
 
@@ -1487,17 +1503,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
     pEntry->type.section.header.pLastValue  = NULL;
 
     /* Apply the section byte size */
-    pEntry->type.section.nameByteSize = sectionLength;
-
-    if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE <= sectionLength) {
-        pEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
-        pEntry->type.section.name.pDynamic = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionLength);
-        STRING_COPY(pEntry->type.section.name.pDynamic, pSectionName);
-    }
-    else {
-        pEntry->entryType = CS64_INI_ENTRY_SECTION;
-        STRING_COPY(pEntry->type.section.name.fixed, pSectionName);
-    }
+    pEntry->type.section.nameByteSize = sectionByteSize;
 
     /* New entries do not have comments */
     pEntry->commentSize       = 0;

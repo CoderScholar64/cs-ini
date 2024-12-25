@@ -604,21 +604,46 @@ void cs64_ini_section_declarations_test() {
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
 
-    CS64UTF8 value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
+    CS64UTF8 value[2 * CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE];
 
     int i = 0;
-    while(i < CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE) {
+    while(i < sizeof(value) / sizeof(value[0])) {
         value[i] = 'b';
         i++;
     }
-    value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE - 1] = '\0';
 
     CS64INIEntryState state;
     CS64INIEntry* pEntry = NULL;
 
+    value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE - 2] = '\0';
+
     state = cs64_ini_add_section(pData, value, &pEntry);
     UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+
+    value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE - 2] = 'a';
+    value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE - 1] = '\0';
+
+    state = cs64_ini_add_section(pData, value, &pEntry);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+
+    value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE - 1] = 'a';
+    value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE    ] = '\0';
+
+    state = cs64_ini_add_section(pData, value, &pEntry);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+    UNIT_TEST_ASSERT(0, pEntry == NULL);
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_add_section(pData, value, &pEntry);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
+    UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_SECTION, "TOO big for static RAM usage %d");
+    UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+
+    cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
 }
