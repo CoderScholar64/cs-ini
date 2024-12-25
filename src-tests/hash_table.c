@@ -1108,7 +1108,6 @@ void cs64_ini_del_entry_no_rehash_test() {
         }
 
         pSectionVarEntry[0] = cs64_ini_get_variable(pData, secNames[1], varNames[0]);
-        cs64_ini_display_entry( pSectionVarEntry[0] );
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) != NULL);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) == pSectionEntry[1]);
         UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[1], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[0])) == 0);
@@ -1267,7 +1266,6 @@ void cs64_ini_del_entry_no_rehash_test() {
         }
 
         pSectionVarEntry[0] = cs64_ini_get_variable(pData, secNames[1], varNames[0]);
-        cs64_ini_display_entry( pSectionVarEntry[0] );
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) != NULL);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_entry_section(pSectionVarEntry[0]) == pSectionEntry[1]);
         UNIT_TEST_ASSERT(loop[0], strcmp((const char*)secNames[1], (const char*)cs64_ini_get_entry_section_name(pSectionVarEntry[0])) == 0);
