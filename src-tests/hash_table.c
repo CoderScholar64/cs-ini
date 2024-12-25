@@ -48,7 +48,8 @@ int mallocPagesLeft = 0;
 // Prototypes here.
 void cs64_ini_data_alloc_test();
 void cs64_ini_data_reserve_empty_test();
-void cs64_ini_single_global_variable_test();
+void cs64_ini_variable_parameter_test();
+void cs64_ini_section_parameter_test();
 void cs64_ini_variable_declarations_test();
 void cs64_ini_section_declarations_test();
 void cs64_ini_variable_capacity_test();
@@ -62,7 +63,8 @@ void cs64_ini_display_data(const CS64INIData *const pData);
 int main() {
     cs64_ini_data_alloc_test();
     cs64_ini_data_reserve_empty_test();
-    cs64_ini_single_global_variable_test();
+    cs64_ini_variable_parameter_test();
+    cs64_ini_section_parameter_test();
     cs64_ini_variable_declarations_test();
     cs64_ini_section_declarations_test();
     cs64_ini_variable_capacity_test();
@@ -340,7 +342,7 @@ void cs64_ini_data_reserve_empty_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_single_global_variable_test() {
+void cs64_ini_variable_parameter_test() {
     CS64INIEntry* pEntry = NULL;
 
     CS64EntryType types[2] = {CS64_INI_ENTRY_VALUE, CS64_INI_ENTRY_DYNAMIC_VALUE};
@@ -364,7 +366,7 @@ void cs64_ini_single_global_variable_test() {
 
         state = cs64_ini_add_variable(pData, NULL, names[index], values[index], &pEntry);
         UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_SUCCESS, "%d");
-        UNIT_TEST_ASSERT_EQ(index, pEntry->entryType, types[index], "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT_EQ(index, pEntry->entryType, types[index], "Wrong memory type! %d");
         UNIT_TEST_ASSERT(index, pEntry->pNext == NULL);
         UNIT_TEST_ASSERT(index, pEntry->pPrev == NULL);
 
@@ -475,6 +477,64 @@ void cs64_ini_single_global_variable_test() {
 
         index++;
     }
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_section_parameter_test() {
+    CS64INIEntry* pEntry = NULL;
+
+    CS64EntryType types[2] = {CS64_INI_ENTRY_SECTION, CS64_INI_ENTRY_DYNAMIC_SECTION};
+
+    CS64UTF8  names[2][32]     = {"s0", "CS64_INI_ENTRY_SECTION"};
+    CS64Size  namesLengths[2]  = {   3,  23};
+
+    CS64INIEntryState state;
+
+    unsigned index = 0;
+    while(index < sizeof(types) / sizeof(types[0])) {
+        SET_AVAILABLE_MEM_PAGES(2)
+        CS64INIData* pData = cs64_ini_data_alloc();
+        UNIT_TEST_ASSERT(index, pData != NULL);
+
+        if(types[index] == CS64_INI_ENTRY_DYNAMIC_SECTION) {
+            state = cs64_ini_add_section(pData, names[index], &pEntry);
+            UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+
+            SET_AVAILABLE_MEM_PAGES(1)
+        }
+
+        state = cs64_ini_add_section(pData, names[index], &pEntry);
+        UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_SUCCESS, "%d");
+        UNIT_TEST_ASSERT_EQ(index, pEntry->entryType, types[index], "Wrong memory type! %d");
+        UNIT_TEST_ASSERT(index, pEntry->pNext == NULL);
+        UNIT_TEST_ASSERT(index, pEntry->pPrev == NULL);
+
+        UNIT_TEST_ASSERT_EQ(index, pEntry->type.section.nameByteSize, namesLengths[index], "%zd");
+
+        if(types[index] == CS64_INI_ENTRY_DYNAMIC_SECTION) {
+            UNIT_TEST_DETAIL_ASSERT(index, strcmp((const char*)pEntry->type.section.name.pDynamic, (const char*)names[index]) == 0, printf("Actually (%s) \n", pEntry->type.section.name.pDynamic););
+            UNIT_TEST_ASSERT_EQ(index, cs64_ini_get_entry_name(pEntry), pEntry->type.section.name.pDynamic, "%s");
+        }
+        else {
+            UNIT_TEST_DETAIL_ASSERT(index, strcmp((const char*)pEntry->type.section.name.fixed, (const char*)names[index]) == 0, printf("Actually (%s) \n", pEntry->type.section.name.fixed););
+            UNIT_TEST_ASSERT_EQ(index, cs64_ini_get_entry_name(pEntry), pEntry->type.section.name.fixed, "%s");
+        }
+
+        UNIT_TEST_ASSERT_EQ(index, cs64_ini_get_entry_type(pEntry), CS64_INI_ENTRY_SECTION, "%d");
+        UNIT_TEST_ASSERT(index, cs64_ini_get_next_entry(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_prev_entry(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_section(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_section_name(pEntry) == NULL);
+
+        state = cs64_ini_add_section(pData, names[index], &pEntry);
+        UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+
+        cs64_ini_data_free(pData);
+
+        index++;
+    }
+
 
     UNIT_TEST_MEM_CHECK_ASSERT
 }
