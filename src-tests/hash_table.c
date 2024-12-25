@@ -53,7 +53,7 @@ void cs64_ini_variable_declarations_test();
 void cs64_ini_variable_capacity_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_variable_rehash_test();
-void cs64_ini_del_entry_no_rehash_test();
+void cs64_ini_del_entry_test();
 
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
 void cs64_ini_display_data(const CS64INIData *const pData);
@@ -66,7 +66,7 @@ int main() {
     cs64_ini_variable_capacity_test();
     cs64_ini_variable_change_test();
     cs64_ini_variable_rehash_test();
-    cs64_ini_del_entry_no_rehash_test();
+    cs64_ini_del_entry_test();
     return 0;
 }
 
@@ -846,7 +846,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_del_entry_no_rehash_test() {
+void cs64_ini_del_entry_test() {
     const CS64UTF8 varNames[4][8] = {"key_0", "key_1", "key_2", "key_3"};
     const CS64UTF8 secNames[4][8] = {"s0", "s1", "s2", "s3"};
 
