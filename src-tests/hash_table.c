@@ -527,6 +527,76 @@ void cs64_ini_section_parameter_test() {
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_section(pEntry) == NULL);
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_section_name(pEntry) == NULL);
 
+                // Test setters and getters for entry comments.
+        UNIT_TEST_ASSERT(index, pEntry->commentSize == 0);
+        UNIT_TEST_ASSERT(index, pEntry->pComment == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+
+        const CS64UTF8 entryComment[] = "This is an entry comment\nmultilines can be done with this kind of comment!\n";
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_comment(pEntry, entryComment);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        const CS64UTF8* retrievedEntryComment = cs64_ini_get_entry_comment(pEntry);
+        UNIT_TEST_ASSERT(index, strcmp((const char*)retrievedEntryComment, (const char*)entryComment) == 0);
+        UNIT_TEST_ASSERT_EQ(index, pEntry->commentSize, sizeof(entryComment) / sizeof(entryComment[0]), "%zd");
+        UNIT_TEST_ASSERT(index, pEntry->pComment != NULL);
+
+        state = cs64_ini_set_entry_comment(pEntry, NULL);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        state = cs64_ini_set_entry_comment(pEntry, NULL);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT(index, pEntry->pComment == NULL);
+        UNIT_TEST_ASSERT_EQ(index, pEntry->commentSize, 0, "%zd");
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_comment(pEntry, entryComment);
+
+        state = cs64_ini_set_entry_comment(pEntry, (const CS64UTF8*)"");
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        state = cs64_ini_set_entry_comment(pEntry, (const CS64UTF8*)"");
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT(index, pEntry->pComment == NULL);
+        UNIT_TEST_ASSERT_EQ(index, pEntry->commentSize, 0, "%zd");
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+
+        // Test setters and getters for inline comments.
+        UNIT_TEST_ASSERT(index, pEntry->inlineCommentSize == 0);
+        UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
+
+        const CS64UTF8 inlineComment[] = "This is an inline comment";
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        const CS64UTF8* retrievedInlineComment = cs64_ini_get_entry_inline_comment(pEntry);
+        UNIT_TEST_ASSERT(index, strcmp((const char*)retrievedInlineComment, (const char*)inlineComment) == 0);
+        UNIT_TEST_ASSERT(index, pEntry->inlineCommentSize == sizeof(inlineComment) / sizeof(inlineComment[0]));
+        UNIT_TEST_ASSERT(index, pEntry->pInlineComment != NULL);
+
+        state = cs64_ini_set_entry_inline_comment(pEntry, NULL);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        state = cs64_ini_set_entry_inline_comment(pEntry, NULL);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
+        UNIT_TEST_ASSERT_EQ(index, pEntry->inlineCommentSize, 0, "%zd");
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
+
+        state = cs64_ini_set_entry_inline_comment(pEntry, (const CS64UTF8*)"");
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        state = cs64_ini_set_entry_inline_comment(pEntry, (const CS64UTF8*)"");
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
+        UNIT_TEST_ASSERT_EQ(index, pEntry->inlineCommentSize, 0, "%zd");
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+
+        CS64INIEntry *pEntryReceived = cs64_ini_get_section(pData, names[index]);
+
+        UNIT_TEST_ASSERT(index, pEntry == pEntryReceived);
+
         state = cs64_ini_add_section(pData, names[index], &pEntry);
         UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
 
