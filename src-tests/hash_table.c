@@ -52,10 +52,10 @@ void cs64_ini_variable_parameter_test();
 void cs64_ini_section_parameter_test();
 void cs64_ini_variable_declarations_test();
 void cs64_ini_section_declarations_test();
-void cs64_ini_variable_capacity_test();
-void cs64_ini_section_capacity_test();
-void cs64_ini_variable_rehash_test();
-void cs64_ini_section_rehash_test();
+void cs64_ini_variable_explicit_rehash_test();
+void cs64_ini_section_explicit_rehash_test();
+void cs64_ini_variable_implicit_rehash_test();
+void cs64_ini_section_implicit_rehash_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_combo_del_entry_test();
 
@@ -69,10 +69,10 @@ int main() {
     cs64_ini_section_parameter_test();
     cs64_ini_variable_declarations_test();
     cs64_ini_section_declarations_test();
-    cs64_ini_variable_capacity_test();
-    cs64_ini_section_capacity_test();
-    cs64_ini_variable_rehash_test();
-    cs64_ini_section_rehash_test();
+    cs64_ini_variable_explicit_rehash_test();
+    cs64_ini_section_explicit_rehash_test();
+    cs64_ini_variable_implicit_rehash_test();
+    cs64_ini_section_implicit_rehash_test();
     cs64_ini_variable_change_test();
     cs64_ini_combo_del_entry_test();
     return 0;
@@ -782,7 +782,7 @@ void cs64_ini_section_declarations_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_variable_capacity_test() {
+void cs64_ini_variable_explicit_rehash_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -843,7 +843,7 @@ void cs64_ini_variable_capacity_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_section_capacity_test() {
+void cs64_ini_section_explicit_rehash_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -904,7 +904,7 @@ void cs64_ini_section_capacity_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_variable_rehash_test() {
+void cs64_ini_variable_implicit_rehash_test() {
     SET_AVAILABLE_MEM_PAGES(3)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
@@ -959,7 +959,7 @@ void cs64_ini_variable_rehash_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_section_rehash_test() {
+void cs64_ini_section_implicit_rehash_test() {
     SET_AVAILABLE_MEM_PAGES(3)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
