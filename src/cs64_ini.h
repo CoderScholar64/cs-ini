@@ -303,6 +303,9 @@ const CS64UTF8 *const cs64_ini_get_entry_comment(const CS64INIEntry *const pEntr
 CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *const pEntry);
 
+CS64INIEntryState cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *const pValue);
+const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData);
+
 /* Private functions */
 
 CS64INITokenData* cs64_ini_token_data_alloc();
@@ -2075,6 +2078,41 @@ const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *cons
     if(pEntry == NULL)
         return NULL;
     return pEntry->pInlineComment;
+}
+
+CS64INIEntryState cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *const pValue) {
+    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
+    if(pData == NULL)
+        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+
+    /* Free Comment */
+    if(pData->pLastComment != NULL)
+        CS64_INI_FREE(pData->pLastComment);
+
+    pData->pLastComment = NULL;
+    pData->lastCommentSize = 0;
+
+    if(!IS_STRING_PRESENT(pValue))
+        return CS64_INI_ENTRY_SUCCESS;
+
+    CS64Size valueByteSize = cs64_ini_string_byte_size(pValue);
+
+    pData->pLastComment = CS64_INI_MALLOC(valueByteSize);
+
+    if(pData->pLastComment == NULL)
+        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+
+    STRING_COPY(pData->pLastComment, pValue)
+    pData->lastCommentSize = valueByteSize;
+
+    return CS64_INI_ENTRY_SUCCESS;
+}
+
+const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
+    if(pData == NULL)
+        return NULL;
+    return pData->pLastComment;
 }
 
 #undef INITIAL_CAPACITY
