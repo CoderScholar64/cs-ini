@@ -53,6 +53,7 @@ void cs64_ini_section_parameter_test();
 void cs64_ini_variable_declarations_test();
 void cs64_ini_section_declarations_test();
 void cs64_ini_variable_capacity_test();
+void cs64_ini_section_capacity_test();
 void cs64_ini_variable_rehash_test();
 void cs64_ini_section_rehash_test();
 void cs64_ini_variable_change_test();
@@ -69,6 +70,7 @@ int main() {
     cs64_ini_variable_declarations_test();
     cs64_ini_section_declarations_test();
     cs64_ini_variable_capacity_test();
+    cs64_ini_section_capacity_test();
     cs64_ini_variable_rehash_test();
     cs64_ini_section_rehash_test();
     cs64_ini_variable_change_test();
@@ -841,6 +843,67 @@ void cs64_ini_variable_capacity_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
+void cs64_ini_section_capacity_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    CS64UTF8 name[2] = "A";
+
+    CS64INIEntryState state;
+    CS64INIEntry* pEntry = NULL;
+
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 16, "%zd");
+
+    int loop = 0;
+    while(loop < pData->hashTable.entryCapacity) {
+        name[0] = 'A' + loop;
+
+        state = cs64_ini_add_section(pData, name, &pEntry);
+        UNIT_TEST_ASSERT(loop, state == CS64_INI_ENTRY_SUCCESS);
+        UNIT_TEST_ASSERT_EQ(loop, pEntry->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+
+        state = cs64_ini_add_section(pData, name, &pEntry);
+        if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+        }
+
+        loop++;
+    }
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    int returnResult = cs64_ini_data_reserve(pData, pData->hashTable.entryCapacity + 1);
+    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
+
+    int amount = loop;
+
+    loop = 0;
+
+    CS64INIEntry *pSectionEntry = cs64_ini_get_first_section(pData);
+    CS64INIEntry *pLastEntry = NULL;
+
+    while(loop < amount) {
+        name[0] = 'A' + loop;
+
+        pEntry = cs64_ini_get_section(pData, name);
+
+        UNIT_TEST_ASSERT(loop, pEntry != NULL);
+        UNIT_TEST_ASSERT(loop, pEntry == pSectionEntry);
+        UNIT_TEST_ASSERT(loop, cs64_ini_get_prev_entry(pEntry) == pLastEntry);
+
+        loop++;
+        pLastEntry = pEntry;
+        pSectionEntry = cs64_ini_get_next_entry(pSectionEntry);
+    }
+
+    cs64_ini_data_free(pData);
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
 void cs64_ini_variable_rehash_test() {
     SET_AVAILABLE_MEM_PAGES(3)
     CS64INIData* pData = cs64_ini_data_alloc();
@@ -897,7 +960,7 @@ void cs64_ini_variable_rehash_test() {
 }
 
 void cs64_ini_section_rehash_test() {
-    SET_AVAILABLE_MEM_PAGES(2)
+    SET_AVAILABLE_MEM_PAGES(3)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
 
@@ -927,9 +990,6 @@ void cs64_ini_section_rehash_test() {
         loop++;
     }
 
-    SET_AVAILABLE_MEM_PAGES(1)
-    int returnResult = cs64_ini_data_reserve(pData, pData->hashTable.entryCapacity + 1);
-    UNIT_TEST_ASSERT_EQ(0, returnResult, 0, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->hashTable.entryCapacity, 32, "%zd");
 
     int amount = loop;
