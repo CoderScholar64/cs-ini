@@ -58,6 +58,8 @@ void cs64_ini_variable_implicit_rehash_test();
 void cs64_ini_section_implicit_rehash_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_combo_del_entry_test();
+/* 1-2 renaming tests */
+/* Text input rejection tests */
 
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
 void cs64_ini_display_data(const CS64INIData *const pData);
