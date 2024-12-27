@@ -1346,14 +1346,13 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
-    CS64UTF8 *pDynamicMemory = NULL;
-    CS64Size valueByteSize = 0;
     CS64UTF8 emptyValue[] = "";
 
     if(pValue == NULL)
         pValue = emptyValue;
 
-    valueByteSize = cs64_ini_string_byte_size(pValue);
+    CS64Size valueByteSize = cs64_ini_string_byte_size(pValue);
+    CS64UTF8 *pDynamicMemory = NULL;
 
     if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + valueByteSize) {
         pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + valueByteSize));
@@ -1879,12 +1878,104 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
         case CS64_INI_ENTRY_DYNAMIC_VALUE:
         case CS64_INI_ENTRY_VALUE:
         {
+            CS64EntryType backupEntryType = pEntry->entryType;
+            CS64Value backupValue = pEntry->type.value;
+
+            const CS64UTF8 *const pSectionName = cs64_ini_get_entry_section_name(pEntry);
+
             /* Check if there is a variable with the name as pValue in the hash table. */
-            if(cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pEntry), pValue) != NULL)
+            if(cs64_ini_get_variable(pData, pSectionName, pValue) != NULL)
                 return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
 
-            /* Handle the deletion. */
+            CS64Size sectionByteSize = 0;
+            CS64Size nameByteSize = 0;
+
+            CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
+
+            if(pSectionName != NULL)
+                sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, sectionHash, &sectionByteSize);
+            CS64Offset hash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &nameByteSize);
+
+            CS64Offset originalIndex = hash % pData->hashTable.entryCapacity;
+            CS64Offset index = originalIndex;
+            CS64INIEntry *pRenamedVariable = &pData->hashTable.pEntries[index];
+
             pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+
+            ATTEMPT_TO_FIND_VARIABLE(
+                pRenamedVariable, pSectionName, sectionByteSize, pValue, index, originalIndex, pData->hashTable,
+                {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+                {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+
+            CS64UTF8 *pDynamicMemory = NULL;
+
+            if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + pEntry->type.value.valueByteSize) {
+                pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + pEntry->type.value.valueByteSize));
+
+                if(pDynamicMemory == NULL) {
+                    pEntry->entryType = backupEntryType;
+                    return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                }
+            }
+
+            if(pDynamicMemory != NULL) {
+                pRenamedVariable->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
+                pRenamedVariable->type.value.data.dynamic.pName = pDynamicMemory;
+                pRenamedVariable->type.value.data.dynamic.pValue = &pRenamedVariable->type.value.data.dynamic.pName[nameByteSize];
+
+                STRING_COPY(pRenamedVariable->type.value.data.dynamic.pName,  pValue);
+                if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+                    STRING_COPY(pRenamedVariable->type.value.data.dynamic.pValue, backupValue.data.dynamic.pValue);
+                }
+                else {
+                    STRING_COPY(pRenamedVariable->type.value.data.dynamic.pValue, (&backupValue.data.fixed[backupValue.nameByteSize]));
+                }
+            }
+            else {
+                pEntry->entryType = CS64_INI_ENTRY_VALUE;
+
+                STRING_COPY((&pEntry->type.section.name.fixed[0]), pValue);
+                if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+                    STRING_COPY((&pEntry->type.section.name.fixed[nameByteSize]), backupValue.data.dynamic.pValue);
+                }
+                else {
+                    STRING_COPY((&pEntry->type.section.name.fixed[nameByteSize]), (&backupValue.data.fixed[backupValue.nameByteSize]));
+                }
+            }
+
+            if(pRenamedVariable != pEntry) {
+                if(backupValue.pSection == NULL) {
+                    if(pData->globals.pFirstValue == pEntry)
+                        pData->globals.pFirstValue = pEntry;
+                    if(pData->globals.pLastValue == pEntry)
+                        pData->globals.pLastValue = pEntry;
+                }
+                else {
+                    if(backupValue.pSection->type.section.header.pFirstValue == pEntry)
+                        backupValue.pSection->type.section.header.pFirstValue = pEntry;
+                    if(backupValue.pSection->type.section.header.pLastValue == pEntry)
+                        backupValue.pSection->type.section.header.pLastValue = pEntry;
+                }
+
+                /* Modify Left and Right child of pEntry to point to pRenamedVariable. */
+                if(pEntry->pNext != NULL)
+                    pEntry->pNext->pPrev = pRenamedVariable;
+                pRenamedVariable->pNext = pEntry->pNext;
+                if(pEntry->pPrev != NULL)
+                    pEntry->pPrev->pNext = pRenamedVariable;
+                pRenamedVariable->pPrev = pEntry->pPrev;
+
+                /* Move the comments */
+                pRenamedVariable->commentSize       = pEntry->commentSize;
+                pRenamedVariable->pComment          = pEntry->pComment;
+                pRenamedVariable->inlineCommentSize = pEntry->inlineCommentSize;
+                pRenamedVariable->pInlineComment    = pEntry->pInlineComment;
+                pEntry->pNext          = NULL;
+                pEntry->pPrev          = NULL;
+                pEntry->pComment       = NULL;
+                pEntry->pInlineComment = NULL;
+            }
+
         }
             break;
 
