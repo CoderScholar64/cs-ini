@@ -1818,8 +1818,6 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             if(cs64_ini_get_section(pData, pValue) != NULL)
                 return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
 
-            return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;
-
             /* Make a new section and copy every variable that the old section contains to the new section. */
 
             entryState = cs64_ini_add_section(pData, pValue, &pCopiedSection);
@@ -1863,13 +1861,12 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
                 pCopiedSectionVariable = pCopiedSectionVariable->pNext;
             }
 
-            /* Now, that the allocations have succeeded. It is time to transfer the comments from the old section to the new one. */
+            /* The copied section then gets the old section's comments */
             pCopiedSection->commentSize       = pEntry->commentSize;
             pCopiedSection->pComment          = pEntry->pComment;
             pCopiedSection->inlineCommentSize = pEntry->inlineCommentSize;
             pCopiedSection->pInlineComment    = pEntry->pInlineComment;
 
-            /* This is so the old variable could be deleted without causing dangling pointers. */
             pEntry->commentSize       = 0;
             pEntry->pComment          = NULL;
             pEntry->inlineCommentSize = 0;
