@@ -1807,18 +1807,10 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
     if(!IS_STRING_PRESENT(pValue))
         return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
 
-    CS64EntryType entryType = pEntry->entryType;
-    CS64INIEntry *pMovedEntry = NULL;
+    CS64INIEntryState entryState;
+    CS64INIEntry *pCopiedSection = NULL;
 
-    CS64Offset originalIndex;
-    CS64Offset index;
-    CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
-    CS64Offset variableHash;
-
-    CS64Size sectionByteSize = 0;
-    CS64Size nameByteSize = 0;
-
-    switch(entryType) {
+    switch(pEntry->entryType) {
         case CS64_INI_ENTRY_DYNAMIC_SECTION:
         case CS64_INI_ENTRY_SECTION:
         {
@@ -1828,83 +1820,62 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
             return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;
 
-            /* Handle the deletion. */
-            pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+            /* Make a new section and copy every variable that the old section contains to the new section. */
 
-            sectionHash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &sectionByteSize);
+            entryState = cs64_ini_add_section(pData, pValue, &pCopiedSection);
 
-            originalIndex = sectionHash % pData->hashTable.entryCapacity;
-            index = originalIndex;
-            pMovedEntry = &pData->hashTable.pEntries[index];
+            if(entryState != CS64_INI_ENTRY_SUCCESS)
+                return entryState;
 
-            ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pMovedEntry),
-                {pEntry->entryType = entryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                {pEntry->entryType = entryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+            CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
+            CS64INIEntry *pCopiedSectionVariable = NULL;
+            while(pSectionVariable != NULL) {
+                entryState = cs64_ini_add_variable(pData, pValue, cs64_ini_get_entry_name(pSectionVariable), cs64_ini_get_entry_value(pSectionVariable), &pCopiedSectionVariable);
 
-            if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE < sectionByteSize) {
-                void *pAttempt = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionByteSize);
+                /* If the new section or its contents fails to completely copy then just delete the new section. */
+                if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                    /* TODO Maybe there should be a check here. */
+                    cs64_ini_del_entry(pData, pCopiedSection);
 
-                if(pAttempt == NULL) {
-                    pEntry->entryType = entryType;
-                    return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                    return entryState;
                 }
 
-                if(entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-                    CS64_INI_FREE(pEntry->type.section.name.pDynamic);
-
-                pMovedEntry->type.section.name.pDynamic = pAttempt;
-
-                pMovedEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
-                STRING_COPY(pMovedEntry->type.section.name.pDynamic, pValue);
-            }
-            else {
-                if(entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-                    CS64_INI_FREE(pEntry->type.section.name.pDynamic);
-
-                pMovedEntry->entryType = CS64_INI_ENTRY_SECTION;
-                STRING_COPY(pMovedEntry->type.section.name.fixed, pValue);
+                pSectionVariable = pSectionVariable->pNext;
             }
 
-            if(pMovedEntry != pEntry) {
-                /* Since element has been moved in this case then. */
+            /* After everything has been added it is time to get rid of the old section variables first. */
+            pSectionVariable = pEntry->type.section.header.pFirstValue;
+            pCopiedSectionVariable = pCopiedSection->type.section.header.pFirstValue;
+            while(pSectionVariable != NULL) {
+                /* Now, that the allocations have succeeded. It is time to transfer the comments from the old section to the new one. */
+                pCopiedSectionVariable->commentSize       = pSectionVariable->commentSize;
+                pCopiedSectionVariable->pComment          = pSectionVariable->pComment;
+                pCopiedSectionVariable->inlineCommentSize = pSectionVariable->inlineCommentSize;
+                pCopiedSectionVariable->pInlineComment    = pSectionVariable->pInlineComment;
 
-                /* Modify pData if pEntry is at the beginning or end of sections. */
-                if(pData->pFirstSection == pEntry)
-                    pData->pFirstSection = pMovedEntry;
-                if(pData->pLastSection == pEntry)
-                    pData->pLastSection = pMovedEntry;
+                /* This is so the old variable could be deleted without causing dangling pointers. */
+                pSectionVariable->commentSize       = 0;
+                pSectionVariable->pComment          = NULL;
+                pSectionVariable->inlineCommentSize = 0;
+                pSectionVariable->pInlineComment    = NULL;
 
-                /* Modify Left and Right child of pEntry to point to pMovedEntry. */
-                if(pEntry->pNext != NULL)
-                    pEntry->pNext->pPrev = pMovedEntry;
-                pMovedEntry->pNext = pEntry->pNext;
-                if(pEntry->pPrev != NULL)
-                    pEntry->pPrev->pNext = pMovedEntry;
-                pMovedEntry->pPrev = pEntry->pPrev;
-
-                /* Move the comments */
-                pMovedEntry->commentSize       = pEntry->commentSize;
-                pMovedEntry->pComment          = pEntry->pComment;
-                pMovedEntry->inlineCommentSize = pEntry->inlineCommentSize;
-                pMovedEntry->pInlineComment    = pEntry->pInlineComment;
-
-                pEntry->pNext          = NULL;
-                pEntry->pPrev          = NULL;
-                pEntry->pComment       = NULL;
-                pEntry->pInlineComment = NULL;
-
-                /* Modify all variable belonging to pEntry to point to pMovedEntry. */
-                CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
-                while(pSectionVariable != NULL) {
-                    pSectionVariable.type.value.pSection = pMovedEntry;
-
-                    pSectionVariable = pSectionVariable->pNext;
-                }
+                pSectionVariable = pSectionVariable->pNext;
+                pCopiedSectionVariable = pCopiedSectionVariable->pNext;
             }
 
-            /* Lastly MOVE all the variables of pEntry.
-             * This would be challenging because they would all have to be rehashed.
-             * I hope to be able to use cs64_ini_set_entry_name(pData, pVariableEntry, get_name(pVariableEntry))*/
+            /* Now, that the allocations have succeeded. It is time to transfer the comments from the old section to the new one. */
+            pCopiedSection->commentSize       = pEntry->commentSize;
+            pCopiedSection->pComment          = pEntry->pComment;
+            pCopiedSection->inlineCommentSize = pEntry->inlineCommentSize;
+            pCopiedSection->pInlineComment    = pEntry->pInlineComment;
+
+            /* This is so the old variable could be deleted without causing dangling pointers. */
+            pEntry->commentSize       = 0;
+            pEntry->pComment          = NULL;
+            pEntry->inlineCommentSize = 0;
+            pEntry->pInlineComment    = NULL;
+
+            cs64_ini_del_entry(pData, pEntry);
         }
             break;
 
@@ -1923,104 +1894,6 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
         default:
             return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
     }
-
-    CS64INIEntry backup = *pEntry;
-
-    /* This is so cs64_ini_del_entry does not delete dynamic memory */
-    switch(pEntry->entryType) {
-        case CS64_INI_ENTRY_DYNAMIC_SECTION:
-            pEntry->type.section.name.pDynamic = NULL;
-        case CS64_INI_ENTRY_SECTION:
-            pEntry->type.section.header.pFirstValue = NULL;
-            pEntry->type.section.header.pLastValue  = NULL;
-
-            break;
-
-        case CS64_INI_ENTRY_DYNAMIC_VALUE:
-            pEntry->type.value.data.dynamic.pName  = NULL;
-            pEntry->type.value.data.dynamic.pValue = NULL;
-        case CS64_INI_ENTRY_VALUE:
-            pEntry->type.value.pSection = NULL;
-
-            break;
-
-        default:
-            return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
-    }
-
-    pEntry->pNext          = NULL;
-    pEntry->pPrev          = NULL;
-    pEntry->pComment       = NULL;
-    pEntry->pInlineComment = NULL;
-
-    CS64INIEntryState entryState = cs64_ini_del_entry(pData, pEntry);
-
-    if(entryState != CS64_INI_ENTRY_SUCCESS) {
-        if(pEntry->pComment != NULL)
-            CS64_INI_FREE(pEntry->pComment);
-        if(pEntry->pInlineComment != NULL)
-            CS64_INI_FREE(pEntry->pInlineComment);
-
-        if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
-            CS64_INI_FREE(backup.type.section.name.pDynamic);
-        } else if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
-        }
-
-        return entryState;
-    }
-
-    const CS64UTF8 *pOldSectionName = cs64_ini_get_entry_section_name(&backup);
-    CS64INIEntry* pAddEntry;
-
-    /* cs64_ini_add_section or cs64_ini_add_variable */
-    if(cs64_ini_get_entry_type(&backup) == CS64_INI_ENTRY_SECTION) {
-
-        entryState = cs64_ini_add_section(pData, pValue, &pAddEntry);
-
-        if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
-            CS64_INI_FREE(backup.type.section.name.pDynamic);
-        }
-
-        if(entryState != CS64_INI_ENTRY_SUCCESS) {
-            if(pEntry->pComment != NULL)
-                CS64_INI_FREE(pEntry->pComment);
-            if(pEntry->pInlineComment != NULL)
-                CS64_INI_FREE(pEntry->pInlineComment);
-
-            return entryState;
-        }
-
-        CS64INIEntry *pVariable = pAddEntry->type.section.header.pFirstValue;
-        while(pVariable != NULL) {
-            pVariable->type.value.pSection = pAddEntry;
-
-            pVariable = pVariable->pNext;
-        }
-    }
-    else {
-        const CS64UTF8 *pOldValue = cs64_ini_get_entry_value(&backup);
-
-        if(backup.entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-            CS64_INI_FREE(pEntry->type.value.data.dynamic.pName); /* This also frees pValue */
-        }
-
-        entryState = cs64_ini_add_variable(pData, pOldSectionName, pValue, pOldValue, &pAddEntry);
-
-        if(entryState != CS64_INI_ENTRY_SUCCESS) {
-            if(pEntry->pComment != NULL)
-                CS64_INI_FREE(pEntry->pComment);
-            if(pEntry->pInlineComment != NULL)
-                CS64_INI_FREE(pEntry->pInlineComment);
-
-            return entryState;
-        }
-    }
-
-    pAddEntry->pComment          = backup.pComment;
-    pAddEntry->commentSize       = backup.commentSize;
-    pAddEntry->pInlineComment    = backup.pInlineComment;
-    pAddEntry->inlineCommentSize = backup.inlineCommentSize;
 
     return CS64_INI_ENTRY_SUCCESS;
 }
