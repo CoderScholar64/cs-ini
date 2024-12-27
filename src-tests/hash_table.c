@@ -58,7 +58,7 @@ void cs64_ini_variable_implicit_rehash_test();
 void cs64_ini_section_implicit_rehash_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_combo_del_entry_test();
-/* 1-2 renaming tests */
+void cs64_ini_combo_renaming_test();
 /* Text input rejection tests */
 
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
@@ -77,6 +77,7 @@ int main() {
     cs64_ini_section_implicit_rehash_test();
     cs64_ini_variable_change_test();
     cs64_ini_combo_del_entry_test();
+    cs64_ini_combo_renaming_test();
     return 0;
 }
 
@@ -1722,6 +1723,58 @@ void cs64_ini_combo_del_entry_test() {
 
         loop[0]++;
     }
+}
+
+void cs64_ini_combo_renaming_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    // Note: the names of the variables are just random phrases.
+    const char* sectionNames[]    = {"s0", "s1",                     "section two of apples", "section three that contains berries"};
+    const char* newSectionNames[] = {"S0", "section one of oranges", "s2",                    "section three that contains grapes"};
+
+    const char* variableNames[]    = {"v0", "v1",                           "variable two holding an int", "variable three holding a string"};
+    const char* newVariableNames[] = {"V0", "variable one holding a float", "v2",                          "variable three holding a pointer"};
+
+    const int variableCountPerSection[] = {0, 1, 2, 4};
+
+    int i = 0;
+    int j;
+
+    // Test setting and getting entry names for sections
+    while(i < sizeof(sectionNames) / sizeof(sectionNames[0])) {
+        CS64INIEntry *pSection = NULL;
+
+        cs64_ini_add_section(pData, (CS64UTF8*)sectionNames[i], &pSection);
+
+        // Set a new name for the section
+        cs64_ini_set_entry_name(pData, pSection, (CS64UTF8*)newSectionNames[i]);
+
+        // Get and assert the updated name
+        UNIT_TEST_ASSERT(0, strcmp(newSectionNames[i], (char*)cs64_ini_get_entry_name(pSection)) == 0);
+
+        // Test setting and getting entry names for variables
+        j = 0;
+        while(j < variableCountPerSection[i]) {
+            CS64INIEntry *pVariable;
+            cs64_ini_add_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j], (const CS64UTF8*)"Value", &pVariable);
+
+            // Set a new name for the entry
+            cs64_ini_set_entry_name(pData, pVariable, (CS64UTF8*)newVariableNames[j]);
+
+            // Get and assert the updated name
+            UNIT_TEST_ASSERT(0, strcmp(newVariableNames[j], (char*)cs64_ini_get_entry_name(pVariable)) == 0);
+
+            j++;
+        }
+
+        i++;
+    }
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
 }
 
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
