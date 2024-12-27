@@ -1154,7 +1154,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
     /* Write down the sections first */
     const CS64INIEntry *pSection = pData->pFirstSection;
-    CS64Size sectionByteSize = 0;
+    CS64Size sectionByteSize;
     while(pSection != NULL) {
         const CS64UTF8 *pSectionName;
 
@@ -1806,6 +1806,123 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
     if(!IS_STRING_PRESENT(pValue))
         return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
+
+    CS64EntryType entryType = pEntry->entryType;
+    CS64INIEntry *pMovedEntry = NULL;
+
+    CS64Offset originalIndex;
+    CS64Offset index;
+    CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
+    CS64Offset variableHash;
+
+    CS64Size sectionByteSize = 0;
+    CS64Size nameByteSize = 0;
+
+    switch(entryType) {
+        case CS64_INI_ENTRY_DYNAMIC_SECTION:
+        case CS64_INI_ENTRY_SECTION:
+        {
+            /* Check if there is a section with the name as pValue in the hash table. */
+            if(cs64_ini_get_section(pData, pValue) != NULL)
+                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
+
+            return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;
+
+            /* Handle the deletion. */
+            pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+
+            sectionHash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &sectionByteSize);
+
+            originalIndex = sectionHash % pData->hashTable.entryCapacity;
+            index = originalIndex;
+            pMovedEntry = &pData->hashTable.pEntries[index];
+
+            ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pMovedEntry),
+                {pEntry->entryType = entryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+                {pEntry->entryType = entryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+
+            if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE < sectionByteSize) {
+                void *pAttempt = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionByteSize);
+
+                if(pAttempt == NULL) {
+                    pEntry->entryType = entryType;
+                    return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                }
+
+                if(entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
+                    CS64_INI_FREE(pEntry->type.section.name.pDynamic);
+
+                pMovedEntry->type.section.name.pDynamic = pAttempt;
+
+                pMovedEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
+                STRING_COPY(pMovedEntry->type.section.name.pDynamic, pValue);
+            }
+            else {
+                if(entryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
+                    CS64_INI_FREE(pEntry->type.section.name.pDynamic);
+
+                pMovedEntry->entryType = CS64_INI_ENTRY_SECTION;
+                STRING_COPY(pMovedEntry->type.section.name.fixed, pValue);
+            }
+
+            if(pMovedEntry != pEntry) {
+                /* Since element has been moved in this case then. */
+
+                /* Modify pData if pEntry is at the beginning or end of sections. */
+                if(pData->pFirstSection == pEntry)
+                    pData->pFirstSection = pMovedEntry;
+                if(pData->pLastSection == pEntry)
+                    pData->pLastSection = pMovedEntry;
+
+                /* Modify Left and Right child of pEntry to point to pMovedEntry. */
+                if(pEntry->pNext != NULL)
+                    pEntry->pNext->pPrev = pMovedEntry;
+                pMovedEntry->pNext = pEntry->pNext;
+                if(pEntry->pPrev != NULL)
+                    pEntry->pPrev->pNext = pMovedEntry;
+                pMovedEntry->pPrev = pEntry->pPrev;
+
+                /* Move the comments */
+                pMovedEntry->commentSize       = pEntry->commentSize;
+                pMovedEntry->pComment          = pEntry->pComment;
+                pMovedEntry->inlineCommentSize = pEntry->inlineCommentSize;
+                pMovedEntry->pInlineComment    = pEntry->pInlineComment;
+
+                pEntry->pNext          = NULL;
+                pEntry->pPrev          = NULL;
+                pEntry->pComment       = NULL;
+                pEntry->pInlineComment = NULL;
+
+                /* Modify all variable belonging to pEntry to point to pMovedEntry. */
+                CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
+                while(pSectionVariable != NULL) {
+                    pSectionVariable.type.value.pSection = pMovedEntry;
+
+                    pSectionVariable = pSectionVariable->pNext;
+                }
+            }
+
+            /* Lastly MOVE all the variables of pEntry.
+             * This would be challenging because they would all have to be rehashed.
+             * I hope to be able to use cs64_ini_set_entry_name(pData, pVariableEntry, get_name(pVariableEntry))*/
+        }
+            break;
+
+        case CS64_INI_ENTRY_DYNAMIC_VALUE:
+        case CS64_INI_ENTRY_VALUE:
+        {
+            /* Check if there is a variable with the name as pValue in the hash table. */
+            if(cs64_ini_get_variable(pData, cs64_ini_get_entry_section_name(pEntry), pValue) != NULL)
+                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
+
+            /* Handle the deletion. */
+            pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+        }
+            break;
+
+        default:
+            return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+    }
 
     CS64INIEntry backup = *pEntry;
 
