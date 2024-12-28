@@ -1732,42 +1732,68 @@ void cs64_ini_combo_renaming_test() {
 
     // Note: the names of the variables are just random phrases.
     const char* sectionNames[]    = {"s0", "s1",                     "section two of apples", "section three that contains berries"};
+    int    sectionRequiredAlloc[] = { 0,    0,                        1,                       1};
     const char* newSectionNames[] = {"S0", "section one of oranges", "s2",                    "section three that contains grapes"};
+    int newSectionRequiredAlloc[] = { 0,    1,                        0,                       1};
 
     const char* variableNames[]    = {"v0", "v1",                           "variable two holding an int", "variable three holding a string"};
     const char* newVariableNames[] = {"V0", "variable one holding a float", "v2",                          "variable three holding a pointer"};
+    int    variableRequiredAlloc[] = { 0,    1,                              1,                             2};
 
     const int variableCountPerSection[] = {0, 1, 2, 4};
 
     int i = 0;
     int j;
 
+    CS64INIEntry *pSection;
+    CS64INIEntry *pVariable;
+    CS64INIEntryState state;
+
     // Test setting and getting entry names for sections
     while(i < sizeof(sectionNames) / sizeof(sectionNames[0])) {
-        CS64INIEntry *pSection = NULL;
+        SET_AVAILABLE_MEM_PAGES(sectionRequiredAlloc[i])
 
-        cs64_ini_add_section(pData, (CS64UTF8*)sectionNames[i], &pSection);
-
-        // Set a new name for the section
-        cs64_ini_set_entry_name(pData, pSection, (CS64UTF8*)newSectionNames[i]);
-
-        // Get and assert the updated name
-        UNIT_TEST_ASSERT(0, strcmp(newSectionNames[i], (char*)cs64_ini_get_entry_name(pSection)) == 0);
+        state = cs64_ini_add_section(pData, (CS64UTF8*)sectionNames[i], &pSection);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
         // Test setting and getting entry names for variables
         j = 0;
         while(j < variableCountPerSection[i]) {
-            CS64INIEntry *pVariable;
-            cs64_ini_add_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j], (const CS64UTF8*)"Value", &pVariable);
+            SET_AVAILABLE_MEM_PAGES(variableRequiredAlloc[j])
+
+            state = cs64_ini_add_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j], (const CS64UTF8*)"Value", &pVariable);
+            UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
             // Set a new name for the entry
-            cs64_ini_set_entry_name(pData, pVariable, (CS64UTF8*)newVariableNames[j]);
+            state = cs64_ini_set_entry_name(pData, pVariable, (CS64UTF8*)newVariableNames[j]);
+            UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+            pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j]);
+            UNIT_TEST_ASSERT(j, pVariable == NULL);
+
+            pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)newVariableNames[j]);
+            UNIT_TEST_ASSERT(j, pVariable != NULL);
 
             // Get and assert the updated name
-            UNIT_TEST_ASSERT(0, strcmp(newVariableNames[j], (char*)cs64_ini_get_entry_name(pVariable)) == 0);
+            UNIT_TEST_ASSERT(j, strcmp(newVariableNames[j], (char*)cs64_ini_get_entry_name(pVariable)) == 0);
 
             j++;
         }
+
+        SET_AVAILABLE_MEM_PAGES(newSectionRequiredAlloc[i])
+
+        // Set a new name for the section
+        state = cs64_ini_set_entry_name(pData, pSection, (CS64UTF8*)newSectionNames[i]);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+        pSection = cs64_ini_get_section(pData, (CS64UTF8*)sectionNames[i]);
+        UNIT_TEST_ASSERT(i, pSection == NULL);
+
+        pSection = cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[i]);
+        UNIT_TEST_ASSERT(i, pSection != NULL);
+
+        // Get and assert the updated name
+        UNIT_TEST_ASSERT(i, strcmp(newSectionNames[i], (char*)cs64_ini_get_entry_name(pSection)) == 0);
 
         i++;
     }
