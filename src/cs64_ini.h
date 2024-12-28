@@ -1857,6 +1857,8 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
                 STRING_COPY(pMovedEntry->type.section.name.fixed, pValue);
             }
 
+            pMovedEntry->type.section.nameByteSize = sectionByteSize;
+
             if(pMovedEntry != pEntry) {
                 /* Since element has been moved in this case then. */
 
