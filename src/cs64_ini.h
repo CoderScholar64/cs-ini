@@ -1859,8 +1859,12 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
             pMovedEntry->type.section.nameByteSize = sectionByteSize;
 
+            CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
+
             if(pMovedEntry != pEntry) {
                 /* Since element has been moved in this case then. */
+                pMovedEntry->type.section.header.pFirstValue = NULL;
+                pMovedEntry->type.section.header.pLastValue  = NULL;
 
                 /* Modify pData if pEntry is at the beginning or end of sections. */
                 if(pData->pFirstSection == pEntry)
@@ -1885,19 +1889,13 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
                 pEntry->pPrev          = NULL;
                 pEntry->pComment       = NULL;
                 pEntry->pInlineComment = NULL;
-
-                /* Modify all variable belonging to pEntry to point to pMovedEntry. */
-                CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
-                while(pSectionVariable != NULL) {
-                    pSectionVariable->type.value.pSection = pMovedEntry;
-
-                    pSectionVariable = pSectionVariable->pNext;
-                }
             }
 
             /* Fix the hash table locations. */
-            CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
+            CS64INIEntry *pLastSectionVariable = NULL;
             while(pSectionVariable != NULL) {
+                pSectionVariable->type.value.pSection = pMovedEntry;
+
                 backupEntryType = pSectionVariable->entryType;
 
                 pSectionVariable->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
@@ -1918,13 +1916,16 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
                 ATTEMPT_TO_FIND_VARIABLE(
                     pMovedVariable, pValue, sectionByteSize, pName, index, originalIndex, pData->hashTable,
-                    {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                    {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
-
-                pMovedVariable->entryType = pSectionVariable->entryType;
+                    {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+                    {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
                 /* Check if the variable has been moved. */
                 if(pMovedVariable != pSectionVariable) {
+                    pMovedVariable->type.value = pSectionVariable->type.value;
+
+                    if(pMovedEntry->type.section.header.pFirstValue == NULL)
+                        pMovedEntry->type.section.header.pFirstValue = pMovedVariable;
+                    pMovedEntry->type.section.header.pLastValue = pMovedVariable;
 
                     /* Modify Left and Right child of pSectionVariable to point to pMovedVariable. */
                     if(pSectionVariable->pNext != NULL)
@@ -1946,6 +1947,8 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
                     pSectionVariable->pComment       = NULL;
                     pSectionVariable->pInlineComment = NULL;
                 }
+
+                pMovedVariable->entryType = backupEntryType;
 
                 pSectionVariable = pSectionVariable->pNext;
             }
