@@ -1880,6 +1880,7 @@ void cs64_ini_display_data(const CS64INIData *const pData) {
 
     CS64Size l = 0;
     while(l < pData->hashTable.entryCapacity) {
+        printf("[%zd] ", l, pData->pLastSection);
         cs64_ini_display_entry( &pData->hashTable.pEntries[l] );
         l++;
     }

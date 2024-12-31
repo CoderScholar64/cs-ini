@@ -64,9 +64,9 @@
 #ifndef CS64_INI_HASH_FUNCTION
     #define CS64_INI_HASH_STANDARD_FUNCTION
 
-    CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringLength);
+    CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize);
 
-    #define CS64_INI_HASH_FUNCTION(pString, hash, pStringLength) cs64_ini_standard_hash_function(pString, hash, pStringLength)
+    #define CS64_INI_HASH_FUNCTION(pString, hash, pStringByteSize) cs64_ini_standard_hash_function(pString, hash, pStringByteSize)
 
     #if CS64_SIZE_MAX > 0xFFFFFFFF
     #define CS64_INI_INITIAL_HASH 0xcbf29ce484222325
@@ -897,7 +897,7 @@ void cs64_ini_lexer_free(CS64INITokenResult *pData) {
 
 #ifdef CS64_INI_HASH_STANDARD_FUNCTION
 
-CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringLength) {
+CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize) {
     /* This implementation uses the Fowler–Noll–Vo hash algorithm. It is NOT cyroptographically secure, but this is just an INI file parser. */
 
     #if CS64_SIZE_MAX > 0xFFFFFFFF
@@ -906,13 +906,13 @@ CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Of
     const static CS64Offset prime = 0x01000193;
     #endif
 
-    while(pString[*pStringLength] != '\0') {
-        hash ^= pString[*pStringLength];
+    while(pString[*pStringByteSize] != '\0') {
+        hash ^= pString[*pStringByteSize];
         hash *= prime;
-        (*pStringLength)++;
+        (*pStringByteSize)++;
     }
 
-    (*pStringLength)++;
+    (*pStringByteSize)++;
 
     return hash;
 }
@@ -1811,7 +1811,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
     CS64Size sectionByteSize;
     CS64Size nameByteSize;
-    CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
+    CS64Offset sectionHash;
     CS64Offset originalIndex;
     CS64Offset index;
 
@@ -1827,7 +1827,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
             /* Handle the deletion. */
             pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
-            sectionHash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &sectionByteSize);
+            sectionHash = CS64_INI_HASH_FUNCTION(pValue, CS64_INI_INITIAL_HASH, &sectionByteSize);
             originalIndex = sectionHash % pData->hashTable.entryCapacity;
             index = originalIndex;
             pMovedEntry = &pData->hashTable.pEntries[index];
@@ -1970,7 +1970,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             nameByteSize = 0;
 
             if(pSectionName != NULL)
-                sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, sectionHash, &sectionByteSize);
+                sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionByteSize);
             CS64Offset hash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &nameByteSize);
 
             originalIndex = hash % pData->hashTable.entryCapacity;
