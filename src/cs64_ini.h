@@ -2027,6 +2027,10 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
                 }
             }
 
+            pRenamedVariable->type.value.pSection      = backupValue.pSection;
+            pRenamedVariable->type.value.nameByteSize  = nameByteSize;
+            pRenamedVariable->type.value.valueByteSize = backupValue.valueByteSize;
+
             if(pRenamedVariable != pOldEntry) {
                 if(backupValue.pSection == NULL) {
                     if(pData->globals.pFirstValue == pOldEntry)
