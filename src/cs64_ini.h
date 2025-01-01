@@ -2002,6 +2002,9 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
                 }
             }
 
+            if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
+                CS64_INI_FREE(pOldEntry->type.value.data.dynamic.pName);
+
             if(pDynamicMemory != NULL) {
                 pRenamedVariable->entryType = CS64_INI_ENTRY_DYNAMIC_VALUE;
                 pRenamedVariable->type.value.data.dynamic.pName = pDynamicMemory;
