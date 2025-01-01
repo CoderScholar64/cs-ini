@@ -1172,7 +1172,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
         pSectionEntry = &newINIData.hashTable.pEntries[index];
 
-        ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionByteSize, index, originalIndex, newINIData.hashTable, pSectionEntry->entryType != CS64_INI_ENTRY_EMPTY,
+        ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionByteSize, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pSectionEntry),
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return -7;},
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return -8;})
 
@@ -1478,7 +1478,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionByteSize, index, originalIndex, pData->hashTable, pEntry->entryType != CS64_INI_ENTRY_EMPTY,
+    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
@@ -1837,7 +1837,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             index = originalIndex;
             pMovedEntry = &pData->hashTable.pEntries[index];
 
-            ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, pMovedEntry->entryType != CS64_INI_ENTRY_EMPTY,
+            ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pMovedEntry),
                 {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
                 {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
