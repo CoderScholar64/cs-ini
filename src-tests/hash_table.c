@@ -1764,9 +1764,13 @@ void cs64_ini_combo_renaming_test() {
             state = cs64_ini_add_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j], (const CS64UTF8*)"Value", &pVariable);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
+            cs64_ini_display_data(pData);
+
             // Set a new name for the entry
             state = cs64_ini_set_entry_name(pData, pVariable, (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+            cs64_ini_display_data(pData);
 
             pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j]);
             UNIT_TEST_ASSERT(j, pVariable == NULL);
@@ -1782,13 +1786,9 @@ void cs64_ini_combo_renaming_test() {
 
         SET_AVAILABLE_MEM_PAGES(newSectionRequiredAlloc[i])
 
-        cs64_ini_display_data(pData);
-
         // Set a new name for the section
         state = cs64_ini_set_entry_name(pData, pSection, (CS64UTF8*)newSectionNames[i]);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
-
-        cs64_ini_display_data(pData);
 
         pSection = cs64_ini_get_section(pData, (CS64UTF8*)sectionNames[i]);
         UNIT_TEST_ASSERT(i, pSection == NULL);
