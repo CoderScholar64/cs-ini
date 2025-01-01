@@ -1037,7 +1037,7 @@ else\
         }\
     }
 #define ATTEMPT_TO_FIND_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, index, originalIndex, srcHashTable, findCondition, notFoundCondition)\
-    ATTEMPT_TO_FIND_ENTRY(x, pVariableName, index, originalIndex, srcHashTable, !IS_ENTRY_EMPTY(x), IS_CORRECT_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, findCondition), notFoundCondition)
+    ATTEMPT_TO_FIND_ENTRY(x, pVariableName, index, originalIndex, srcHashTable, (x)->entryType != CS64_INI_ENTRY_EMPTY, IS_CORRECT_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, findCondition), notFoundCondition)
 
 CS64INIData* cs64_ini_data_alloc() {
     CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
@@ -1172,7 +1172,7 @@ int cs64_ini_data_reserve(CS64INIData* pData, CS64Size numberOfSectionsAndValues
 
         pSectionEntry = &newINIData.hashTable.pEntries[index];
 
-        ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionByteSize, index, originalIndex, newINIData.hashTable, !IS_ENTRY_EMPTY(pSectionEntry),
+        ATTEMPT_TO_FIND_SECTION(pSectionEntry, pSectionName, sectionByteSize, index, originalIndex, newINIData.hashTable, pSectionEntry->entryType != CS64_INI_ENTRY_EMPTY,
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return -7;},
             {CS64_INI_FREE(newINIData.hashTable.pEntries); return -8;})
 
@@ -1375,7 +1375,7 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
         ATTEMPT_TO_FIND_SECTION(
             pSearchForSectionEntry, pSectionName, sectionLength, sectionIndex, originalSectionIndex, pData->hashTable,
-            !IS_ENTRY_EMPTY(pSearchForSectionEntry) && pSectionEntry == NULL,
+            pSearchForSectionEntry->entryType != CS64_INI_ENTRY_EMPTY && pSectionEntry == NULL,
             {pSectionEntry = pSearchForSectionEntry;},
             {})
 
@@ -1478,7 +1478,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
+    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionByteSize, index, originalIndex, pData->hashTable, pEntry->entryType != CS64_INI_ENTRY_EMPTY,
         {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
         {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
@@ -1605,7 +1605,7 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
 
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
-    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry), {return pEntry;}, {})
+    ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionLength, index, originalIndex, pData->hashTable, pEntry->entryType != CS64_INI_ENTRY_EMPTY, {return pEntry;}, {})
 
     return NULL;
 }
@@ -1832,7 +1832,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             index = originalIndex;
             pMovedEntry = &pData->hashTable.pEntries[index];
 
-            ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pMovedEntry),
+            ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, pMovedEntry->entryType != CS64_INI_ENTRY_EMPTY,
                 {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
                 {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
