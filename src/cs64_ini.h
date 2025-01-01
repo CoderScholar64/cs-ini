@@ -1794,20 +1794,20 @@ const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const 
     return pSectionEntry->type.section.name.fixed;
 }
 
-CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
+CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pOldEntry, const CS64UTF8 *const pValue) {
     /* TODO Check if pValue is UTF-8/ASCII compatible! */
 
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
 
-    if(pEntry == NULL)
+    if(pOldEntry == NULL)
         return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
     if(!IS_STRING_PRESENT(pValue))
         return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
 
     CS64INIEntry *pMovedEntry = NULL;
-    CS64EntryType backupEntryType = pEntry->entryType;
+    CS64EntryType backupEntryType = pOldEntry->entryType;
 
     CS64Size sectionByteSize;
     CS64Size nameByteSize;
@@ -1815,7 +1815,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
     CS64Offset originalIndex;
     CS64Offset index;
 
-    switch(pEntry->entryType) {
+    switch(pOldEntry->entryType) {
         case CS64_INI_ENTRY_DYNAMIC_SECTION:
         case CS64_INI_ENTRY_SECTION:
         {
@@ -1826,24 +1826,24 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             sectionByteSize = 0;
 
             /* Handle the deletion. */
-            pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+            pOldEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
             sectionHash = CS64_INI_HASH_FUNCTION(pValue, CS64_INI_INITIAL_HASH, &sectionByteSize);
             originalIndex = sectionHash % pData->hashTable.entryCapacity;
             index = originalIndex;
             pMovedEntry = &pData->hashTable.pEntries[index];
 
             ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, pMovedEntry->entryType != CS64_INI_ENTRY_EMPTY,
-                {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
             if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE < sectionByteSize) {
                 void *pAttempt = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionByteSize);
                 if(pAttempt == NULL) {
-                    pEntry->entryType = backupEntryType;
+                    pOldEntry->entryType = backupEntryType;
                     return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
                 }
                 if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-                    CS64_INI_FREE(pEntry->type.section.name.pDynamic);
+                    CS64_INI_FREE(pOldEntry->type.section.name.pDynamic);
 
                 pMovedEntry->type.section.name.pDynamic = pAttempt;
                 pMovedEntry->entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
@@ -1851,7 +1851,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             }
             else {
                 if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
-                    CS64_INI_FREE(pEntry->type.section.name.pDynamic);
+                    CS64_INI_FREE(pOldEntry->type.section.name.pDynamic);
 
                 pMovedEntry->entryType = CS64_INI_ENTRY_SECTION;
                 STRING_COPY(pMovedEntry->type.section.name.fixed, pValue);
@@ -1859,36 +1859,36 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
 
             pMovedEntry->type.section.nameByteSize = sectionByteSize;
 
-            CS64INIEntry *pSectionVariable = pEntry->type.section.header.pFirstValue;
+            CS64INIEntry *pSectionVariable = pOldEntry->type.section.header.pFirstValue;
 
-            if(pMovedEntry != pEntry) {
+            if(pMovedEntry != pOldEntry) {
                 /* Since element has been moved in this case then. */
                 pMovedEntry->type.section.header.pFirstValue = NULL;
                 pMovedEntry->type.section.header.pLastValue  = NULL;
 
-                /* Modify pData if pEntry is at the beginning or end of sections. */
-                if(pData->pFirstSection == pEntry)
+                /* Modify pData if pOldEntry is at the beginning or end of sections. */
+                if(pData->pFirstSection == pOldEntry)
                     pData->pFirstSection = pMovedEntry;
-                if(pData->pLastSection == pEntry)
+                if(pData->pLastSection == pOldEntry)
                     pData->pLastSection = pMovedEntry;
 
-                /* Modify Left and Right child of pEntry to point to pMovedEntry. */
-                if(pEntry->pNext != NULL)
-                    pEntry->pNext->pPrev = pMovedEntry;
-                pMovedEntry->pNext = pEntry->pNext;
-                if(pEntry->pPrev != NULL)
-                    pEntry->pPrev->pNext = pMovedEntry;
-                pMovedEntry->pPrev = pEntry->pPrev;
+                /* Modify Left and Right child of pOldEntry to point to pMovedEntry. */
+                if(pOldEntry->pNext != NULL)
+                    pOldEntry->pNext->pPrev = pMovedEntry;
+                pMovedEntry->pNext = pOldEntry->pNext;
+                if(pOldEntry->pPrev != NULL)
+                    pOldEntry->pPrev->pNext = pMovedEntry;
+                pMovedEntry->pPrev = pOldEntry->pPrev;
 
                 /* Move the comments */
-                pMovedEntry->commentSize       = pEntry->commentSize;
-                pMovedEntry->pComment          = pEntry->pComment;
-                pMovedEntry->inlineCommentSize = pEntry->inlineCommentSize;
-                pMovedEntry->pInlineComment    = pEntry->pInlineComment;
-                pEntry->pNext          = NULL;
-                pEntry->pPrev          = NULL;
-                pEntry->pComment       = NULL;
-                pEntry->pInlineComment = NULL;
+                pMovedEntry->commentSize       = pOldEntry->commentSize;
+                pMovedEntry->pComment          = pOldEntry->pComment;
+                pMovedEntry->inlineCommentSize = pOldEntry->inlineCommentSize;
+                pMovedEntry->pInlineComment    = pOldEntry->pInlineComment;
+                pOldEntry->pNext          = NULL;
+                pOldEntry->pPrev          = NULL;
+                pOldEntry->pComment       = NULL;
+                pOldEntry->pInlineComment = NULL;
             }
 
             /* Fix the hash table locations. */
@@ -1958,9 +1958,9 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
         case CS64_INI_ENTRY_DYNAMIC_VALUE:
         case CS64_INI_ENTRY_VALUE:
         {
-            CS64Value backupValue = pEntry->type.value;
+            CS64Value backupValue = pOldEntry->type.value;
 
-            const CS64UTF8 *const pSectionName = cs64_ini_get_entry_section_name(pEntry);
+            const CS64UTF8 *const pSectionName = cs64_ini_get_entry_section_name(pOldEntry);
 
             /* Check if there is a variable with the name as pValue in the hash table. */
             if(cs64_ini_get_variable(pData, pSectionName, pValue) != NULL)
@@ -1977,20 +1977,20 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
             index = originalIndex;
             CS64INIEntry *pRenamedVariable = &pData->hashTable.pEntries[index];
 
-            pEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
+            pOldEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
 
             ATTEMPT_TO_FIND_VARIABLE(
                 pRenamedVariable, pSectionName, sectionByteSize, pValue, index, originalIndex, pData->hashTable,
-                {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                {pEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
             CS64UTF8 *pDynamicMemory = NULL;
 
-            if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + pEntry->type.value.valueByteSize) {
-                pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + pEntry->type.value.valueByteSize));
+            if(CS64_INI_IMP_DETAIL_VALUE_SIZE < nameByteSize + pOldEntry->type.value.valueByteSize) {
+                pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + pOldEntry->type.value.valueByteSize));
 
                 if(pDynamicMemory == NULL) {
-                    pEntry->entryType = backupEntryType;
+                    pOldEntry->entryType = backupEntryType;
                     return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
                 }
             }
@@ -2009,48 +2009,48 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry *pEnt
                 }
             }
             else {
-                pEntry->entryType = CS64_INI_ENTRY_VALUE;
+                pOldEntry->entryType = CS64_INI_ENTRY_VALUE;
 
-                STRING_COPY((&pEntry->type.section.name.fixed[0]), pValue);
+                STRING_COPY((&pOldEntry->type.section.name.fixed[0]), pValue);
                 if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-                    STRING_COPY((&pEntry->type.section.name.fixed[nameByteSize]), backupValue.data.dynamic.pValue);
+                    STRING_COPY((&pOldEntry->type.section.name.fixed[nameByteSize]), backupValue.data.dynamic.pValue);
                 }
                 else {
-                    STRING_COPY((&pEntry->type.section.name.fixed[nameByteSize]), (&backupValue.data.fixed[backupValue.nameByteSize]));
+                    STRING_COPY((&pOldEntry->type.section.name.fixed[nameByteSize]), (&backupValue.data.fixed[backupValue.nameByteSize]));
                 }
             }
 
-            if(pRenamedVariable != pEntry) {
+            if(pRenamedVariable != pOldEntry) {
                 if(backupValue.pSection == NULL) {
-                    if(pData->globals.pFirstValue == pEntry)
-                        pData->globals.pFirstValue = pEntry;
-                    if(pData->globals.pLastValue == pEntry)
-                        pData->globals.pLastValue = pEntry;
+                    if(pData->globals.pFirstValue == pOldEntry)
+                        pData->globals.pFirstValue = pOldEntry;
+                    if(pData->globals.pLastValue == pOldEntry)
+                        pData->globals.pLastValue = pOldEntry;
                 }
                 else {
-                    if(backupValue.pSection->type.section.header.pFirstValue == pEntry)
-                        backupValue.pSection->type.section.header.pFirstValue = pEntry;
-                    if(backupValue.pSection->type.section.header.pLastValue == pEntry)
-                        backupValue.pSection->type.section.header.pLastValue = pEntry;
+                    if(backupValue.pSection->type.section.header.pFirstValue == pOldEntry)
+                        backupValue.pSection->type.section.header.pFirstValue = pOldEntry;
+                    if(backupValue.pSection->type.section.header.pLastValue == pOldEntry)
+                        backupValue.pSection->type.section.header.pLastValue = pOldEntry;
                 }
 
-                /* Modify Left and Right child of pEntry to point to pRenamedVariable. */
-                if(pEntry->pNext != NULL)
-                    pEntry->pNext->pPrev = pRenamedVariable;
-                pRenamedVariable->pNext = pEntry->pNext;
-                if(pEntry->pPrev != NULL)
-                    pEntry->pPrev->pNext = pRenamedVariable;
-                pRenamedVariable->pPrev = pEntry->pPrev;
+                /* Modify Left and Right child of pOldEntry to point to pRenamedVariable. */
+                if(pOldEntry->pNext != NULL)
+                    pOldEntry->pNext->pPrev = pRenamedVariable;
+                pRenamedVariable->pNext = pOldEntry->pNext;
+                if(pOldEntry->pPrev != NULL)
+                    pOldEntry->pPrev->pNext = pRenamedVariable;
+                pRenamedVariable->pPrev = pOldEntry->pPrev;
 
                 /* Move the comments */
-                pRenamedVariable->commentSize       = pEntry->commentSize;
-                pRenamedVariable->pComment          = pEntry->pComment;
-                pRenamedVariable->inlineCommentSize = pEntry->inlineCommentSize;
-                pRenamedVariable->pInlineComment    = pEntry->pInlineComment;
-                pEntry->pNext          = NULL;
-                pEntry->pPrev          = NULL;
-                pEntry->pComment       = NULL;
-                pEntry->pInlineComment = NULL;
+                pRenamedVariable->commentSize       = pOldEntry->commentSize;
+                pRenamedVariable->pComment          = pOldEntry->pComment;
+                pRenamedVariable->inlineCommentSize = pOldEntry->inlineCommentSize;
+                pRenamedVariable->pInlineComment    = pOldEntry->pInlineComment;
+                pOldEntry->pNext          = NULL;
+                pOldEntry->pPrev          = NULL;
+                pOldEntry->pComment       = NULL;
+                pOldEntry->pInlineComment = NULL;
             }
 
         }
