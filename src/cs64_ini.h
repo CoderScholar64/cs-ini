@@ -2016,14 +2016,14 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
                 }
             }
             else {
-                pOldEntry->entryType = CS64_INI_ENTRY_VALUE;
+                pRenamedVariable->entryType = CS64_INI_ENTRY_VALUE;
 
-                STRING_COPY((&pOldEntry->type.section.name.fixed[0]), pValue);
+                STRING_COPY((&pRenamedVariable->type.section.name.fixed[0]), pValue);
                 if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
-                    STRING_COPY((&pOldEntry->type.section.name.fixed[nameByteSize]), backupValue.data.dynamic.pValue);
+                    STRING_COPY((&pRenamedVariable->type.section.name.fixed[nameByteSize]), backupValue.data.dynamic.pValue);
                 }
                 else {
-                    STRING_COPY((&pOldEntry->type.section.name.fixed[nameByteSize]), (&backupValue.data.fixed[backupValue.nameByteSize]));
+                    STRING_COPY((&pRenamedVariable->type.section.name.fixed[nameByteSize]), (&backupValue.data.fixed[backupValue.nameByteSize]));
                 }
             }
 

@@ -1747,6 +1747,7 @@ void cs64_ini_combo_renaming_test() {
 
     CS64INIEntry *pSection;
     CS64INIEntry *pVariable;
+    CS64INIEntry *pOldVariable;
     CS64INIEntryState state;
 
     // Test setting and getting entry names for sections
@@ -1770,6 +1771,12 @@ void cs64_ini_combo_renaming_test() {
             state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
+            pOldVariable = pVariable;
+
+            UNIT_TEST_ASSERT(j, pVariable->type.value.pSection == pSection);
+            UNIT_TEST_ASSERT(j, pVariable->type.value.nameByteSize == strlen(newVariableNames[j]) + 1);
+            UNIT_TEST_ASSERT(j, pVariable->type.value.valueByteSize == 6);
+
             cs64_ini_display_data(pData);
 
             pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j]);
@@ -1777,9 +1784,8 @@ void cs64_ini_combo_renaming_test() {
 
             pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_ASSERT(j, pVariable != NULL);
-            UNIT_TEST_ASSERT(j, pVariable->type.value.pSection == pSection);
-            UNIT_TEST_ASSERT(j, pVariable->type.value.nameByteSize == strlen(newVariableNames[j]) + 1);
-            UNIT_TEST_ASSERT(j, pVariable->type.value.valueByteSize == 6);
+            printf("pOldVariable %p | pVariable %p\n", pOldVariable, pVariable);
+            UNIT_TEST_ASSERT(j, pVariable == pOldVariable);
 
             // Get and assert the updated name
             UNIT_TEST_ASSERT(j, strcmp(newVariableNames[j], (char*)cs64_ini_get_entry_name(pVariable)) == 0);
@@ -1883,7 +1889,7 @@ void cs64_ini_display_data(const CS64INIData *const pData) {
 
     CS64Size l = 0;
     while(l < pData->hashTable.entryCapacity) {
-        printf("[%zd] ", l, pData->pLastSection);
+        printf("[%p] ", &pData->hashTable.pEntries[l]);
         cs64_ini_display_entry( &pData->hashTable.pEntries[l] );
         l++;
     }
