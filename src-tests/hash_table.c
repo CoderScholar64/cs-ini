@@ -1777,6 +1777,9 @@ void cs64_ini_combo_renaming_test() {
 
             pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_ASSERT(j, pVariable != NULL);
+            UNIT_TEST_ASSERT(j, pVariable->type.value.pSection == pSection);
+            UNIT_TEST_ASSERT(j, pVariable->type.value.nameByteSize == strlen(newVariableNames[j]) + 1);
+            UNIT_TEST_ASSERT(j, pVariable->type.value.valueByteSize == 6);
 
             // Get and assert the updated name
             UNIT_TEST_ASSERT(j, strcmp(newVariableNames[j], (char*)cs64_ini_get_entry_name(pVariable)) == 0);
