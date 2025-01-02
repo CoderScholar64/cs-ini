@@ -1866,30 +1866,31 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
             CS64INIEntry *pSectionVariable = pOldEntry->type.section.header.pFirstValue;
 
+            /* Since element has been moved in this case then. */
+            pMovedEntry->type.section.header.pFirstValue = NULL;
+            pMovedEntry->type.section.header.pLastValue  = NULL;
+
+            /* Modify pData if pOldEntry is at the beginning or end of sections. */
+            if(pData->pFirstSection == pOldEntry)
+                pData->pFirstSection = pMovedEntry;
+            if(pData->pLastSection == pOldEntry)
+                pData->pLastSection = pMovedEntry;
+
+            /* Modify Left and Right child of pOldEntry to point to pMovedEntry. */
+            if(pOldEntry->pNext != NULL)
+                pOldEntry->pNext->pPrev = pMovedEntry;
+            pMovedEntry->pNext = pOldEntry->pNext;
+            if(pOldEntry->pPrev != NULL)
+                pOldEntry->pPrev->pNext = pMovedEntry;
+            pMovedEntry->pPrev = pOldEntry->pPrev;
+
+            /* Move the comments */
+            pMovedEntry->commentSize       = pOldEntry->commentSize;
+            pMovedEntry->pComment          = pOldEntry->pComment;
+            pMovedEntry->inlineCommentSize = pOldEntry->inlineCommentSize;
+            pMovedEntry->pInlineComment    = pOldEntry->pInlineComment;
+
             if(pMovedEntry != pOldEntry) {
-                /* Since element has been moved in this case then. */
-                pMovedEntry->type.section.header.pFirstValue = NULL;
-                pMovedEntry->type.section.header.pLastValue  = NULL;
-
-                /* Modify pData if pOldEntry is at the beginning or end of sections. */
-                if(pData->pFirstSection == pOldEntry)
-                    pData->pFirstSection = pMovedEntry;
-                if(pData->pLastSection == pOldEntry)
-                    pData->pLastSection = pMovedEntry;
-
-                /* Modify Left and Right child of pOldEntry to point to pMovedEntry. */
-                if(pOldEntry->pNext != NULL)
-                    pOldEntry->pNext->pPrev = pMovedEntry;
-                pMovedEntry->pNext = pOldEntry->pNext;
-                if(pOldEntry->pPrev != NULL)
-                    pOldEntry->pPrev->pNext = pMovedEntry;
-                pMovedEntry->pPrev = pOldEntry->pPrev;
-
-                /* Move the comments */
-                pMovedEntry->commentSize       = pOldEntry->commentSize;
-                pMovedEntry->pComment          = pOldEntry->pComment;
-                pMovedEntry->inlineCommentSize = pOldEntry->inlineCommentSize;
-                pMovedEntry->pInlineComment    = pOldEntry->pInlineComment;
                 pOldEntry->pNext          = NULL;
                 pOldEntry->pPrev          = NULL;
                 pOldEntry->pComment       = NULL;
@@ -1897,7 +1898,6 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             }
 
             /* Fix the hash table locations. */
-            CS64INIEntry *pLastSectionVariable = NULL;
             while(pSectionVariable != NULL) {
                 pSectionVariable->type.value.pSection = pMovedEntry;
 
@@ -1924,28 +1924,28 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
                     {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
                     {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
 
+                if(pMovedEntry->type.section.header.pFirstValue == NULL)
+                    pMovedEntry->type.section.header.pFirstValue = pMovedVariable;
+                pMovedEntry->type.section.header.pLastValue = pMovedVariable;
+
                 /* Check if the variable has been moved. */
+                pMovedVariable->type.value = pSectionVariable->type.value;
+
+                /* Modify Left and Right child of pSectionVariable to point to pMovedVariable. */
+                if(pSectionVariable->pNext != NULL)
+                    pSectionVariable->pNext->pPrev = pMovedVariable;
+                pMovedVariable->pNext = pSectionVariable->pNext;
+                if(pSectionVariable->pPrev != NULL)
+                    pSectionVariable->pPrev->pNext = pMovedVariable;
+                pMovedVariable->pPrev = pSectionVariable->pPrev;
+
+                /* Move the comments */
+                pMovedVariable->commentSize       = pSectionVariable->commentSize;
+                pMovedVariable->pComment          = pSectionVariable->pComment;
+                pMovedVariable->inlineCommentSize = pSectionVariable->inlineCommentSize;
+                pMovedVariable->pInlineComment    = pSectionVariable->pInlineComment;
+
                 if(pMovedVariable != pSectionVariable) {
-                    pMovedVariable->type.value = pSectionVariable->type.value;
-
-                    if(pMovedEntry->type.section.header.pFirstValue == NULL)
-                        pMovedEntry->type.section.header.pFirstValue = pMovedVariable;
-                    pMovedEntry->type.section.header.pLastValue = pMovedVariable;
-
-                    /* Modify Left and Right child of pSectionVariable to point to pMovedVariable. */
-                    if(pSectionVariable->pNext != NULL)
-                        pSectionVariable->pNext->pPrev = pMovedVariable;
-                    pMovedVariable->pNext = pSectionVariable->pNext;
-                    if(pSectionVariable->pPrev != NULL)
-                        pSectionVariable->pPrev->pNext = pMovedVariable;
-                    pMovedVariable->pPrev = pSectionVariable->pPrev;
-
-                    /* Move the comments */
-                    pMovedVariable->commentSize       = pSectionVariable->commentSize;
-                    pMovedVariable->pComment          = pSectionVariable->pComment;
-                    pMovedVariable->inlineCommentSize = pSectionVariable->inlineCommentSize;
-                    pMovedVariable->pInlineComment    = pSectionVariable->pInlineComment;
-
                     /* Zero out the memory on the section variable. */
                     pSectionVariable->pNext          = NULL;
                     pSectionVariable->pPrev          = NULL;
@@ -2034,33 +2034,34 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             pRenamedVariable->type.value.nameByteSize  = nameByteSize;
             pRenamedVariable->type.value.valueByteSize = backupValue.valueByteSize;
 
+            if(pRenamedVariable->type.value.pSection == NULL) {
+                if(pData->globals.pFirstValue == pOldEntry)
+                    pData->globals.pFirstValue = pRenamedVariable;
+                if(pData->globals.pLastValue == pOldEntry)
+                    pData->globals.pLastValue = pRenamedVariable;
+            }
+            else {
+                if(pRenamedVariable->type.value.pSection->type.section.header.pFirstValue == pOldEntry)
+                    pRenamedVariable->type.value.pSection->type.section.header.pFirstValue = pRenamedVariable;
+                if(pRenamedVariable->type.value.pSection->type.section.header.pLastValue == pOldEntry)
+                    pRenamedVariable->type.value.pSection->type.section.header.pLastValue = pRenamedVariable;
+            }
+
+            /* Modify Left and Right child of pOldEntry to point to pRenamedVariable. */
+            if(pOldEntry->pNext != NULL)
+                pOldEntry->pNext->pPrev = pRenamedVariable;
+            pRenamedVariable->pNext = pOldEntry->pNext;
+            if(pOldEntry->pPrev != NULL)
+                pOldEntry->pPrev->pNext = pRenamedVariable;
+            pRenamedVariable->pPrev = pOldEntry->pPrev;
+
+            /* Move the comments */
+            pRenamedVariable->commentSize       = pOldEntry->commentSize;
+            pRenamedVariable->pComment          = pOldEntry->pComment;
+            pRenamedVariable->inlineCommentSize = pOldEntry->inlineCommentSize;
+            pRenamedVariable->pInlineComment    = pOldEntry->pInlineComment;
+
             if(pRenamedVariable != pOldEntry) {
-                if(backupValue.pSection == NULL) {
-                    if(pData->globals.pFirstValue == pOldEntry)
-                        pData->globals.pFirstValue = pOldEntry;
-                    if(pData->globals.pLastValue == pOldEntry)
-                        pData->globals.pLastValue = pOldEntry;
-                }
-                else {
-                    if(backupValue.pSection->type.section.header.pFirstValue == pOldEntry)
-                        backupValue.pSection->type.section.header.pFirstValue = pOldEntry;
-                    if(backupValue.pSection->type.section.header.pLastValue == pOldEntry)
-                        backupValue.pSection->type.section.header.pLastValue = pOldEntry;
-                }
-
-                /* Modify Left and Right child of pOldEntry to point to pRenamedVariable. */
-                if(pOldEntry->pNext != NULL)
-                    pOldEntry->pNext->pPrev = pRenamedVariable;
-                pRenamedVariable->pNext = pOldEntry->pNext;
-                if(pOldEntry->pPrev != NULL)
-                    pOldEntry->pPrev->pNext = pRenamedVariable;
-                pRenamedVariable->pPrev = pOldEntry->pPrev;
-
-                /* Move the comments */
-                pRenamedVariable->commentSize       = pOldEntry->commentSize;
-                pRenamedVariable->pComment          = pOldEntry->pComment;
-                pRenamedVariable->inlineCommentSize = pOldEntry->inlineCommentSize;
-                pRenamedVariable->pInlineComment    = pOldEntry->pInlineComment;
                 pOldEntry->pNext          = NULL;
                 pOldEntry->pPrev          = NULL;
                 pOldEntry->pComment       = NULL;

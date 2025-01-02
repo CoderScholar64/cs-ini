@@ -1789,6 +1789,16 @@ void cs64_ini_combo_renaming_test() {
             j++;
         }
 
+        j = 0;
+        pVariable = cs64_ini_get_first_section_value(pSection);
+        while(j < variableCountPerSection[i]) {
+            pGetVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)newVariableNames[j]);
+            UNIT_TEST_DETAIL_ASSERT(j, pGetVariable == pVariable, printf("pGetVariable %p != pVariable %p\n", pGetVariable, pVariable); cs64_ini_display_data(pData););
+
+            pVariable = cs64_ini_get_next_entry(pVariable);
+            j++;
+        }
+
         SET_AVAILABLE_MEM_PAGES(newSectionRequiredAlloc[i])
 
         // Set a new name for the section
