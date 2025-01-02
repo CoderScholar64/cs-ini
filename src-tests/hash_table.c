@@ -1791,10 +1791,14 @@ void cs64_ini_combo_renaming_test() {
 
         j = 0;
         pVariable = cs64_ini_get_first_section_value(pSection);
+        pOldEntry = NULL;
         while(j < variableCountPerSection[i]) {
             pGetVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_DETAIL_ASSERT(j, pGetVariable == pVariable, printf("pGetVariable %p != pVariable %p\n", pGetVariable, pVariable); cs64_ini_display_data(pData););
 
+            UNIT_TEST_DETAIL_ASSERT(j, cs64_ini_get_prev_entry(pVariable) == pOldEntry, printf("cs64_ini_get_prev_entry(pVariable) %p != pOldEntry %p\n", cs64_ini_get_prev_entry(pVariable), pOldEntry); cs64_ini_display_data(pData););
+
+            pOldEntry = pVariable;
             pVariable = cs64_ini_get_next_entry(pVariable);
             j++;
         }
@@ -1820,16 +1824,24 @@ void cs64_ini_combo_renaming_test() {
 
         j = 0;
         pVariable = cs64_ini_get_first_section_value(pSection);
+        pOldEntry = NULL;
         while(j < variableCountPerSection[i]) {
             pGetVariable = cs64_ini_get_variable(pData, (CS64UTF8*)newSectionNames[i], (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_DETAIL_ASSERT(j, pGetVariable == pVariable, printf("pGetVariable %p != pVariable %p\n", pGetVariable, pVariable); cs64_ini_display_data(pData););
 
+            UNIT_TEST_DETAIL_ASSERT(j, cs64_ini_get_prev_entry(pVariable) == pOldEntry, printf("cs64_ini_get_prev_entry(pVariable) %p != pOldEntry %p\n", cs64_ini_get_prev_entry(pVariable), pOldEntry); cs64_ini_display_data(pData););
+
+            pOldEntry = pVariable;
             pVariable = cs64_ini_get_next_entry(pVariable);
             j++;
         }
 
         i++;
     }
+
+    i = 0;
+
+    cs64_ini_display_data(pData);
 
     cs64_ini_data_free(pData);
 
@@ -1851,7 +1863,7 @@ void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
             return;
         case CS64_INI_ENTRY_SECTION:
         case CS64_INI_ENTRY_DYNAMIC_SECTION:
-            printf("ENTRY IS A SECTION! %p\n", pEntry);
+            printf("ENTRY IS A SECTION!\n");
             printf("\tnext           = %p\n",  pEntry->pNext);
             printf("\tprevious       = %p\n",  pEntry->pPrev);
             printf("\tfirst    value = %p\n",  pEntry->type.section.header.pFirstValue);
@@ -1868,7 +1880,7 @@ void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
             break;
         case CS64_INI_ENTRY_VALUE:
         case CS64_INI_ENTRY_DYNAMIC_VALUE:
-            printf("ENTRY IS A VALUE! %p\n", pEntry);
+            printf("ENTRY IS A VALUE!\n");
             printf("\tnext            = %p\n",  pEntry->pNext);
             printf("\tprevious        = %p\n",  pEntry->pPrev);
             printf("\tparent  section = %p\n",  pEntry->type.value.pSection);
