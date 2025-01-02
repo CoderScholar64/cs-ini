@@ -1898,8 +1898,11 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             }
 
             /* Fix the hash table locations. */
+            CS64INIEntry *pNextEntry;
             while(pSectionVariable != NULL) {
                 pSectionVariable->type.value.pSection = pMovedEntry;
+
+                pNextEntry = pSectionVariable->pNext;
 
                 backupEntryType = pSectionVariable->entryType;
 
@@ -1955,7 +1958,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
                 pMovedVariable->entryType = backupEntryType;
 
-                pSectionVariable = pSectionVariable->pNext;
+                pSectionVariable = pNextEntry;
             }
 
             *ppEntry = pMovedEntry;
