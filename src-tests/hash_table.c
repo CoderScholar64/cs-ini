@@ -1747,6 +1747,7 @@ void cs64_ini_combo_renaming_test() {
 
     CS64INIEntry *pSection;
     CS64INIEntry *pVariable;
+    CS64INIEntry *pGetVariable;
     CS64INIEntry *pOldEntry;
     CS64INIEntryState state;
 
@@ -1765,8 +1766,6 @@ void cs64_ini_combo_renaming_test() {
             state = cs64_ini_add_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j], (const CS64UTF8*)"Value", &pVariable);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
-            cs64_ini_display_data(pData);
-
             // Set a new name for the entry
             state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -1780,8 +1779,6 @@ void cs64_ini_combo_renaming_test() {
             UNIT_TEST_ASSERT(j, pVariable->type.value.valueByteSize == 6);
             UNIT_TEST_ASSERT(j, 0 == strcmp((char*)cs64_ini_get_entry_name(pVariable),   newVariableNames[j]));
             UNIT_TEST_ASSERT(j, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "Value"));
-
-            cs64_ini_display_data(pData);
 
             pVariable = cs64_ini_get_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j]);
             UNIT_TEST_ASSERT(j, pVariable == NULL);
@@ -1800,15 +1797,26 @@ void cs64_ini_combo_renaming_test() {
 
         pOldEntry = pSection;
 
+        // Get and assert the updated name
+        UNIT_TEST_ASSERT(i, pSection->type.section.nameByteSize == strlen(newSectionNames[i]) + 1);
+        UNIT_TEST_ASSERT(i, 0 == strcmp((char*)cs64_ini_get_entry_name(pSection), newSectionNames[i]));
+
         pSection = cs64_ini_get_section(pData, (CS64UTF8*)sectionNames[i]);
         UNIT_TEST_ASSERT(i, pSection == NULL);
 
         pSection = cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[i]);
         UNIT_TEST_ASSERT(i, pSection != NULL);
-        UNIT_TEST_DETAIL_ASSERT(j, pOldEntry == pSection, printf("pOldVariable %p != pSection %p\n", pOldEntry, pSection););
+        UNIT_TEST_DETAIL_ASSERT(i, pOldEntry == pSection, printf("pOldSection %p != pSection %p\n", pOldEntry, pSection););
 
-        // Get and assert the updated name
-        UNIT_TEST_ASSERT(i, strcmp(newSectionNames[i], (char*)cs64_ini_get_entry_name(pSection)) == 0);
+        j = 0;
+        pVariable = cs64_ini_get_first_section_value(pSection);
+        while(j < variableCountPerSection[i]) {
+            pGetVariable = cs64_ini_get_variable(pData, (CS64UTF8*)newSectionNames[i], (CS64UTF8*)newVariableNames[j]);
+            UNIT_TEST_DETAIL_ASSERT(j, pGetVariable == pVariable, printf("pGetVariable %p != pVariable %p\n", pGetVariable, pVariable); cs64_ini_display_data(pData););
+
+            pVariable = cs64_ini_get_next_entry(pVariable);
+            j++;
+        }
 
         i++;
     }
