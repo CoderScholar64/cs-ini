@@ -1839,9 +1839,63 @@ void cs64_ini_combo_renaming_test() {
         i++;
     }
 
-    i = 0;
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == NULL, printf("cs64_ini_get_first_global_value(pData) %p != NULL\n", cs64_ini_get_first_global_value(pData)););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == NULL, printf("pData->globals.pLastValue %p != NULL\n", pData->globals.pLastValue););
 
-    cs64_ini_display_data(pData);
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"oranges", (const CS64UTF8*)"follower", &pVariable);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == pVariable, printf("cs64_ini_get_first_global_value(pData) %p != pVariable %p\n", cs64_ini_get_first_global_value(pData), pVariable););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
+    UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "follower"));
+
+    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"plum");
+    UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == pVariable, printf("cs64_ini_get_first_global_value(pData) %p != pVariable %p\n", cs64_ini_get_first_global_value(pData), pVariable););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
+    UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "follower"));
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"follower");
+    UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == pVariable, printf("cs64_ini_get_first_global_value(pData) %p != pVariable %p\n", cs64_ini_get_first_global_value(pData), pVariable););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
+    UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "follower"));
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"banana", (const CS64UTF8*)"yellow green", &pVariable);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower"), printf("cs64_ini_get_first_global_value(pData) %p != cs64_ini_get_variable(pData, NULL, (CS64UTF8*)\"follower\") %p\n", cs64_ini_get_first_global_value(pData), cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower")););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
+    UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "yellow green"));
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"bananas");
+    UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower"), printf("cs64_ini_get_first_global_value(pData) %p != cs64_ini_get_variable(pData, NULL, (CS64UTF8*)\"follower\") %p\n", cs64_ini_get_first_global_value(pData), cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower")););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
+    UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "yellow green"));
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"app");
+    UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower"), printf("cs64_ini_get_first_global_value(pData) %p != cs64_ini_get_variable(pData, NULL, (CS64UTF8*)\"follower\") %p\n", cs64_ini_get_first_global_value(pData), cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower")););
+    UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
+    UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "yellow green"));
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"carrots", (const CS64UTF8*)"oranges", &pVariable);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"apples", (const CS64UTF8*)"red", &pVariable);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
     cs64_ini_data_free(pData);
 
