@@ -1816,7 +1816,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
     CS64Size sectionByteSize;
     CS64Size nameByteSize;
-    CS64Offset sectionHash;
+    CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
     CS64Offset originalIndex;
     CS64Offset index;
 
@@ -1832,7 +1832,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
             /* Handle the deletion. */
             pOldEntry->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
-            sectionHash = CS64_INI_HASH_FUNCTION(pValue, CS64_INI_INITIAL_HASH, &sectionByteSize);
+            sectionHash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &sectionByteSize);
             originalIndex = sectionHash % pData->hashTable.entryCapacity;
             index = originalIndex;
             pMovedEntry = &pData->hashTable.pEntries[index];
@@ -1980,7 +1980,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             nameByteSize = 0;
 
             if(pSectionName != NULL)
-                sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, CS64_INI_INITIAL_HASH, &sectionByteSize);
+                sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, sectionHash, &sectionByteSize);
             CS64Offset hash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &nameByteSize);
 
             originalIndex = hash % pData->hashTable.entryCapacity;
