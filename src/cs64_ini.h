@@ -2031,7 +2031,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             }
 
             if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_VALUE)
-                CS64_INI_FREE(pOldEntry->type.value.data.dynamic.pName);
+                CS64_INI_FREE(backupValue.data.dynamic.pName);
 
             pRenamedVariable->type.value.pSection      = backupValue.pSection;
             pRenamedVariable->type.value.nameByteSize  = nameByteSize;
