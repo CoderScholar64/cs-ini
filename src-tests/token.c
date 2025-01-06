@@ -1535,7 +1535,7 @@ void test_free(void *pPointer) {
     }
 
     if(pointerTrackIndex == pointerTrackAmount) {
-        printf("Error: Failed to locate %p within the track array. Probably a double free or a pointer not allocated by test_malloc\n", pPointer);
+        printf("Error: Failed to locate %p within the track array. This is most likely a double free test_malloc. Array Limit = %d. Array Amount = %d \n", pPointer, TACKER_ARRAY_LIMIT, pointerTrackAmount);
         exit(EXIT_FAILURE);
     }
 
