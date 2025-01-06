@@ -61,7 +61,8 @@
     #define CS64Offset CS64Size
 #endif
 
-#ifndef CS64_INI_HASH_FUNCTION
+#ifndef CS64_INI_HASH_FUNCTION_NAME
+    /* Indicate that the standard hash function is being used */
     #define CS64_INI_HASH_STANDARD_FUNCTION
 
     CS64Offset cs64_ini_standard_hash_function(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize);
@@ -72,6 +73,14 @@
     #define CS64_INI_INITIAL_HASH 0xcbf29ce484222325
     #else
     #define CS64_INI_INITIAL_HASH 0x811c9dc5
+    #endif
+#else
+    CS64Offset CS64_INI_HASH_FUNCTION_NAME(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize);
+
+    #define CS64_INI_HASH_FUNCTION(pString, hash, pStringByteSize) CS64_INI_HASH_FUNCTION_NAME(pString, hash, pStringByteSize)
+
+    #ifndef CS64_INI_INITIAL_HASH
+    #error The CS64_INI_INITIAL_HASH define is required for custom hashing function.
     #endif
 #endif
 
