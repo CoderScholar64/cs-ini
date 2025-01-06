@@ -10,8 +10,15 @@ void test_free(void *pointer);
 // This limit would make this test easier to write.
 #define CS64_INI_TOKEN_AMOUNT 4
 
+#ifdef USE_BAD_HASH_FUNCTION
+#define CS64_INI_HASH_FUNCTION_NAME bad_hash
+#define CS64_INI_INITIAL_HASH 0
+#endif
+
 #define CS64_INI_LIBRARY_IMP
 #include "cs64_ini.h"
+
+CS64Offset bad_hash(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize) { return hash; }
 
 #include <stdio.h>
 #include <stdlib.h>
