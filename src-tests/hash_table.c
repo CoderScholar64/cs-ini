@@ -2005,6 +2005,18 @@ void cs64_ini_unicode_rejection_test() {
         {0xf4, 0x80, 0x80, 0x00},
     };
 
+    // Make sure that these are not acceptable values to my unicode.
+    CS64Size charByteSize;
+    int i = 0;
+    while(i < sizeof(bad_utf8) / sizeof(bad_utf8[0])) {
+        CS64UniChar result = cs64_ini_utf_8_read(bad_utf8[i], 4, &charByteSize);
+
+        UNIT_TEST_DETAIL_ASSERT(i, CS64_INI_MAX_CODE < result, printf("result = 0x%x", result););
+
+        i++;
+    }
+
+
     //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) both
     //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) first
     //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) second
