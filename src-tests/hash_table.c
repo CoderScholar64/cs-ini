@@ -64,7 +64,7 @@ void cs64_ini_section_implicit_rehash_test();
 void cs64_ini_variable_change_test();
 void cs64_ini_combo_del_entry_test();
 void cs64_ini_combo_renaming_test();
-/* Text input rejection tests */
+void cs64_ini_unicode_rejection_test();
 
 void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
 void cs64_ini_display_data(const CS64INIData *const pData);
@@ -83,6 +83,7 @@ int main() {
     cs64_ini_variable_change_test();
     cs64_ini_combo_del_entry_test();
     cs64_ini_combo_renaming_test();
+    cs64_ini_unicode_rejection_test();
     return 0;
 }
 
@@ -1953,6 +1954,83 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower"), printf("cs64_ini_get_first_global_value(pData) %p != cs64_ini_get_variable(pData, NULL, (CS64UTF8*)\"follower\") %p\n", cs64_ini_get_first_global_value(pData), cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"follower")););
     UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "red"));
+
+    cs64_ini_data_free(pData);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_unicode_rejection_test() {
+    SET_AVAILABLE_MEM_PAGES(2)
+    CS64INIData* pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, pData != NULL);
+
+    CS64INIEntryState state;
+
+    CS64INIEntry *pCommentVariable;
+
+    state = cs64_ini_add_variable(pData, NULL, (CS64UTF8*)"comment", (CS64UTF8*)"", &pCommentVariable);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+    const uint8_t bad_utf8[][4] = {
+        {0xc0, 0x00, 0x00, 0x00},
+        {0xc1, 0x00, 0x00, 0x00},
+        {0xf5, 0x00, 0x00, 0x00},
+        {0xf6, 0x00, 0x00, 0x00},
+        {0xf7, 0x00, 0x00, 0x00},
+        {0xf8, 0x00, 0x00, 0x00},
+        {0xf9, 0x00, 0x00, 0x00},
+        {0xfa, 0x00, 0x00, 0x00},
+        {0xfb, 0x00, 0x00, 0x00},
+        {0xfc, 0x00, 0x00, 0x00},
+        {0xfd, 0x00, 0x00, 0x00},
+        {0xfe, 0x00, 0x00, 0x00},
+        {0xff, 0x00, 0x00, 0x00},
+
+        {0x80, 0x00, 0x00, 0x00},
+
+        {0xc0, 0x80, 0x00, 0x00},
+        {0xe0, 0x80, 0x80, 0x00},
+        {0xf0, 0x80, 0x80, 0x80},
+
+        {0xf4, 0x90, 0x80, 0x80},
+
+        {0xc2, 0x00, 0x00, 0x00},
+
+        {0xe0, 0x00, 0x80, 0x00},
+        {0xe0, 0x80, 0x00, 0x00},
+
+        {0xf4, 0x00, 0x80, 0x80},
+        {0xf4, 0x80, 0x00, 0x80},
+        {0xf4, 0x80, 0x80, 0x00},
+    };
+
+    //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) both
+    //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) first
+    //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) second
+    //cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry)
+    //cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *const pValue)
+    //cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *const pValue)
+    //cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue)
+    //cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue) bad unicode
+    //cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *const pValue)
+
+    // new line cases.
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"\n");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"\ncomment");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"com\nment");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"comment\n");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
 
     cs64_ini_data_free(pData);
 
