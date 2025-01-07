@@ -18,8 +18,6 @@ void test_free(void *pointer);
 #define CS64_INI_LIBRARY_IMP
 #include "cs64_ini.h"
 
-CS64Offset bad_hash(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize) { return hash; }
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2038,6 +2036,11 @@ void cs64_ini_display_data(const CS64INIData *const pData) {
         cs64_ini_display_entry( &pData->hashTable.pEntries[l] );
         l++;
     }
+}
+
+CS64Offset bad_hash(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pStringByteSize) {
+    *pStringByteSize = strlen((char*)pString) + 1;
+    return 0;
 }
 
 void *test_malloc(size_t size) {
