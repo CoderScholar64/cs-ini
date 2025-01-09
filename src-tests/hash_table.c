@@ -2005,6 +2005,11 @@ void cs64_ini_unicode_rejection_test() {
         {0xf4, 0x80, 0x80, 0x00},
     };
 
+    uint8_t current_utf8[8];
+    current_utf8[sizeof(current_utf8) / sizeof(current_utf8[0]) - 1] = '\0';
+
+    SET_AVAILABLE_MEM_PAGES(1)
+
     CS64Size charByteSize;
     int i = 0;
     while(i < sizeof(bad_utf8) / sizeof(bad_utf8[0])) {
@@ -2013,15 +2018,56 @@ void cs64_ini_unicode_rejection_test() {
         CS64UniChar result = cs64_ini_utf_8_read(bad_utf8[i], 4, &charByteSize);
         UNIT_TEST_DETAIL_ASSERT(i, CS64_INI_MAX_CODE < result, printf("result = 0x%x", result););
 
-        //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) both
-        //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) first
-        //cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *const pSection, const CS64UTF8 *const pName, const CS64UTF8 *pValue, CS64INIEntry** ppEntry) second
-        //cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const pSection, CS64INIEntry** ppEntry)
-        //cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *const pValue)
-        //cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *const pValue)
-        //cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue)
-        //cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue) bad unicode
-        //cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *const pValue)
+        int d = 0;
+        while(d < sizeof(current_utf8) / sizeof(current_utf8[0]) - 1) {
+            current_utf8[d] = 'v';
+            d++;
+        }
+
+        int f = 0;
+        while(f < sizeof(bad_utf8[0]) / sizeof(bad_utf8[0][0])) {
+            current_utf8[f] = bad_utf8[i][f];
+            f++;
+        }
+
+        state = cs64_ini_add_variable(pData, (CS64UTF8*)"section", (CS64UTF8*)"variable", current_utf8, &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_variable(pData, (CS64UTF8*)"section", current_utf8, (CS64UTF8*)"value", &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_variable(pData, (CS64UTF8*)"section", current_utf8, current_utf8, &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_variable(pData, current_utf8, (CS64UTF8*)"variable", (CS64UTF8*)"value", &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_variable(pData, current_utf8, (CS64UTF8*)"variable", current_utf8, &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_variable(pData, current_utf8, current_utf8, (CS64UTF8*)"value", &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_variable(pData, current_utf8, current_utf8, current_utf8, &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_add_section(pData, current_utf8, &pCommentVariable);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_set_entry_name(pData, &pCommentVariable, current_utf8);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_set_entry_value(pCommentVariable, current_utf8);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_set_entry_comment(pCommentVariable, current_utf8);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_set_entry_inline_comment(pCommentVariable, current_utf8);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+
+        state = cs64_ini_set_last_comment(pData, current_utf8);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
 
         i++;
     }
