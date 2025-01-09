@@ -2123,7 +2123,8 @@ const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry) 
 }
 
 CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *pNewValue) {
-    /* TODO Check if pNewValue is UTF-8/ASCII compatible! */
+
+    UTF8_CHECK(pNewValue);
 
     const CS64UTF8 emptyString[] = "";
 
