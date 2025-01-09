@@ -2246,7 +2246,18 @@ CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const 
 
     UTF8_CHECK(pValue);
 
-    /* TODO Also check if new line is in pValue which would invalidate this function! */
+    /* Also check if new line is in pValue which would invalidate this function! */
+    if(pValue != NULL) {
+        CS64Size c = 0;
+        CS64Size l = cs64_ini_string_byte_size(pValue);
+        CS64Size charByteSize;
+
+        while(c < l) {
+            if(cs64_ini_utf_8_read(&pValue[c], l - c, &charByteSize) == '\n')
+                return CS64_INI_ENTRY_ERROR_ILLEGAL_STRING;
+            c += charByteSize;
+        }
+    }
 
     if(pEntry == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
