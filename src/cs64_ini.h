@@ -1315,7 +1315,17 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
     /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
     /* TODO Check if pVariableName is UTF-8/ASCII compatible! */
-    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+    if(pValue != NULL) {
+        CS64Size c = 0;
+        CS64Size l = cs64_ini_string_byte_size(pValue);
+        CS64Size charByteSize;
+
+        while(c < l) {
+            if(cs64_ini_utf_8_read(&pValue[c], l - c, &charByteSize) > CS64_INI_MAX_CODE)
+                return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;
+            c += charByteSize;
+        }
+    }
 
     /* Data must be present for this function to work */
     if(pData == NULL)
