@@ -1047,6 +1047,18 @@ else\
     }
 #define ATTEMPT_TO_FIND_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, index, originalIndex, srcHashTable, checker, findCondition, notFoundCondition)\
     ATTEMPT_TO_FIND_ENTRY(x, pVariableName, index, originalIndex, srcHashTable, checker, IS_CORRECT_VARIABLE(x, pSectionName, sectionByteSize, pVariableName, findCondition), notFoundCondition)
+#define UTF8_CHECK(x)\
+    if(x != NULL) {\
+        CS64Size c = 0;\
+        CS64Size l = cs64_ini_string_byte_size(x);\
+        CS64Size charByteSize;\
+\
+        while(c < l) {\
+            if(cs64_ini_utf_8_read(&(x)[c], l - c, &charByteSize) > CS64_INI_MAX_CODE)\
+                return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;\
+            c += charByteSize;\
+        }\
+    }
 
 CS64INIData* cs64_ini_data_alloc() {
     CS64INIData *pData = CS64_INI_MALLOC(sizeof(CS64INIData));
@@ -1313,19 +1325,9 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
     if(ppEntry != NULL)
         *ppEntry = NULL;
 
-    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
-    /* TODO Check if pVariableName is UTF-8/ASCII compatible! */
-    if(pValue != NULL) {
-        CS64Size c = 0;
-        CS64Size l = cs64_ini_string_byte_size(pValue);
-        CS64Size charByteSize;
-
-        while(c < l) {
-            if(cs64_ini_utf_8_read(&pValue[c], l - c, &charByteSize) > CS64_INI_MAX_CODE)
-                return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;
-            c += charByteSize;
-        }
-    }
+    UTF8_CHECK(pSectionName);
+    UTF8_CHECK(pVariableName);
+    UTF8_CHECK(pValue);
 
     /* Data must be present for this function to work */
     if(pData == NULL)
@@ -2324,5 +2326,6 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 #undef IS_ENTRY_VALUE
 #undef IS_CORRECT_VARIABLE
 #undef ATTEMPT_TO_FIND_VARIABLE
+#undef UTF8_CHECK
 
 #endif /* CS64_INI_LIBRARY_IMP */
