@@ -2207,7 +2207,8 @@ const CS64UTF8 *const cs64_ini_get_entry_value(const CS64INIEntry *const pEntry)
 }
 
 CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
-    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
+    UTF8_CHECK(pValue);
 
     if(pEntry == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
@@ -2242,7 +2243,9 @@ const CS64UTF8 *const cs64_ini_get_entry_comment(const CS64INIEntry *const pEntr
 }
 
 CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const CS64UTF8 *const pValue) {
-    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
+    UTF8_CHECK(pValue);
+
     /* TODO Also check if new line is in pValue which would invalidate this function! */
 
     if(pEntry == NULL)
@@ -2278,7 +2281,8 @@ const CS64UTF8 *const cs64_ini_get_entry_inline_comment(const CS64INIEntry *cons
 }
 
 CS64INIEntryState cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *const pValue) {
-    /* TODO Check if pValue is UTF-8/ASCII compatible! */
+
+    UTF8_CHECK(pValue);
 
     if(pData == NULL)
         return CS64_INI_ENTRY_ERROR_DATA_NULL;
