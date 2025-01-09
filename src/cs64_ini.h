@@ -1470,7 +1470,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
     if(ppEntry != NULL)
         *ppEntry = NULL;
 
-    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
+    UTF8_CHECK(pSectionName);
 
     /* Data must be present for this function to work */
     if(pData == NULL)
