@@ -1872,10 +1872,16 @@ void cs64_ini_combo_renaming_test() {
 
         // Same rename case should result in an error.
         state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)sectionNames[i]);
-        UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
 
         state = cs64_ini_set_entry_name(NULL, &pSection, "This also should not work if the hash table is not present!");
-        UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+        state = cs64_ini_set_entry_name(pData, &pSection, "");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
+
+        state = cs64_ini_set_entry_name(pData, &pSection, NULL);
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
 
         // Test setting and getting entry names for variables
         j = 0;
