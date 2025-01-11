@@ -129,10 +129,28 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
 
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_last_comment(pData, "BEST COMMENT");
+    state = cs64_ini_set_last_comment(pData, "THE BEST COMMENT!");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 18, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_set_last_comment(pData, "");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_last_comment(pData, "GOOD COMMENT");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_set_last_comment(pData, NULL);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
 
     cs64_ini_data_free(pData);
 
