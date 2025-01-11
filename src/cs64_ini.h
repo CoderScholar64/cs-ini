@@ -1317,6 +1317,10 @@ void cs64_ini_data_free(CS64INIData* pData) {
         CS64_INI_FREE(pData->hashTable.pEntries);
     }
 
+    /* Free Comment */
+    if(pData->pLastComment != NULL)
+        CS64_INI_FREE(pData->pLastComment);
+
     CS64_INI_FREE(pData);
 }
 
