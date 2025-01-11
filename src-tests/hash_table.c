@@ -1833,7 +1833,7 @@ void cs64_ini_combo_renaming_test() {
 
     CS64INIEntryState state;
 
-    state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries[0], "This should not work because this item should be empty! One does not rename empty entries");
+    state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries, "This should not work because this item should be empty! One does not rename empty entries");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
 
     // Note: the names of the variables are just random phrases.
