@@ -146,6 +146,12 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
 
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_set_last_comment(pData, "");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+
     /* This test was already done. This is to setup the next step. */
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_last_comment(pData, "GOOD COMMENT");
@@ -466,6 +472,10 @@ void cs64_ini_variable_parameter_test() {
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
 
         const CS64UTF8 entryComment[] = "This is an entry comment\nmultilines can be done with this kind of comment!\n";
+        SET_AVAILABLE_MEM_PAGES(0)
+        state = cs64_ini_set_entry_inline_comment(pEntry, entryComment);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_comment(pEntry, entryComment);
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
@@ -499,6 +509,10 @@ void cs64_ini_variable_parameter_test() {
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
 
         const CS64UTF8 inlineComment[] = "This is an inline comment";
+        SET_AVAILABLE_MEM_PAGES(0)
+        state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
