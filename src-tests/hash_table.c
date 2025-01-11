@@ -118,46 +118,46 @@ void cs64_ini_data_alloc_test() {
 
     /* Check if the last comment succeeds to fail if memory is not available. */
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_last_comment(pData, "BAD COMMENT");
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"BAD COMMENT");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
     /* This tests if the comment handles re*/
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_last_comment(pData, "GOOD COMMENT");
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"GOOD COMMENT");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%zd");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
 
     /* This tests if the comment handles deallocating case correctly. */
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_last_comment(pData, "THE BEST COMMENT!");
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"THE BEST COMMENT!");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 18, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 18, "%zd");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
 
     /* Does this clear the comment? */
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_last_comment(pData, "");
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_last_comment(pData, "");
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
     /* This test was already done. This is to setup the next step. */
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_last_comment(pData, "GOOD COMMENT");
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"GOOD COMMENT");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%zd");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
 
     /* Does this clear the comment? */
@@ -165,7 +165,7 @@ void cs64_ini_data_alloc_test() {
     state = cs64_ini_set_last_comment(pData, NULL);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
-    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
     cs64_ini_data_free(pData);
 
