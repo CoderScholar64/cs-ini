@@ -114,6 +114,26 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT(0, pData->globals.pFirstValue == NULL);
     UNIT_TEST_ASSERT(0, pData->globals.pLastValue  == NULL);
 
+    CS64INIEntryState state;
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_set_last_comment(pData, "BAD COMMENT");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_last_comment(pData, "GOOD COMMENT");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_last_comment(pData, "BEST COMMENT");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+
     cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
