@@ -116,6 +116,11 @@ void cs64_ini_data_alloc_test() {
 
     CS64INIEntryState state;
 
+    /* Check if the last comment succeeds to fail if pData happens to be NULL. */
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_set_last_comment(NULL, (CS64UTF8*)"BAD COMMENT");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
     /* Check if the last comment succeeds to fail if memory is not available. */
     SET_AVAILABLE_MEM_PAGES(0)
     state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"BAD COMMENT");
