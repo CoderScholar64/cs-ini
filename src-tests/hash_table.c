@@ -129,6 +129,7 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
 
     /* This tests if the comment handles deallocating case correctly. */
     SET_AVAILABLE_MEM_PAGES(1)
@@ -136,6 +137,7 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 18, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
 
     /* Does this clear the comment? */
     SET_AVAILABLE_MEM_PAGES(0)
@@ -150,6 +152,7 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 13, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
 
     /* Does this clear the comment? */
     SET_AVAILABLE_MEM_PAGES(0)
