@@ -1833,8 +1833,12 @@ void cs64_ini_combo_renaming_test() {
 
     CS64INIEntryState state;
 
+    // Test empty entry case.
     state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries, "This should not work because this item should be empty! One does not rename empty entries");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+
+    state = cs64_ini_set_entry_name(pData, NULL, "An empty entry is invalid!");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
 
     // Note: the names of the variables are just random phrases.
     const char* sectionNames[]    = {"s0", "s1",                     "section two of apples", "section three that contains berries"};
@@ -1851,10 +1855,13 @@ void cs64_ini_combo_renaming_test() {
     int i = 0;
     int j;
 
-    CS64INIEntry *pSection;
+    CS64INIEntry *pSection = NULL;
     CS64INIEntry *pVariable;
     CS64INIEntry *pGetVariable;
     CS64INIEntry *pOldEntry;
+
+    state = cs64_ini_set_entry_name(pData, &pSection, "pSection at this point should be set to NULL");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
 
     // Test setting and getting entry names for sections
     while(i < sizeof(sectionNames) / sizeof(sectionNames[0])) {
@@ -1863,6 +1870,13 @@ void cs64_ini_combo_renaming_test() {
         state = cs64_ini_add_section(pData, (CS64UTF8*)sectionNames[i], &pSection);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
+        // Same rename case should result in an error.
+        state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)sectionNames[i]);
+        UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+
+        state = cs64_ini_set_entry_name(NULL, &pSection, "This also should not work if the hash table is not present!");
+        UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
         // Test setting and getting entry names for variables
         j = 0;
         while(j < variableCountPerSection[i]) {
@@ -1870,6 +1884,10 @@ void cs64_ini_combo_renaming_test() {
 
             state = cs64_ini_add_variable(pData, (CS64UTF8*)sectionNames[i], (CS64UTF8*)variableNames[j], (const CS64UTF8*)"Value", &pVariable);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
+
+            // Same rename case should result in an error.
+            state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)variableNames[j]);
+            UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
 
             // Set a new name for the entry
             state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
