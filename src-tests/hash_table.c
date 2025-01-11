@@ -116,6 +116,8 @@ void cs64_ini_data_alloc_test() {
 
     CS64INIEntryState state;
 
+    UNIT_TEST_ASSERT_EQ(0, NULL, cs64_ini_get_last_comment(NULL), "%p");
+
     /* Check if the last comment succeeds to fail if pData happens to be NULL. */
     SET_AVAILABLE_MEM_PAGES(0)
     state = cs64_ini_set_last_comment(NULL, (CS64UTF8*)"BAD COMMENT");
@@ -474,9 +476,15 @@ void cs64_ini_variable_parameter_test() {
         // Test setters and getters for entry comments.
         UNIT_TEST_ASSERT(index, pEntry->commentSize == 0);
         UNIT_TEST_ASSERT(index, pEntry->pComment == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(NULL) == NULL);
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
 
         const CS64UTF8 entryComment[] = "This is an entry comment\nmultilines can be done with this kind of comment!\n";
+
+        SET_AVAILABLE_MEM_PAGES(0)
+        state = cs64_ini_set_entry_comment(NULL, entryComment);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_DATA_NULL);
+
         SET_AVAILABLE_MEM_PAGES(0)
         state = cs64_ini_set_entry_comment(pEntry, entryComment);
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
@@ -511,12 +519,17 @@ void cs64_ini_variable_parameter_test() {
         // Test setters and getters for inline comments.
         UNIT_TEST_ASSERT(index, pEntry->inlineCommentSize == 0);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(NULL) == NULL);
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
 
         const CS64UTF8 inlineComment[] = "This is an inline comment";
         SET_AVAILABLE_MEM_PAGES(0)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+
+        SET_AVAILABLE_MEM_PAGES(0)
+        state = cs64_ini_set_entry_inline_comment(NULL, inlineComment);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_DATA_NULL);
 
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
@@ -678,6 +691,8 @@ void cs64_ini_section_parameter_test() {
 
         state = cs64_ini_add_section(pData, names[index], &pEntry);
         UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+
+        UNIT_TEST_ASSERT_NEQ(index, cs64_ini_get_entry_value, NULL, "%p");
 
         cs64_ini_data_free(pData);
 
@@ -851,6 +866,9 @@ void cs64_ini_section_declarations_test() {
     UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_SUCCESS);
     UNIT_TEST_ASSERT_EQ(0, pEntry->entryType, CS64_INI_ENTRY_DYNAMIC_SECTION, "TOO big for static RAM usage %d");
     UNIT_TEST_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_name(pEntry), (const char*)value) == 0);
+
+    /* Test Get Entry for sections. This should return a null. */
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_entry_value(pEntry), NULL, "%p");
 
     cs64_ini_data_free(pData);
 
