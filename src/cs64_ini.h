@@ -300,7 +300,7 @@ CS64INIEntry* cs64_ini_get_prev_entry(CS64INIEntry *pEntry);
 CS64INIEntry* cs64_ini_get_entry_section(const CS64INIEntry *const pEntry);
 const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const pEntry);
 
-CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *pValue);
+CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *const pValue);
 const CS64UTF8 *const cs64_ini_get_entry_name(const CS64INIEntry *const pEntry);
 
 CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 *const pValue);
@@ -1819,7 +1819,7 @@ const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const 
     return pSectionEntry->type.section.name.fixed;
 }
 
-CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *pValue) {
+CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *const pValue) {
     const CS64UTF8 emptyString[] = "";
 
     UTF8_CHECK(pValue);
@@ -1835,8 +1835,9 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
     if(pOldEntry == NULL)
         return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
 
-    if(pValue == NULL)
-        pValue = emptyString;
+    /* A section or variable with an empty name is invalid. */
+    if(!IS_STRING_PRESENT(pValue))
+        return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
 
     CS64INIEntry *pMovedEntry = NULL;
     CS64EntryType backupEntryType = pOldEntry->entryType;
