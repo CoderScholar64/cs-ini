@@ -473,7 +473,7 @@ void cs64_ini_variable_parameter_test() {
 
         const CS64UTF8 entryComment[] = "This is an entry comment\nmultilines can be done with this kind of comment!\n";
         SET_AVAILABLE_MEM_PAGES(0)
-        state = cs64_ini_set_entry_inline_comment(pEntry, entryComment);
+        state = cs64_ini_set_entry_comment(pEntry, entryComment);
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
 
         SET_AVAILABLE_MEM_PAGES(1)
