@@ -1847,8 +1847,9 @@ void cs64_ini_combo_renaming_test() {
     int newSectionRequiredAlloc[] = { 0,    1,                        0,                       1};
 
     const char* variableNames[]    = {"v0", "v1",                           "variable two holding an int", "variable three holding a string"};
+    int    variableRequiredAlloc[] = { 0,    0,                              1,                             1};
     const char* newVariableNames[] = {"V0", "variable one holding a float", "v2",                          "variable three holding a pointer"};
-    int    variableRequiredAlloc[] = { 0,    1,                              1,                             2};
+    int newVariableRequiredAlloc[] = { 0,    1,                              0,                             1};
 
     const int variableCountPerSection[] = {0, 1, 2, 4};
 
@@ -1895,6 +1896,15 @@ void cs64_ini_combo_renaming_test() {
             state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)variableNames[j]);
             UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
 
+            // Not enough memory case.
+            if(newVariableRequiredAlloc[j] > 0) {
+                SET_AVAILABLE_MEM_PAGES(0);
+                state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
+                UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            }
+
+            SET_AVAILABLE_MEM_PAGES(newVariableRequiredAlloc[j])
+
             // Set a new name for the entry
             state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -1930,6 +1940,12 @@ void cs64_ini_combo_renaming_test() {
             pOldEntry = pVariable;
             pVariable = cs64_ini_get_next_entry(pVariable);
             j++;
+        }
+
+        if(newSectionRequiredAlloc[i] > 0) {
+            SET_AVAILABLE_MEM_PAGES(0);
+            state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)newSectionNames[i]);
+            UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
         }
 
         SET_AVAILABLE_MEM_PAGES(newSectionRequiredAlloc[i])
