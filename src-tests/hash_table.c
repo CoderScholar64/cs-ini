@@ -207,6 +207,9 @@ void cs64_ini_data_reserve_empty_test() {
     badData.pFirstSection = NULL;
     badData.pLastSection  = NULL;
 
+    // Del Entry has a special case for pEntries being NULL.
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_del_entry(&badData, badData.hashTable.pEntries), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
     // Just in case pEntries end up as a NULL.
     returnResult = cs64_ini_data_reserve(&badData, 32);
     UNIT_TEST_ASSERT_EQ(0, returnResult, -2, "%d");
@@ -1289,6 +1292,12 @@ void cs64_ini_combo_del_entry_test() {
         CS64INIData* pData = cs64_ini_data_alloc();
         UNIT_TEST_ASSERT(loop[0], pData != NULL);
 
+        // cs64_ini_del_entry DNE.
+        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, pData->hashTable.pEntries), CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+
+        // Null entry case.
+        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, NULL), CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == NULL);
         UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue == NULL);
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
@@ -1299,6 +1308,17 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT_EQ(loop[0], pEntry[0]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
         UNIT_TEST_ASSERT(loop[0], pEntry[0]->pNext == NULL);
         UNIT_TEST_ASSERT(loop[0], pEntry[0]->pPrev == NULL);
+
+        // Empty data parameter case.
+        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(NULL, pEntry[0]), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+        // Empty Slots cannot be deleted.
+        if(cs64_ini_get_entry_type(&pData->hashTable.pEntries[0]) == CS64_INI_ENTRY_EMPTY) {
+            UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, &pData->hashTable.pEntries[0]), CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, &pData->hashTable.pEntries[1]), CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+        }
 
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
         UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue  == pEntry[0]);
