@@ -174,6 +174,14 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_entry_type(NULL), CS64_INI_ENTRY_EMPTY, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section(NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_global_value(NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_next_entry(NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_prev_entry(NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_entry_section(NULL), NULL, "%p");
+
     cs64_ini_data_free(pData);
 
     UNIT_TEST_MEM_CHECK_ASSERT
