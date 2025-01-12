@@ -1820,8 +1820,6 @@ const CS64UTF8 *const cs64_ini_get_entry_section_name(const CS64INIEntry *const 
 }
 
 CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppEntry, const CS64UTF8 *const pValue) {
-    const CS64UTF8 emptyString[] = "";
-
     UTF8_CHECK(pValue);
 
     if(pData == NULL)

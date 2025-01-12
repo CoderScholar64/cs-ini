@@ -1834,10 +1834,10 @@ void cs64_ini_combo_renaming_test() {
     CS64INIEntryState state;
 
     // Test empty entry case.
-    state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries, "This should not work because this item should be empty! One does not rename empty entries");
+    state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries, (CS64UTF8*)"This should not work because this item should be empty! One does not rename empty entries");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
 
-    state = cs64_ini_set_entry_name(pData, NULL, "An empty entry is invalid!");
+    state = cs64_ini_set_entry_name(pData, NULL, (CS64UTF8*)"An empty entry is invalid!");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
 
     // Note: the names of the variables are just random phrases.
@@ -1860,7 +1860,7 @@ void cs64_ini_combo_renaming_test() {
     CS64INIEntry *pGetVariable;
     CS64INIEntry *pOldEntry;
 
-    state = cs64_ini_set_entry_name(pData, &pSection, "pSection at this point should be set to NULL");
+    state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)"pSection at this point should be set to NULL");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
 
     // Test setting and getting entry names for sections
@@ -1874,10 +1874,10 @@ void cs64_ini_combo_renaming_test() {
         state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)sectionNames[i]);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
 
-        state = cs64_ini_set_entry_name(NULL, &pSection, "This also should not work if the hash table is not present!");
+        state = cs64_ini_set_entry_name(NULL, &pSection, (CS64UTF8*)"This also should not work if the hash table is not present!");
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
 
-        state = cs64_ini_set_entry_name(pData, &pSection, "");
+        state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)"");
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
 
         state = cs64_ini_set_entry_name(pData, &pSection, NULL);
@@ -1967,6 +1967,22 @@ void cs64_ini_combo_renaming_test() {
 
         i++;
     }
+
+    CS64INIEntry *pRenamedSection = cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[2]);
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    state = cs64_ini_set_entry_name(pData, &pRenamedSection, (CS64UTF8*)"S2");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, pRenamedSection->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[1]), cs64_ini_get_prev_entry(pRenamedSection), "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[3]), cs64_ini_get_next_entry(pRenamedSection), "%p");
+
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_next_entry( cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[1]) ),    pRenamedSection, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_prev_entry( cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[3]) ), pRenamedSection, "%p");
+
+    state = cs64_ini_set_entry_name(pData, &pRenamedSection, (CS64UTF8*)newSectionNames[2]);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
     UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == NULL, printf("cs64_ini_get_first_global_value(pData) %p != NULL\n", cs64_ini_get_first_global_value(pData)););
     UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == NULL, printf("pData->globals.pLastValue %p != NULL\n", pData->globals.pLastValue););
@@ -2085,11 +2101,11 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pCarrotVariable->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
 
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_variable(pData, NULL, "ap"),    cs64_ini_get_prev_entry(pCarrotVariable), "%p");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_variable(pData, NULL, "apple"), cs64_ini_get_next_entry(pCarrotVariable), "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"ap"),    cs64_ini_get_prev_entry(pCarrotVariable), "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"apple"), cs64_ini_get_next_entry(pCarrotVariable), "%p");
 
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_next_entry( cs64_ini_get_variable(pData, NULL, "ap") ),    pCarrotVariable, "%p");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_prev_entry( cs64_ini_get_variable(pData, NULL, "apple") ), pCarrotVariable, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_next_entry( cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"ap") ),    pCarrotVariable, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_prev_entry( cs64_ini_get_variable(pData, NULL, (CS64UTF8*)"apple") ), pCarrotVariable, "%p");
 
     cs64_ini_data_free(pData);
 
