@@ -1183,6 +1183,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     state = cs64_ini_set_entry_value(pEntry, NULL);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -1192,6 +1193,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
@@ -1201,6 +1203,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     // static to static case.
     state = cs64_ini_set_entry_value(pEntry, value);
@@ -1212,6 +1215,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     // static to dynamic case.
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'a';
@@ -1228,6 +1232,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     // dynamic to dynamic case.
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'b';
@@ -1244,6 +1249,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     // dynamic to static case.
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = '\0';
@@ -1256,6 +1262,7 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(pEntry) != NULL);
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)value) == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)value););
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
     cs64_ini_data_free(pData);
 
@@ -1736,6 +1743,8 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->pFirstSection == pSectionEntry[0]);
         UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[3]);
 
+        UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pSectionEntry[2]), NULL, "%p");
+
         UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 8);
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[2]->entryType, CS64_INI_ENTRY_WAS_OCCUPIED, "This entry should have been removed with the section %d");
@@ -1847,6 +1856,8 @@ void cs64_ini_combo_renaming_test() {
 
     state = cs64_ini_set_entry_name(pData, NULL, (CS64UTF8*)"An empty entry is invalid!");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pData->hashTable.pEntries), NULL, "%p");
 
     // Note: the names of the variables are just random phrases.
     const char* sectionNames[]    = {"s0", "s1",                     "section two of apples", "section three that contains berries"};
