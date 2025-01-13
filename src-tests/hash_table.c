@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void *test_malloc(size_t size);
-void test_free(void *pointer);
+void *test_malloc(const char *const pFileName, unsigned linePos, size_t size);
+void test_free(const char *const pFileName, unsigned linePos, void *pointer);
 
-#define CS64_INI_MALLOC(size)  test_malloc(size)
-#define CS64_INI_FREE(pointer) test_free(pointer)
+#define CS64_INI_MALLOC(size)  test_malloc(__FILE__, __LINE__, size)
+#define CS64_INI_FREE(pointer) test_free(__FILE__, __LINE__, pointer)
 
 // This limit would make this test easier to write.
 #define CS64_INI_TOKEN_AMOUNT 4
@@ -1336,6 +1336,10 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
         UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 2);
 
+        SET_AVAILABLE_MEM_PAGES(1);
+        state = cs64_ini_set_entry_comment(pEntry[1], (const CS64UTF8*)"This comment is a normal comment!");
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+
         state = cs64_ini_add_variable(pData, NULL, varNames[2], (const CS64UTF8*)"Value", &pEntry[2]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pEntry[2]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
@@ -2385,12 +2389,12 @@ CS64Offset bad_hash(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pS
     return 0;
 }
 
-void *test_malloc(size_t size) {
+void *test_malloc(const char *const pFileName, unsigned linePos, size_t size) {
     if(mallocPagesLeft <= 0)
         return NULL;
     mallocPagesLeft--;
 
-    printf("Log: Allocating pointer of size 0x%zx", size);
+    printf("Log: %s Line %u Allocating pointer of size 0x%zx", pFileName, linePos, size);
     void *pointer = malloc(size);
     printf(". Address %p\n", pointer);
 
@@ -2412,8 +2416,8 @@ void *test_malloc(size_t size) {
     return pointer;
 }
 
-void test_free(void *pPointer) {
-    printf("Log: Freeing %p\n", pPointer);
+void test_free(const char *const pFileName, unsigned linePos, void *pPointer) {
+    printf("Log: %s Line %u Freeing %p\n", pFileName, linePos, pPointer);
     unsigned pointerTrackIndex = 0;
     while(pointerTrackIndex < pointerTrackAmount && pPointerTrackArray[pointerTrackIndex] != pPointer) {
         pointerTrackIndex++;
