@@ -1586,7 +1586,7 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
 
     CS64Offset hash = CS64_INI_INITIAL_HASH;
 
-    if(pSectionName != NULL)
+    if(IS_STRING_PRESENT(pSectionName))
         hash = CS64_INI_HASH_FUNCTION(pSectionName, hash, &sectionLength);
     hash = CS64_INI_HASH_FUNCTION(pName, hash, &nameLength);
 
