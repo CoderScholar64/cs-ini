@@ -174,6 +174,10 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(NULL, NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(pData, NULL), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(pData, (CS64UTF8*)""), NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(pData, (CS64UTF8*)"a"), NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_entry_type(NULL), CS64_INI_ENTRY_EMPTY, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section(NULL), NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_global_value(NULL), NULL, "%p");
@@ -209,6 +213,9 @@ void cs64_ini_data_reserve_empty_test() {
 
     // Del Entry has a special case for pEntries being NULL.
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_del_entry(&badData, badData.hashTable.pEntries), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    // Get Section also has a special case for pEntries being NULL.
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(&badData, (CS64UTF8*)""), NULL, "%p");
 
     // Just in case pEntries end up as a NULL.
     returnResult = cs64_ini_data_reserve(&badData, 32);
