@@ -114,18 +114,18 @@
 #endif
 
 typedef enum {
-    CS64_INI_MAX_CODE            = 0x10ffff,
-    CS64_INI_MAX_CODE_AMOUNT     = 0x110000,
-    CS64_INI_BAD_NOT_ASCII       = 0x110001,
-    CS64_INI_BAD_NOT_UTF_8       = 0x110002,
-    CS64_INI_BAD_OVERLONG        = 0x110003,
-    CS64_INI_BAD_LACK_SPACE      = 0x110004,
-    CS64_INI_BAD_TOO_BIG         = 0x110005,
-    CS64_INI_BAD_CONTINUE_BYTE_0 = 0x110006,
-    CS64_INI_BAD_CONTINUE_BYTE_1 = 0x110007,
-    CS64_INI_BAD_CONTINUE_BYTE_2 = 0x110008,
-    CS64_INI_BAD_CONTINUE_BYTE_3 = 0x110009
-} CS64UniCharCode;
+    CS64_INI_MAX_CODE              = 0x10ffff,
+    CS64_INI_MAX_CODE_AMOUNT       = 0x110000,
+    CS64_INI_NOT_ASCII_ERROR       = 0x110001,
+    CS64_INI_NOT_UTF_8_ERROR       = 0x110002,
+    CS64_INI_OVERLONG_ERROR        = 0x110003,
+    CS64_INI_LACK_SPACE_ERROR      = 0x110004,
+    CS64_INI_TOO_BIG_ERROR         = 0x110005,
+    CS64_INI_CONTINUE_BYTE_0_ERROR = 0x110006,
+    CS64_INI_CONTINUE_BYTE_1_ERROR = 0x110007,
+    CS64_INI_CONTINUE_BYTE_2_ERROR = 0x110008,
+    CS64_INI_CONTINUE_BYTE_3_ERROR = 0x110009
+} CS64INIUniCharState;
 
 typedef enum {
     CS64_INI_LEXER_SUCCESS              = 0, /* Anything other than zero, is an error */
@@ -340,7 +340,7 @@ void cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokens, CS64Si
  * @param pDataHead Pointer to the current byte in the UTF-8 stream. @warning NULL is not optional. This value must be present.
  * @param remainingDataSize The space left to read. Used to prevent buffer overflows. @warning make sure you subtract this value using *pCharacterByteSize to successfully test agaisnt buffer-overflows.
  * @param pCharacterByteSize Pointer to a variable storing the read character size. If zero then either NULL has been found or error. (updated by the function)
- * @return 0-127 if there is no error. CS64_INI_BAD_NOT_ASCII is the stream is not ASCII.
+ * @return 0-127 if there is no error. CS64_INI_NOT_ASCII_ERROR is the stream is not ASCII.
  */
 CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize);
 
@@ -371,11 +371,11 @@ int cs64_ini_utf_8_write(CS64UTF8 *pDataHead, CS64Size remainingDataSize, CS64Un
 CS64UniChar cs64_ini_ascii_read(const CS64UTF8 *const pDataHead, CS64Size remainingDataSize, CS64Size *pCharacterByteSize) {
     if(remainingDataSize == 0) {
         *pCharacterByteSize = 0; /* Indicate that the loop calling this function should end. */
-        return CS64_INI_BAD_LACK_SPACE;
+        return CS64_INI_LACK_SPACE_ERROR;
     }
     else if(*pDataHead >= 0x80) {
         *pCharacterByteSize = 0; /* Indicate that the loop calling this function should end. */
-        return CS64_INI_BAD_NOT_ASCII;
+        return CS64_INI_NOT_ASCII_ERROR;
     }
 
     *pCharacterByteSize = 1; /* Indicate that there are more bytes to be read. */
@@ -400,20 +400,20 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     *pCharacterByteSize = 0; /* Indicate that the loop calling this function should end. */
 
     if(remainingDataSize == 0)
-        return CS64_INI_BAD_LACK_SPACE;
+        return CS64_INI_LACK_SPACE_ERROR;
     else if(CHECK_NEVER_BYTE(pDataHead[0]))
-        return CS64_INI_BAD_NOT_UTF_8;
+        return CS64_INI_NOT_UTF_8_ERROR;
     else if(IS_CHAR_CONTINUATION(pDataHead[0]))
-        return CS64_INI_BAD_CONTINUE_BYTE_0;
+        return CS64_INI_CONTINUE_BYTE_0_ERROR;
     else if(IS_UTF_1_BYTE(pDataHead[0])) {
         *pCharacterByteSize = 1;
         return pDataHead[0];
     }
     else if(IS_UTF_2_BYTE(pDataHead[0])) {
         if(remainingDataSize < 2)
-            return CS64_INI_BAD_LACK_SPACE;
+            return CS64_INI_LACK_SPACE_ERROR;
         else if(!IS_CHAR_CONTINUATION(pDataHead[1])) /* Check if byte is continuous. */
-            return CS64_INI_BAD_CONTINUE_BYTE_1;
+            return CS64_INI_CONTINUE_BYTE_1_ERROR;
 
         result  = ((pDataHead[0] & 0b00011111) << 6);
         result |= ((pDataHead[1] & 0b00111111) << 0);
@@ -424,13 +424,13 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     }
     else if(IS_UTF_3_BYTE(pDataHead[0])) {
         if(remainingDataSize < 3)
-            return CS64_INI_BAD_LACK_SPACE;
+            return CS64_INI_LACK_SPACE_ERROR;
         else if(!IS_CHAR_CONTINUATION(pDataHead[1])) /* Check if byte is continuous. */
-            return CS64_INI_BAD_CONTINUE_BYTE_1;
+            return CS64_INI_CONTINUE_BYTE_1_ERROR;
         else if(!IS_CHAR_CONTINUATION(pDataHead[2])) /* Check if byte is continuous. */
-            return CS64_INI_BAD_CONTINUE_BYTE_2;
+            return CS64_INI_CONTINUE_BYTE_2_ERROR;
         else if(IS_UTF_OVERLONG_3_BYTE(pDataHead[0], pDataHead[1])) /* Check for overlong error. */
-            return CS64_INI_BAD_OVERLONG;
+            return CS64_INI_OVERLONG_ERROR;
 
         result  = ((pDataHead[0] & 0b00001111) << 12);
         result |= ((pDataHead[1] & 0b00111111) <<  6);
@@ -442,17 +442,17 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
     }
     else if(IS_UTF_4_BYTE(pDataHead[0])) {
         if(remainingDataSize < 4)
-            return CS64_INI_BAD_LACK_SPACE;
+            return CS64_INI_LACK_SPACE_ERROR;
         else if(!IS_CHAR_CONTINUATION(pDataHead[1])) /* Check if byte is continuous. */
-            return CS64_INI_BAD_CONTINUE_BYTE_1;
+            return CS64_INI_CONTINUE_BYTE_1_ERROR;
         else if(!IS_CHAR_CONTINUATION(pDataHead[2])) /* Check if byte is continuous. */
-            return CS64_INI_BAD_CONTINUE_BYTE_2;
+            return CS64_INI_CONTINUE_BYTE_2_ERROR;
         else if(!IS_CHAR_CONTINUATION(pDataHead[3])) /* Check if byte is continuous. */
-            return CS64_INI_BAD_CONTINUE_BYTE_3;
+            return CS64_INI_CONTINUE_BYTE_3_ERROR;
         else if(IS_UTF_OVERLONG_4_BYTE(pDataHead[0], pDataHead[1])) /* Check for overlong error. */
-            return CS64_INI_BAD_OVERLONG;
+            return CS64_INI_OVERLONG_ERROR;
         else if(IS_UTF_OVERSIZED(pDataHead[0], pDataHead[1])) /* Check for over-size case. */
-            return CS64_INI_BAD_TOO_BIG;
+            return CS64_INI_TOO_BIG_ERROR;
 
         result  = ((pDataHead[0] & 0b00000111) << 18);
         result |= ((pDataHead[1] & 0b00111111) << 12);
@@ -464,7 +464,7 @@ CS64UniChar cs64_ini_utf_8_read(const CS64UTF8 *const pDataHead, CS64Size remain
         return result;
     }
 
-    return CS64_INI_BAD_NOT_UTF_8;
+    return CS64_INI_NOT_UTF_8_ERROR;
 }
 
 /* Clean up Macros! */

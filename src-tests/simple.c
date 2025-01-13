@@ -22,7 +22,7 @@ int main() {
         if(character != '\0')
             break;
         else if(characterByteSize == 0) {
-            if(character == CS64_INI_BAD_NOT_ASCII)
+            if(character == CS64_INI_NOT_ASCII_ERROR)
                 printf("\nError: Encountered non-ASCII character\n");
 
             break; // Loop terminates when characterByteSize is 0.
