@@ -1262,7 +1262,8 @@ int lexer_test() {
         {CS64_INI_TOKEN_END, 80, 1},
         {CS64_INI_TOKEN_QUOTE_VALUE, 81, 6},
         {CS64_INI_TOKEN_DELEMETER, 88, 1},
-        {CS64_INI_TOKEN_VALUE, 90, 12},
+        {CS64_INI_TOKEN_VALUE, 90, 5},
+        {CS64_INI_TOKEN_VALUE, 96, 6},
         {CS64_INI_TOKEN_QUOTE_VALUE, 102, 9},
         {CS64_INI_TOKEN_COMMENT, 111, 9},
         {CS64_INI_TOKEN_END, 120, 0}
