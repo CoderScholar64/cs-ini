@@ -1455,6 +1455,10 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[0]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[0]));
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[1]) == pSectionVarEntry[0]);
 
+        SET_AVAILABLE_MEM_PAGES(1);
+        state = cs64_ini_set_entry_inline_comment(pSectionVarEntry[0], (const CS64UTF8*)"This comment is a inline comment!");
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+
         state = cs64_ini_add_variable(pData, secNames[2], varNames[0], (const CS64UTF8*)"Value", &pSectionVarEntry[1]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionVarEntry[1]->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
@@ -1472,6 +1476,10 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[2]->pNext == cs64_ini_get_next_entry(pSectionVarEntry[2]));
         UNIT_TEST_ASSERT(loop[0], pSectionVarEntry[2]->pPrev == cs64_ini_get_prev_entry(pSectionVarEntry[2]));
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section_value(pSectionEntry[2]) == pSectionVarEntry[1]);
+
+        SET_AVAILABLE_MEM_PAGES(1);
+        state = cs64_ini_set_entry_inline_comment(pSectionVarEntry[2], (const CS64UTF8*)"This comment is a normal comment!");
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
 
         state = cs64_ini_add_variable(pData, secNames[2], varNames[2], (const CS64UTF8*)"Value", &pSectionVarEntry[3]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
