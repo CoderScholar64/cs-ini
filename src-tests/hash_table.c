@@ -1964,10 +1964,10 @@ void cs64_ini_combo_renaming_test() {
     CS64INIEntryState state;
 
     // Test empty entry case.
-    state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries, (CS64UTF8*)"This should not work because this item should be empty! One does not rename empty entries");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"This should not work because this item should be empty! One does not rename empty entries", &pData->hashTable.pEntries);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_EMPTY_ERROR, "%d");
 
-    state = cs64_ini_set_entry_name(pData, NULL, (CS64UTF8*)"An empty entry is invalid!");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"An empty entry is invalid!", NULL);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pData->hashTable.pEntries), NULL, "%p");
@@ -1993,7 +1993,7 @@ void cs64_ini_combo_renaming_test() {
     CS64INIEntry *pGetVariable;
     CS64INIEntry *pOldEntry;
 
-    state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)"pSection at this point should be set to NULL");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"pSection at this point should be set to NULL", &pSection);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_DNE_ERROR, "%d");
 
     // Test setting and getting entry names for sections
@@ -2004,16 +2004,16 @@ void cs64_ini_combo_renaming_test() {
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
         // Same rename case should result in an error.
-        state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)sectionNames[i]);
+        state = cs64_ini_set_entry_name(pData, (CS64UTF8*)sectionNames[i], &pSection);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
 
-        state = cs64_ini_set_entry_name(NULL, &pSection, (CS64UTF8*)"This also should not work if the hash table is not present!");
+        state = cs64_ini_set_entry_name(NULL, (CS64UTF8*)"This also should not work if the hash table is not present!", &pSection);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
-        state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)"");
+        state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"", &pSection);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR, "%d");
 
-        state = cs64_ini_set_entry_name(pData, &pSection, NULL);
+        state = cs64_ini_set_entry_name(pData, NULL, &pSection);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR, "%d");
 
         // Test setting and getting entry names for variables
@@ -2025,20 +2025,20 @@ void cs64_ini_combo_renaming_test() {
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
             // Same rename case should result in an error.
-            state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)variableNames[j]);
+            state = cs64_ini_set_entry_name(pData, (CS64UTF8*)variableNames[j], &pVariable);
             UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
 
             // Not enough memory case.
             if(newVariableRequiredAlloc[j] > 0) {
                 SET_AVAILABLE_MEM_PAGES(0);
-                state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
+                state = cs64_ini_set_entry_name(pData, (CS64UTF8*)newVariableNames[j], &pVariable);
                 UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
             }
 
             SET_AVAILABLE_MEM_PAGES(newVariableRequiredAlloc[j])
 
             // Set a new name for the entry
-            state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
+            state = cs64_ini_set_entry_name(pData, (CS64UTF8*)newVariableNames[j], &pVariable);
             UNIT_TEST_ASSERT_EQ(j, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
             pOldEntry = pVariable;
@@ -2076,14 +2076,14 @@ void cs64_ini_combo_renaming_test() {
 
         if(newSectionRequiredAlloc[i] > 0) {
             SET_AVAILABLE_MEM_PAGES(0);
-            state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)newSectionNames[i]);
+            state = cs64_ini_set_entry_name(pData, (CS64UTF8*)newSectionNames[i], &pSection);
             UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
 
         SET_AVAILABLE_MEM_PAGES(newSectionRequiredAlloc[i])
 
         // Set a new name for the section
-        state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)newSectionNames[i]);
+        state = cs64_ini_set_entry_name(pData, (CS64UTF8*)newSectionNames[i], &pSection);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
         pOldEntry = pSection;
@@ -2119,7 +2119,7 @@ void cs64_ini_combo_renaming_test() {
     CS64INIEntry *pRenamedSection = cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[2]);
 
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_entry_name(pData, &pRenamedSection, (CS64UTF8*)"S2");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"S2", &pRenamedSection);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pRenamedSection->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
 
@@ -2129,7 +2129,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_next_entry( cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[1]) ),    pRenamedSection, "%p");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_prev_entry( cs64_ini_get_section(pData, (CS64UTF8*)newSectionNames[3]) ), pRenamedSection, "%p");
 
-    state = cs64_ini_set_entry_name(pData, &pRenamedSection, (CS64UTF8*)newSectionNames[2]);
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)newSectionNames[2], &pRenamedSection);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
     UNIT_TEST_DETAIL_ASSERT(0, cs64_ini_get_first_global_value(pData) == NULL, printf("cs64_ini_get_first_global_value(pData) %p != NULL\n", cs64_ini_get_first_global_value(pData)););
@@ -2144,7 +2144,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_DETAIL_ASSERT(0, pData->globals.pLastValue              == pVariable, printf("pData->globals.pLastValue %p != pVariable %p\n", pData->globals.pLastValue, pVariable););
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "follower"));
 
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"plum");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"plum", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2153,7 +2153,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "follower"));
 
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"follower");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"follower", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2171,7 +2171,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "yellow green"));
 
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"bananas");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"bananas", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2180,7 +2180,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "yellow green"));
 
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"app");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"app", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2189,7 +2189,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "yellow green"));
 
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"ap");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"ap", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2207,7 +2207,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "oranges"));
 
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"carrot");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"carrot", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2216,7 +2216,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "oranges"));
 
     SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"carrotry");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"carrotry", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_DYNAMIC_VALUE, "TOO big for static RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2236,7 +2236,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "red"));
 
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)"apple");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"apple", &pVariable);
     UNIT_TEST_ASSERT_EQ(0, pVariable->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
 
@@ -2245,7 +2245,7 @@ void cs64_ini_combo_renaming_test() {
     UNIT_TEST_ASSERT(0, 0 == strcmp((char*)cs64_ini_get_entry_value(pVariable), "red"));
 
     SET_AVAILABLE_MEM_PAGES(0)
-    state = cs64_ini_set_entry_name(pData, &pCarrotVariable, (CS64UTF8*)"c7");
+    state = cs64_ini_set_entry_name(pData, (CS64UTF8*)"c7", &pCarrotVariable);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, pCarrotVariable->entryType, CS64_INI_ENTRY_VALUE, "TOO short for dynamic RAM usage %d");
 
@@ -2354,7 +2354,7 @@ void cs64_ini_unicode_rejection_test() {
         state = cs64_ini_add_section(pData, current_utf8, &pCommentVariable);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
-        state = cs64_ini_set_entry_name(pData, &pCommentVariable, current_utf8);
+        state = cs64_ini_set_entry_name(pData, current_utf8, &pCommentVariable);
         UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_set_entry_value(pCommentVariable, current_utf8);
