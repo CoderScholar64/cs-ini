@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void *test_malloc(const char *const pFileName, unsigned linePos, size_t size);
-void test_free(const char *const pFileName, unsigned linePos, void *pointer);
+void *test_malloc(unsigned linePos, size_t size);
+void test_free(unsigned linePos, void *pointer);
 
-#define CS64_INI_MALLOC(size)  test_malloc(__FILE__, __LINE__, size)
-#define CS64_INI_FREE(pointer) test_free(__FILE__, __LINE__, pointer)
+#define CS64_INI_MALLOC(size)  test_malloc(__LINE__, size)
+#define CS64_INI_FREE(pointer) test_free(__LINE__, pointer)
 
 // This limit would make this test easier to write.
 #define CS64_INI_TOKEN_AMOUNT 4
@@ -2389,12 +2389,12 @@ CS64Offset bad_hash(const CS64UTF8 *const pString, CS64Offset hash, CS64Size *pS
     return 0;
 }
 
-void *test_malloc(const char *const pFileName, unsigned linePos, size_t size) {
+void *test_malloc(unsigned linePos, size_t size) {
     if(mallocPagesLeft <= 0)
         return NULL;
     mallocPagesLeft--;
 
-    printf("Log: %s Line %u Allocating pointer of size 0x%zx", pFileName, linePos, size);
+    printf("Log: Line %u Allocating pointer of size 0x%zx", linePos, size);
     void *pointer = malloc(size);
     printf(". Address %p\n", pointer);
 
@@ -2416,8 +2416,8 @@ void *test_malloc(const char *const pFileName, unsigned linePos, size_t size) {
     return pointer;
 }
 
-void test_free(const char *const pFileName, unsigned linePos, void *pPointer) {
-    printf("Log: %s Line %u Freeing %p\n", pFileName, linePos, pPointer);
+void test_free(unsigned linePos, void *pPointer) {
+    printf("Log: Line %u Freeing %p\n", linePos, pPointer);
     unsigned pointerTrackIndex = 0;
     while(pointerTrackIndex < pointerTrackAmount && pPointerTrackArray[pointerTrackIndex] != pPointer) {
         pointerTrackIndex++;
