@@ -1245,6 +1245,9 @@ void cs64_ini_variable_change_test() {
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
 
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+
     state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT(0, pEntry->type.value.pSection      == NULL);
