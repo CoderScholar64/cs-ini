@@ -174,6 +174,9 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(NULL,  NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, (CS64UTF8*)"", NULL, NULL), CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(NULL, NULL, NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(pData, NULL, NULL), CS64_INI_ENTRY_ERROR_SECTION_EMPTY, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(pData, (CS64UTF8*)"", NULL), CS64_INI_ENTRY_ERROR_SECTION_EMPTY, "%d");
@@ -218,6 +221,9 @@ void cs64_ini_data_reserve_empty_test() {
 
     // Del Entry has a special case for pEntries being NULL.
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_del_entry(&badData, badData.hashTable.pEntries), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+
+    // Add Variable also has a special case for pEntries being NULL.
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(&badData, (CS64UTF8*)"NULL", (CS64UTF8*)"NULL", (CS64UTF8*)"NULL", NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
 
     // Add Section also has a special case for pEntries being NULL.
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(&badData, (CS64UTF8*)"NULL", NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
