@@ -1716,6 +1716,9 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
     if(pEntry->pInlineComment != NULL)
         CS64_INI_FREE(pEntry->pInlineComment);
 
+    pEntry->pComment = NULL;
+    pEntry->pInlineComment = NULL;
+
     /* Free if dynamic */
     switch(pEntry->entryType) {
         case CS64_INI_ENTRY_DYNAMIC_VALUE:
