@@ -1358,7 +1358,7 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
     CS64Offset sectionHash = CS64_INI_INITIAL_HASH;
 
-    if(pSectionName != NULL)
+    if(IS_STRING_PRESENT(pSectionName))
         sectionHash = CS64_INI_HASH_FUNCTION(pSectionName,  sectionHash, &sectionLength);
     CS64Offset hash = CS64_INI_HASH_FUNCTION(pVariableName, sectionHash, &nameByteSize);
 
@@ -2000,7 +2000,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             sectionByteSize = 0;
             nameByteSize = 0;
 
-            if(pSectionName != NULL)
+            if(IS_STRING_PRESENT(pSectionName))
                 sectionHash = CS64_INI_HASH_FUNCTION(pSectionName, sectionHash, &sectionByteSize);
             CS64Offset hash = CS64_INI_HASH_FUNCTION(pValue, sectionHash, &nameByteSize);
 
