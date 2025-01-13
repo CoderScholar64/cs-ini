@@ -128,8 +128,8 @@ typedef enum {
 } CS64UniCharCode;
 
 typedef enum {
-    CS64_INI_LEXER_SUCCESS              = 0,
-    CS64_INI_LEXER_EARLY_NULL           = 1,
+    CS64_INI_LEXER_SUCCESS              = 0, /* Anything other than zero, is an error */
+    CS64_INI_LEXER_EARLY_NULL_ERROR     = 1,
     CS64_INI_LEXER_NO_MEMORY_ERROR      = 2,
     CS64_INI_LEXER_ENCODING_ERROR       = 3,
     CS64_INI_LEXER_EXPECTED_ERROR       = 4,
@@ -138,15 +138,15 @@ typedef enum {
 
 typedef enum {
     CS64_INI_ENTRY_SUCCESS               = 0, /* Anything other than zero, is an error */
-    CS64_INI_ENTRY_ERROR_DATA_NULL       = 1,
-    CS64_INI_ENTRY_ERROR_SECTION_EMPTY   = 2,
-    CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY  = 3,
-    CS64_INI_ENTRY_ERROR_ENTRY_EMPTY     = 4,
-    CS64_INI_ENTRY_ERROR_ENTRY_EXISTS    = 5,
-    CS64_INI_ENTRY_ERROR_ENTRY_DNE       = 6,
-    CS64_INI_ENTRY_ERROR_OUT_OF_SPACE    = 7,
-    CS64_INI_ENTRY_ERROR_ILLEGAL_STRING  = 8,
-    CS64_INI_ENTRY_ERROR_INVALID_ENCODE  = 9
+    CS64_INI_ENTRY_DATA_NULL_ERROR       = 1,
+    CS64_INI_ENTRY_SECTION_EMPTY_ERROR   = 2,
+    CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR  = 3,
+    CS64_INI_ENTRY_ENTRY_EMPTY_ERROR     = 4,
+    CS64_INI_ENTRY_ENTRY_EXISTS_ERROR    = 5,
+    CS64_INI_ENTRY_ENTRY_DNE_ERROR       = 6,
+    CS64_INI_ENTRY_NO_MEMORY_ERROR       = 7,
+    CS64_INI_ENTRY_ILLEGAL_STRING_ERROR  = 8,
+    CS64_INI_ENTRY_INVALID_ENCODE_ERROR  = 9
 } CS64INIEntryState;
 
 typedef enum {
@@ -331,6 +331,8 @@ CS64INIToken cs64_ini_tokenize_value(CS64INITokenResult *pResult, const CS64UTF8
 CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize, CS64Size UTF8Offset);
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 void cs64_ini_lexer_free(CS64INITokenResult *pResult);
+
+void cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokens, CS64Size tokenOffset);
 
 /**
  * This function reads an ASCII value.
@@ -677,7 +679,7 @@ int cs64_ini_is_character_whitespace(CS64UniChar character) {
         return ret; /* NOTE: Invalid Character Error. */\
     }\
     else if(pUTF8Data[UTF8Offset] == '\0') {\
-        (pResult)->state = CS64_INI_LEXER_EARLY_NULL;\
+        (pResult)->state = CS64_INI_LEXER_EARLY_NULL_ERROR;\
         return ret;\
     }
 
@@ -1055,7 +1057,7 @@ else\
 \
         while(c < l) {\
             if(cs64_ini_utf_8_read(&(x)[c], l - c, &charByteSize) > CS64_INI_MAX_CODE)\
-                return CS64_INI_ENTRY_ERROR_INVALID_ENCODE;\
+                return CS64_INI_ENTRY_INVALID_ENCODE_ERROR;\
             c += charByteSize;\
         }\
     }
@@ -1335,15 +1337,15 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
     /* Data must be present for this function to work */
     if(pData == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* pData make sure that the hash table has entries. */
     if(pData->hashTable.pEntries == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* Variables must always be named. */
     if(!IS_STRING_PRESENT(pVariableName))
-        return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
+        return CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR;
 
     /* Check if it is time for a resize */
     if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
@@ -1351,7 +1353,7 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
     /* Check if table is full. */
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
-        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+        return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
     CS64Size sectionLength = 0;
     CS64Size nameByteSize = 0;
@@ -1368,8 +1370,8 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
 
     ATTEMPT_TO_FIND_VARIABLE(
         pEntry, pSectionName, sectionLength, pVariableName, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
-        {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-        {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+        {return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;},
+        {return CS64_INI_ENTRY_NO_MEMORY_ERROR;})
 
     CS64UTF8 emptyValue[] = "";
 
@@ -1383,7 +1385,7 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
         pDynamicMemory = CS64_INI_MALLOC(sizeof(CS64UTF8) * (nameByteSize + valueByteSize));
 
         if(pDynamicMemory == NULL)
-            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+            return CS64_INI_ENTRY_NO_MEMORY_ERROR;
     }
 
     CS64INIEntry *pLastValue = NULL;
@@ -1409,7 +1411,7 @@ CS64INIEntryState cs64_ini_add_variable(CS64INIData *pData, const CS64UTF8 *cons
             if(pDynamicMemory != NULL)
                 CS64_INI_FREE(pDynamicMemory);
 
-            return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
+            return CS64_INI_ENTRY_ENTRY_DNE_ERROR;
         }
 
         pEntry->type.value.pSection = pSectionEntry;
@@ -1478,15 +1480,15 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
     /* Data must be present for this function to work */
     if(pData == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* pData make sure that the hash table has entries. */
     if(pData->hashTable.pEntries == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* There already is a global section. */
     if(!IS_STRING_PRESENT(pSectionName))
-        return CS64_INI_ENTRY_ERROR_SECTION_EMPTY;
+        return CS64_INI_ENTRY_SECTION_EMPTY_ERROR;
 
     /* Check if it is time for a resize */
     if(pData->hashTable.currentEntryAmount >= pData->hashTable.entryCapacityUpLimit)
@@ -1494,7 +1496,7 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
     /* Check if table is full. */
     if(pData->hashTable.currentEntryAmount == pData->hashTable.entryCapacity)
-        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+        return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
     CS64Size sectionByteSize = 0;
 
@@ -1504,14 +1506,14 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
     CS64INIEntry *pEntry = &pData->hashTable.pEntries[index];
 
     ATTEMPT_TO_FIND_SECTION(pEntry, pSectionName, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pEntry),
-        {return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-        {return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+        {return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;},
+        {return CS64_INI_ENTRY_NO_MEMORY_ERROR;})
 
     if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE < sectionByteSize) {
         void *pAttempt = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionByteSize);
 
         if(pAttempt == NULL)
-            return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+            return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
         pEntry->type.section.name.pDynamic = pAttempt;
 
@@ -1633,19 +1635,19 @@ CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSe
 CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
     /* Data must be present for this function to work */
     if(pData == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* pData make sure that the hash table has entries. */
     if(pData->hashTable.pEntries == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* Make sure that the table does have items in it to delete. */
     if(pEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+        return CS64_INI_ENTRY_ENTRY_EMPTY_ERROR;
 
     /* Make sure that the table does have items in it to delete. */
     if(pData->hashTable.currentEntryAmount == 0)
-        return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
+        return CS64_INI_ENTRY_ENTRY_DNE_ERROR;
 
     if(IS_ENTRY_SECTION(pEntry)) {
         CS64INIEntry *pVariable = pEntry->type.section.header.pFirstValue;
@@ -1691,7 +1693,7 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
         if(pEntry == pSectionHeader->pLastValue)
             pSectionHeader->pLastValue = pEntry->pPrev;
     } else {
-        return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+        return CS64_INI_ENTRY_ENTRY_EMPTY_ERROR;
     }
 
     /* Standard Remove Element from double linked lists! */
@@ -1818,19 +1820,19 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
     UTF8_CHECK(pValue);
 
     if(pData == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     if(ppEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     CS64INIEntry *pOldEntry = *ppEntry;
 
     if(pOldEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_ENTRY_DNE;
+        return CS64_INI_ENTRY_ENTRY_DNE_ERROR;
 
     /* A section or variable with an empty name is invalid. */
     if(!IS_STRING_PRESENT(pValue))
-        return CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY;
+        return CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR;
 
     CS64INIEntry *pMovedEntry = NULL;
     CS64EntryType backupEntryType = pOldEntry->entryType;
@@ -1847,7 +1849,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
         {
             /* Check if there is a section with the name as pValue in the hash table. */
             if(cs64_ini_get_section(pData, pValue) != NULL)
-                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
+                return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;
 
             sectionByteSize = 0;
 
@@ -1859,14 +1861,14 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             pMovedEntry = &pData->hashTable.pEntries[index];
 
             ATTEMPT_TO_FIND_SECTION(pMovedEntry, pValue, sectionByteSize, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pMovedEntry),
-                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;},
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_NO_MEMORY_ERROR;})
 
             if(CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE < sectionByteSize) {
                 void *pAttempt = CS64_INI_MALLOC(sizeof(CS64UTF8) * sectionByteSize);
                 if(pAttempt == NULL) {
                     pOldEntry->entryType = backupEntryType;
-                    return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                    return CS64_INI_ENTRY_NO_MEMORY_ERROR;
                 }
                 if(backupEntryType == CS64_INI_ENTRY_DYNAMIC_SECTION)
                     CS64_INI_FREE(pOldEntry->type.section.name.pDynamic);
@@ -1945,8 +1947,8 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
                 ATTEMPT_TO_FIND_VARIABLE(
                     pMovedVariable, pValue, sectionByteSize, pName, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pMovedVariable),
-                    {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                    {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+                    {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;},
+                    {pSectionVariable->entryType = backupEntryType; return CS64_INI_ENTRY_NO_MEMORY_ERROR;})
 
                 if(pMovedEntry->type.section.header.pFirstValue == NULL)
                     pMovedEntry->type.section.header.pFirstValue = pMovedVariable;
@@ -1995,7 +1997,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
             /* Check if there is a variable with the name as pValue in the hash table. */
             if(cs64_ini_get_variable(pData, pSectionName, pValue) != NULL)
-                return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;
+                return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;
 
             sectionByteSize = 0;
             nameByteSize = 0;
@@ -2012,8 +2014,8 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
             ATTEMPT_TO_FIND_VARIABLE(
                 pRenamedVariable, pSectionName, sectionByteSize, pValue, index, originalIndex, pData->hashTable, !IS_ENTRY_EMPTY(pRenamedVariable),
-                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_ENTRY_EXISTS;},
-                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;})
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_ENTRY_EXISTS_ERROR;},
+                {pOldEntry->entryType = backupEntryType; return CS64_INI_ENTRY_NO_MEMORY_ERROR;})
 
             CS64UTF8 *pDynamicMemory = NULL;
 
@@ -2022,7 +2024,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
 
                 if(pDynamicMemory == NULL) {
                     pOldEntry->entryType = backupEntryType;
-                    return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                    return CS64_INI_ENTRY_NO_MEMORY_ERROR;
                 }
             }
 
@@ -2097,7 +2099,7 @@ CS64INIEntryState cs64_ini_set_entry_name(CS64INIData *pData, CS64INIEntry **ppE
             break;
 
         default:
-            return CS64_INI_ENTRY_ERROR_ENTRY_EMPTY;
+            return CS64_INI_ENTRY_ENTRY_EMPTY_ERROR;
     }
 
     return CS64_INI_ENTRY_SUCCESS;
@@ -2128,10 +2130,10 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
     const CS64UTF8 emptyString[] = "";
 
     if(pEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     if(!IS_ENTRY_VALUE(pEntry))
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     if(pNewValue == NULL)
         pNewValue = emptyString;
@@ -2144,7 +2146,7 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
             CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(totalByteSize);
 
             if(pNameAndValue == NULL)
-                return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
             STRING_COPY( pNameAndValue,                                    pEntry->type.value.data.dynamic.pName)
             STRING_COPY((pNameAndValue + pEntry->type.value.nameByteSize), pNewValue)
@@ -2171,7 +2173,7 @@ CS64INIEntryState cs64_ini_set_entry_value(CS64INIEntry *pEntry, const CS64UTF8 
             CS64UTF8 *pNameAndValue = CS64_INI_MALLOC(totalByteSize);
 
             if(pNameAndValue == NULL)
-                return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+                return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
             STRING_COPY( pNameAndValue,                                    pEntry->type.value.data.fixed)
             STRING_COPY((pNameAndValue + pEntry->type.value.nameByteSize), pNewValue)
@@ -2210,7 +2212,7 @@ CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF
     UTF8_CHECK(pValue);
 
     if(pEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* Free Comment */
     if(pEntry->pComment != NULL)
@@ -2227,7 +2229,7 @@ CS64INIEntryState cs64_ini_set_entry_comment(CS64INIEntry *pEntry, const CS64UTF
     pEntry->pComment = CS64_INI_MALLOC(valueByteSize);
 
     if(pEntry->pComment == NULL)
-        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+        return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
     STRING_COPY(pEntry->pComment, pValue)
     pEntry->commentSize = valueByteSize;
@@ -2253,13 +2255,13 @@ CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const 
 
         while(c < l) {
             if(cs64_ini_utf_8_read(&pValue[c], l - c, &charByteSize) == '\n')
-                return CS64_INI_ENTRY_ERROR_ILLEGAL_STRING;
+                return CS64_INI_ENTRY_ILLEGAL_STRING_ERROR;
             c += charByteSize;
         }
     }
 
     if(pEntry == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* Free Comment */
     if(pEntry->pInlineComment != NULL)
@@ -2276,7 +2278,7 @@ CS64INIEntryState cs64_ini_set_entry_inline_comment(CS64INIEntry *pEntry, const 
     pEntry->pInlineComment = CS64_INI_MALLOC(valueByteSize);
 
     if(pEntry->pInlineComment == NULL)
-        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+        return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
     STRING_COPY(pEntry->pInlineComment, pValue)
     pEntry->inlineCommentSize = valueByteSize;
@@ -2295,7 +2297,7 @@ CS64INIEntryState cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *
     UTF8_CHECK(pValue);
 
     if(pData == NULL)
-        return CS64_INI_ENTRY_ERROR_DATA_NULL;
+        return CS64_INI_ENTRY_DATA_NULL_ERROR;
 
     /* Free Comment */
     if(pData->pLastComment != NULL)
@@ -2312,7 +2314,7 @@ CS64INIEntryState cs64_ini_set_last_comment(CS64INIData *pData, const CS64UTF8 *
     pData->pLastComment = CS64_INI_MALLOC(valueByteSize);
 
     if(pData->pLastComment == NULL)
-        return CS64_INI_ENTRY_ERROR_OUT_OF_SPACE;
+        return CS64_INI_ENTRY_NO_MEMORY_ERROR;
 
     STRING_COPY(pData->pLastComment, pValue)
     pData->lastCommentSize = valueByteSize;

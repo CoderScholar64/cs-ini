@@ -121,12 +121,12 @@ void cs64_ini_data_alloc_test() {
     /* Check if the last comment succeeds to fail if pData happens to be NULL. */
     SET_AVAILABLE_MEM_PAGES(0)
     state = cs64_ini_set_last_comment(NULL, (CS64UTF8*)"BAD COMMENT");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
     /* Check if the last comment succeeds to fail if memory is not available. */
     SET_AVAILABLE_MEM_PAGES(0)
     state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"BAD COMMENT");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
@@ -185,12 +185,12 @@ void cs64_ini_data_alloc_test() {
     /* This does not do anything, but it does test to see if NULL does not crash the program. */
     cs64_ini_data_free(NULL);
 
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(NULL,  NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, (CS64UTF8*)"", NULL, NULL), CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(NULL, NULL, NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(pData, NULL, NULL), CS64_INI_ENTRY_ERROR_SECTION_EMPTY, "%d");
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(pData, (CS64UTF8*)"", NULL), CS64_INI_ENTRY_ERROR_SECTION_EMPTY, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(NULL,  NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, (CS64UTF8*)"", NULL, NULL), CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(NULL, NULL, NULL), CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(pData, NULL, NULL), CS64_INI_ENTRY_SECTION_EMPTY_ERROR, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(pData, (CS64UTF8*)"", NULL), CS64_INI_ENTRY_SECTION_EMPTY_ERROR, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_variable(NULL, NULL, NULL), NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_variable(pData, (CS64UTF8*)"", (CS64UTF8*)"NULL"), NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(NULL, NULL), NULL, "%p");
@@ -234,13 +234,13 @@ void cs64_ini_data_reserve_empty_test() {
     badData.pLastSection  = NULL;
 
     // Del Entry has a special case for pEntries being NULL.
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_del_entry(&badData, badData.hashTable.pEntries), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_del_entry(&badData, badData.hashTable.pEntries), CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
     // Add Variable also has a special case for pEntries being NULL.
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(&badData, (CS64UTF8*)"NULL", (CS64UTF8*)"NULL", (CS64UTF8*)"NULL", NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(&badData, (CS64UTF8*)"NULL", (CS64UTF8*)"NULL", (CS64UTF8*)"NULL", NULL), CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
     // Add Section also has a special case for pEntries being NULL.
-    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(&badData, (CS64UTF8*)"NULL", NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_section(&badData, (CS64UTF8*)"NULL", NULL), CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
     // Get Section also has a special case for pEntries being NULL.
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_section(&badData, (CS64UTF8*)""), NULL, "%p");
@@ -262,11 +262,11 @@ void cs64_ini_data_reserve_empty_test() {
     UNIT_TEST_ASSERT(0, pData != NULL);
 
     state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_DNE_ERROR, "%d");
 
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key does not exist. This should not exist", (const CS64UTF8*)"", &pEntry);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_DNE_ERROR, "%d");
 
     CS64INIData backupData = *pData;
 
@@ -541,11 +541,11 @@ void cs64_ini_variable_parameter_test() {
 
         SET_AVAILABLE_MEM_PAGES(0)
         state = cs64_ini_set_entry_comment(NULL, entryComment);
-        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_DATA_NULL);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_DATA_NULL_ERROR);
 
         SET_AVAILABLE_MEM_PAGES(0)
         state = cs64_ini_set_entry_comment(pEntry, entryComment);
-        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_NO_MEMORY_ERROR);
 
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_comment(pEntry, entryComment);
@@ -586,11 +586,11 @@ void cs64_ini_variable_parameter_test() {
         const CS64UTF8 inlineComment[] = "This is an inline comment";
         SET_AVAILABLE_MEM_PAGES(0)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
-        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_NO_MEMORY_ERROR);
 
         SET_AVAILABLE_MEM_PAGES(0)
         state = cs64_ini_set_entry_inline_comment(NULL, inlineComment);
-        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_ERROR_DATA_NULL);
+        UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_DATA_NULL_ERROR);
 
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
@@ -627,7 +627,7 @@ void cs64_ini_variable_parameter_test() {
         UNIT_TEST_ASSERT(index, pEntry == pEntryReceived);
 
         state = cs64_ini_add_variable(pData, NULL, names[index], (const CS64UTF8*)"This is not supposed to work!", &pEntry);
-        UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
 
         cs64_ini_data_free(pData);
 
@@ -655,7 +655,7 @@ void cs64_ini_section_parameter_test() {
 
         if(types[index] == CS64_INI_ENTRY_DYNAMIC_SECTION) {
             state = cs64_ini_add_section(pData, names[index], &pEntry);
-            UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
 
             SET_AVAILABLE_MEM_PAGES(1)
         }
@@ -760,7 +760,7 @@ void cs64_ini_section_parameter_test() {
         UNIT_TEST_ASSERT(index, pEntry == pEntryReceived);
 
         state = cs64_ini_add_section(pData, names[index], &pEntry);
-        UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        UNIT_TEST_ASSERT_EQ(index, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
 
         UNIT_TEST_ASSERT_NEQ(index, cs64_ini_get_entry_value, NULL, "%p");
 
@@ -805,7 +805,7 @@ void cs64_ini_variable_declarations_test() {
     // Test lack of memory case
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
     state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"2", value, &pEntry);
-    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_NO_MEMORY_ERROR);
     UNIT_TEST_ASSERT(0, pEntry == NULL);
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
 
@@ -838,7 +838,7 @@ void cs64_ini_variable_declarations_test() {
     // Test lack of memory case
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = '\0';
     state = cs64_ini_add_variable(pData, NULL, value, (const CS64UTF8*)"v", &pEntry);
-    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_NO_MEMORY_ERROR);
     UNIT_TEST_ASSERT(0, pEntry == NULL);
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 2] = 'b';
 
@@ -928,7 +928,7 @@ void cs64_ini_section_declarations_test() {
     value[CS64_INI_IMP_DETAIL_SECTION_NAME_SIZE    ] = '\0';
 
     state = cs64_ini_add_section(pData, value, &pEntry);
-    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_ERROR_OUT_OF_SPACE);
+    UNIT_TEST_ASSERT(0, state == CS64_INI_ENTRY_NO_MEMORY_ERROR);
     UNIT_TEST_ASSERT(0, pEntry == NULL);
 
     SET_AVAILABLE_MEM_PAGES(1)
@@ -967,10 +967,10 @@ void cs64_ini_variable_explicit_rehash_test() {
 
         state = cs64_ini_add_variable(pData, NULL, name, (const CS64UTF8*)"val", &pEntry);
         if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
         }
         else {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
 
         loop++;
@@ -1028,10 +1028,10 @@ void cs64_ini_section_explicit_rehash_test() {
 
         state = cs64_ini_add_section(pData, name, &pEntry);
         if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
         }
         else {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
 
         loop++;
@@ -1089,10 +1089,10 @@ void cs64_ini_variable_implicit_rehash_test() {
 
         state = cs64_ini_add_variable(pData, NULL, name, (const CS64UTF8*)"val", &pEntry);
         if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
         }
         else {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
 
         loop++;
@@ -1144,10 +1144,10 @@ void cs64_ini_section_implicit_rehash_test() {
 
         state = cs64_ini_add_section(pData, name, &pEntry);
         if(pData->hashTable.currentEntryAmount != pData->hashTable.entryCapacity) {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
         }
         else {
-            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(loop, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
 
         loop++;
@@ -1217,22 +1217,22 @@ void cs64_ini_variable_change_test() {
     wrongEntryType.type.section.name.fixed[3] = '\0';
 
     state = cs64_ini_set_entry_value(NULL, value);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     wrongEntryType.entryType = CS64_INI_ENTRY_EMPTY;
     state = cs64_ini_set_entry_value(&wrongEntryType, value);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     wrongEntryType.entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
     state = cs64_ini_set_entry_value(&wrongEntryType, value);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     wrongEntryType.entryType = CS64_INI_ENTRY_DYNAMIC_SECTION;
     state = cs64_ini_set_entry_value(&wrongEntryType, value);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
     UNIT_TEST_ASSERT(0, cs64_ini_get_entry_value(NULL) == NULL);
 
     state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"null", NULL, &pEntry);
@@ -1280,7 +1280,7 @@ void cs64_ini_variable_change_test() {
     // static to dynamic case.
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'a';
     state = cs64_ini_set_entry_value(pEntry, value);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
     SET_AVAILABLE_MEM_PAGES(1)
 
     state = cs64_ini_set_entry_value(pEntry, value);
@@ -1297,7 +1297,7 @@ void cs64_ini_variable_change_test() {
     // dynamic to dynamic case.
     value[CS64_INI_IMP_DETAIL_VALUE_SIZE - 5] = 'b';
     state = cs64_ini_set_entry_value(pEntry, value);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
     SET_AVAILABLE_MEM_PAGES(1)
 
     state = cs64_ini_set_entry_value(pEntry, value);
@@ -1352,10 +1352,10 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData != NULL);
 
         // cs64_ini_del_entry DNE.
-        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, pData->hashTable.pEntries), CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, pData->hashTable.pEntries), CS64_INI_ENTRY_ENTRY_DNE_ERROR, "%d");
 
         // Null entry case.
-        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, NULL), CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, NULL), CS64_INI_ENTRY_ENTRY_EMPTY_ERROR, "%d");
 
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == NULL);
         UNIT_TEST_ASSERT(loop[0], pData->globals.pLastValue == NULL);
@@ -1370,14 +1370,14 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pEntry[0]->pPrev == NULL);
 
         // Empty data parameter case.
-        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(NULL, pEntry[0]), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+        UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(NULL, pEntry[0]), CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
         // Empty Slots cannot be deleted.
         if(cs64_ini_get_entry_type(&pData->hashTable.pEntries[0]) == CS64_INI_ENTRY_EMPTY) {
-            UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, &pData->hashTable.pEntries[0]), CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+            UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, &pData->hashTable.pEntries[0]), CS64_INI_ENTRY_ENTRY_EMPTY_ERROR, "%d");
         }
         else {
-            UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, &pData->hashTable.pEntries[1]), CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+            UNIT_TEST_ASSERT_EQ(loop[0], cs64_ini_del_entry(pData, &pData->hashTable.pEntries[1]), CS64_INI_ENTRY_ENTRY_EMPTY_ERROR, "%d");
         }
 
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == pEntry[0]);
@@ -1608,7 +1608,7 @@ void cs64_ini_combo_del_entry_test() {
 
         if(loop[0] == 0) {
             state = cs64_ini_add_variable(pData, secNames[0], varNames[0], (const CS64UTF8*)"Value", NULL);
-            UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
 
             UNIT_TEST_ASSERT(loop[0], mallocPagesLeft                         ==  0);
             UNIT_TEST_ASSERT(loop[0], pData->hashTable.pEntries               == pFormalPointer);
@@ -1965,10 +1965,10 @@ void cs64_ini_combo_renaming_test() {
 
     // Test empty entry case.
     state = cs64_ini_set_entry_name(pData, &pData->hashTable.pEntries, (CS64UTF8*)"This should not work because this item should be empty! One does not rename empty entries");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EMPTY, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_EMPTY_ERROR, "%d");
 
     state = cs64_ini_set_entry_name(pData, NULL, (CS64UTF8*)"An empty entry is invalid!");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pData->hashTable.pEntries), NULL, "%p");
 
@@ -1994,7 +1994,7 @@ void cs64_ini_combo_renaming_test() {
     CS64INIEntry *pOldEntry;
 
     state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)"pSection at this point should be set to NULL");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_DNE_ERROR, "%d");
 
     // Test setting and getting entry names for sections
     while(i < sizeof(sectionNames) / sizeof(sectionNames[0])) {
@@ -2005,16 +2005,16 @@ void cs64_ini_combo_renaming_test() {
 
         // Same rename case should result in an error.
         state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)sectionNames[i]);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
 
         state = cs64_ini_set_entry_name(NULL, &pSection, (CS64UTF8*)"This also should not work if the hash table is not present!");
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_DATA_NULL_ERROR, "%d");
 
         state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)"");
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR, "%d");
 
         state = cs64_ini_set_entry_name(pData, &pSection, NULL);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_VARIABLE_EMPTY_ERROR, "%d");
 
         // Test setting and getting entry names for variables
         j = 0;
@@ -2026,13 +2026,13 @@ void cs64_ini_combo_renaming_test() {
 
             // Same rename case should result in an error.
             state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)variableNames[j]);
-            UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_EXISTS, "%d");
+            UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, "%d");
 
             // Not enough memory case.
             if(newVariableRequiredAlloc[j] > 0) {
                 SET_AVAILABLE_MEM_PAGES(0);
                 state = cs64_ini_set_entry_name(pData, &pVariable, (CS64UTF8*)newVariableNames[j]);
-                UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+                UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
             }
 
             SET_AVAILABLE_MEM_PAGES(newVariableRequiredAlloc[j])
@@ -2077,7 +2077,7 @@ void cs64_ini_combo_renaming_test() {
         if(newSectionRequiredAlloc[i] > 0) {
             SET_AVAILABLE_MEM_PAGES(0);
             state = cs64_ini_set_entry_name(pData, &pSection, (CS64UTF8*)newSectionNames[i]);
-            UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_OUT_OF_SPACE, "%d");
+            UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
 
         SET_AVAILABLE_MEM_PAGES(newSectionRequiredAlloc[i])
@@ -2331,43 +2331,43 @@ void cs64_ini_unicode_rejection_test() {
         }
 
         state = cs64_ini_add_variable(pData, (CS64UTF8*)"section", (CS64UTF8*)"variable", current_utf8, &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_variable(pData, (CS64UTF8*)"section", current_utf8, (CS64UTF8*)"value", &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_variable(pData, (CS64UTF8*)"section", current_utf8, current_utf8, &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_variable(pData, current_utf8, (CS64UTF8*)"variable", (CS64UTF8*)"value", &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_variable(pData, current_utf8, (CS64UTF8*)"variable", current_utf8, &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_variable(pData, current_utf8, current_utf8, (CS64UTF8*)"value", &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_variable(pData, current_utf8, current_utf8, current_utf8, &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_add_section(pData, current_utf8, &pCommentVariable);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_set_entry_name(pData, &pCommentVariable, current_utf8);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_set_entry_value(pCommentVariable, current_utf8);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_set_entry_comment(pCommentVariable, current_utf8);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_set_entry_inline_comment(pCommentVariable, current_utf8);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         state = cs64_ini_set_last_comment(pData, current_utf8);
-        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_ERROR_INVALID_ENCODE, "%d");
+        UNIT_TEST_ASSERT_EQ(i, state, CS64_INI_ENTRY_INVALID_ENCODE_ERROR, "%d");
 
         i++;
     }
@@ -2375,19 +2375,19 @@ void cs64_ini_unicode_rejection_test() {
     // new line cases.
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"\n");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ILLEGAL_STRING_ERROR, "%d");
 
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"\ncomment");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ILLEGAL_STRING_ERROR, "%d");
 
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"com\nment");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ILLEGAL_STRING_ERROR, "%d");
 
     SET_AVAILABLE_MEM_PAGES(1)
     state = cs64_ini_set_entry_inline_comment(pCommentVariable, (CS64UTF8*)"comment\n");
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ILLEGAL_STRING, "%d");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ILLEGAL_STRING_ERROR, "%d");
 
     cs64_ini_data_free(pData);
 
