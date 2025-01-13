@@ -1666,14 +1666,8 @@ CS64INIEntryState cs64_ini_del_entry(CS64INIData *pData, CS64INIEntry *pEntry) {
             pVariable->pInlineComment = NULL;
 
             /* Free if dynamic */
-            switch(pVariable->entryType) {
-                case CS64_INI_ENTRY_DYNAMIC_VALUE:
-                    CS64_INI_FREE(pVariable->type.value.data.dynamic.pName); /* This also frees pValue */
-                    break;
-                case CS64_INI_ENTRY_DYNAMIC_SECTION:
-                    CS64_INI_FREE(pVariable->type.section.name.pDynamic);
-                    break;
-                default:
+            if(pVariable->entryType == CS64_INI_ENTRY_DYNAMIC_VALUE) {
+                CS64_INI_FREE(pVariable->type.value.data.dynamic.pName); /* This also frees pValue */
             }
 
             pVariable->entryType = CS64_INI_ENTRY_WAS_OCCUPIED;
