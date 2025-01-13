@@ -1566,9 +1566,6 @@ CS64INIEntryState cs64_ini_add_section(CS64INIData *pData, const CS64UTF8 *const
 
 
 CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pSectionName, const CS64UTF8 *const pName) {
-    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
-    /* TODO Check if pName is UTF-8/ASCII compatible! */
-
     /* Data must be present for this function to work */
     if(pData == NULL)
         return NULL;
@@ -1604,8 +1601,6 @@ CS64INIEntry* cs64_ini_get_variable(CS64INIData *pData, const CS64UTF8 *const pS
 }
 
 CS64INIEntry* cs64_ini_get_section(CS64INIData *pData, const CS64UTF8 *const pSectionName) {
-    /* TODO Check if pSectionName is UTF-8/ASCII compatible! */
-
     /* Data must be present for this function to work */
     if(pData == NULL)
         return NULL;
