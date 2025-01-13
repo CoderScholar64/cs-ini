@@ -1248,6 +1248,10 @@ void cs64_ini_variable_change_test() {
     state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
 
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key does not exist. This should not exist", (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+
     state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
     UNIT_TEST_ASSERT(0, pEntry->type.value.pSection      == NULL);
