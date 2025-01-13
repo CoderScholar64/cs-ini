@@ -211,6 +211,9 @@ void cs64_ini_data_alloc_test() {
 }
 
 void cs64_ini_data_reserve_empty_test() {
+    CS64INIEntry* pEntry = NULL;
+    CS64INIEntryState state;
+
     int returnResult;
 
     returnResult = cs64_ini_data_reserve(NULL, 32);
@@ -257,6 +260,13 @@ void cs64_ini_data_reserve_empty_test() {
     SET_AVAILABLE_MEM_PAGES(2)
     CS64INIData* pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, pData != NULL);
+
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key does not exist. This should not exist", (const CS64UTF8*)"", &pEntry);
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
 
     CS64INIData backupData = *pData;
 
@@ -1244,13 +1254,6 @@ void cs64_ini_variable_change_test() {
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_entry_value(pEntry), (const char*)"") == 0,
         printf(" a = %s\n b = %s\n", (const char*)cs64_ini_get_entry_value(pEntry), (const char*)""););
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_get_first_section_value(pEntry), NULL, "%p");
-
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
-
-    SET_AVAILABLE_MEM_PAGES(1)
-    state = cs64_ini_add_variable(pData, (const CS64UTF8*)"Section does not exist", (const CS64UTF8*)"key does not exist. This should not exist", (const CS64UTF8*)"", &pEntry);
-    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_ERROR_ENTRY_DNE, "%d");
 
     state = cs64_ini_add_variable(pData, NULL, (const CS64UTF8*)"key", (const CS64UTF8*)"", &pEntry);
     UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
