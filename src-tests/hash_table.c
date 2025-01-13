@@ -174,6 +174,17 @@ void cs64_ini_data_alloc_test() {
     UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 0, "%zd");
 
+    /* This test was already done. This is to setup the next step. */
+    SET_AVAILABLE_MEM_PAGES(1)
+    state = cs64_ini_set_last_comment(pData, (CS64UTF8*)"This COMMENT will be deleted by cs64_ini_data_free");
+    UNIT_TEST_ASSERT_EQ(0, state, CS64_INI_ENTRY_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_NEQ(0, pData->pLastComment, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, pData->lastCommentSize, 51, "%zd");
+    UNIT_TEST_ASSERT_EQ(0, pData->pLastComment, cs64_ini_get_last_comment(pData), "%p");
+
+    /* This does not do anything, but it does test to see if NULL does not crash the program. */
+    cs64_ini_data_free(NULL);
+
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(NULL,  NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_ERROR_DATA_NULL, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, NULL,          NULL, NULL), CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
     UNIT_TEST_ASSERT_EQ(0, cs64_ini_add_variable(pData, NULL, (CS64UTF8*)"", NULL, NULL), CS64_INI_ENTRY_ERROR_VARIABLE_EMPTY, "%d");
@@ -553,6 +564,9 @@ void cs64_ini_variable_parameter_test() {
         UNIT_TEST_ASSERT_EQ(index, pEntry->commentSize, 0, "%zd");
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
 
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_comment(pEntry, entryComment);
+
         // Test setters and getters for inline comments.
         UNIT_TEST_ASSERT(index, pEntry->inlineCommentSize == 0);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
@@ -582,7 +596,7 @@ void cs64_ini_variable_parameter_test() {
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
         UNIT_TEST_ASSERT_EQ(index, pEntry->inlineCommentSize, 0, "%zd");
-        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
 
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
@@ -593,7 +607,10 @@ void cs64_ini_variable_parameter_test() {
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
         UNIT_TEST_ASSERT_EQ(index, pEntry->inlineCommentSize, 0, "%zd");
-        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
+
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
 
         CS64INIEntry *pEntryReceived = cs64_ini_get_variable(pData, NULL, names[index]);
 
@@ -616,7 +633,7 @@ void cs64_ini_section_parameter_test() {
     CS64EntryType types[2] = {CS64_INI_ENTRY_SECTION, CS64_INI_ENTRY_DYNAMIC_SECTION};
 
     CS64UTF8  names[2][32]     = {"s0", "CS64_INI_ENTRY_SECTION"};
-    CS64Size  namesLengths[2]  = {   3,  23};
+    CS64Size  namesLengths[2]  = { 3,    23};
 
     CS64INIEntryState state;
 
@@ -689,6 +706,9 @@ void cs64_ini_section_parameter_test() {
         UNIT_TEST_ASSERT_EQ(index, pEntry->commentSize, 0, "%zd");
         UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
 
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_comment(pEntry, entryComment);
+
         // Test setters and getters for inline comments.
         UNIT_TEST_ASSERT(index, pEntry->inlineCommentSize == 0);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
@@ -709,7 +729,7 @@ void cs64_ini_section_parameter_test() {
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
         UNIT_TEST_ASSERT_EQ(index, pEntry->inlineCommentSize, 0, "%zd");
-        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
 
         SET_AVAILABLE_MEM_PAGES(1)
         state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
@@ -720,7 +740,10 @@ void cs64_ini_section_parameter_test() {
         UNIT_TEST_ASSERT(index, state == CS64_INI_ENTRY_SUCCESS);
         UNIT_TEST_ASSERT(index, pEntry->pInlineComment == NULL);
         UNIT_TEST_ASSERT_EQ(index, pEntry->inlineCommentSize, 0, "%zd");
-        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_comment(pEntry) == NULL);
+        UNIT_TEST_ASSERT(index, cs64_ini_get_entry_inline_comment(pEntry) == NULL);
+
+        SET_AVAILABLE_MEM_PAGES(1)
+        state = cs64_ini_set_entry_inline_comment(pEntry, inlineComment);
 
         CS64INIEntry *pEntryReceived = cs64_ini_get_section(pData, names[index]);
 
