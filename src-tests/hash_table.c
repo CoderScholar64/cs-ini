@@ -1362,6 +1362,10 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->globals.pFirstValue == cs64_ini_get_first_global_value(pData));
         UNIT_TEST_ASSERT(loop[0], pData->hashTable.currentEntryAmount == 4);
 
+        SET_AVAILABLE_MEM_PAGES(1);
+        state = cs64_ini_set_entry_inline_comment(pEntry[3], (const CS64UTF8*)"This comment is a inline comment!");
+        UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
+
         // Check if the chain is correct.
 
         UNIT_TEST_ASSERT(loop[0], pEntry[0]->pNext == pEntry[1]);
