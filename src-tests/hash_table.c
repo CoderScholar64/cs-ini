@@ -1273,8 +1273,9 @@ void cs64_ini_variable_change_test() {
 }
 
 void cs64_ini_combo_del_entry_test() {
-    const CS64UTF8 varNames[4][8] = {"key_0", "key_1", "key_2", "key_3"};
-    const CS64UTF8 secNames[4][8] = {"s0", "s1", "s2", "s3"};
+    const CS64UTF8 varNames[4][8]  = {"key_0", "key_1", "key_2", "key_3"};
+    const CS64UTF8 secNames[4][32] = {"s0", "long_section_name_one", "s2", "s3"};
+    int sectionRequiredAlloc[]     = { 0,    1,                       0,    0};
 
     CS64INIEntry* pEntry[] = {NULL, NULL, NULL, NULL};
     CS64INIEntry* pSectionEntry[] = {NULL, NULL, NULL, NULL};
@@ -1394,6 +1395,7 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == NULL);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
+        SET_AVAILABLE_MEM_PAGES(sectionRequiredAlloc[0]);
         state = cs64_ini_add_section(pData, secNames[0], &pSectionEntry[0]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[0]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
@@ -1406,9 +1408,10 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[0]);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
+        SET_AVAILABLE_MEM_PAGES(sectionRequiredAlloc[1]);
         state = cs64_ini_add_section(pData, secNames[1], &pSectionEntry[1]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
-        UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[1]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
+        UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[1]->entryType, CS64_INI_ENTRY_DYNAMIC_SECTION, "TOO long for static RAM usage %d");
         UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pNext == NULL);
         UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pPrev == pSectionEntry[0]);
         UNIT_TEST_ASSERT(loop[0], pSectionEntry[1]->pNext == cs64_ini_get_next_entry(pSectionEntry[1]));
@@ -1418,6 +1421,7 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[1]);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
+        SET_AVAILABLE_MEM_PAGES(sectionRequiredAlloc[2]);
         state = cs64_ini_add_section(pData, secNames[2], &pSectionEntry[2]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[2]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
@@ -1430,6 +1434,7 @@ void cs64_ini_combo_del_entry_test() {
         UNIT_TEST_ASSERT(loop[0], pData->pLastSection  == pSectionEntry[2]);
         UNIT_TEST_ASSERT(loop[0], cs64_ini_get_first_section(pData) == pData->pFirstSection);
 
+        SET_AVAILABLE_MEM_PAGES(sectionRequiredAlloc[3]);
         state = cs64_ini_add_section(pData, secNames[3], &pSectionEntry[3]);
         UNIT_TEST_ASSERT_EQ(loop[0], state, CS64_INI_ENTRY_SUCCESS, "%d");
         UNIT_TEST_ASSERT_EQ(loop[0], pSectionEntry[3]->entryType, CS64_INI_ENTRY_SECTION, "TOO short for dynamic RAM usage %d");
