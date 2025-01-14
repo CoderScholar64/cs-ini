@@ -137,6 +137,13 @@ typedef enum {
 } CS64INILexerState;
 
 typedef enum {
+    CS64_INI_PARSER_SUCCESS             = 0, /* Anything other than zero, is an error */
+    CS64_INI_PARSER_UNEXPECTED_ERROR    = 1, /* This error states that it expected a token, but got something else instead. */
+    CS64_INI_PARSER_REDECLARATION_ERROR = 2, /* Make sure that there is no naming conflicts. */
+    CS64_INI_PARSER_INI_DATA_ERROR      = 3  /* This means that there is an error with the ini data functions used to construct the hash table. */
+} CS64INIParserState;
+
+typedef enum {
     CS64_INI_ENTRY_SUCCESS               = 0, /* Anything other than zero, is an error */
     CS64_INI_ENTRY_DATA_NULL_ERROR       = 1,
     CS64_INI_ENTRY_SECTION_EMPTY_ERROR   = 2,
@@ -200,6 +207,28 @@ typedef struct {
         } unhandled;
     } status;
 } CS64INITokenResult;
+
+typedef struct {
+    CS64INIParserState state;
+    CS64Size lineCount; /* the number of lines that has been processed. */
+    CS64Size linePosition; /* in the amount of unicode points not bytes. Useful for parser errors. */
+
+    union {
+        struct {
+            CS64INIToken recievedToken;
+            CS64Size expectedTokenAmount;
+            const CS64INIToken* pExpectedTokens;
+        } unexpected_token;
+        struct {
+            const CS64UTF8 *pSectionName;
+            const CS64UTF8 *pKeyName;
+        } redeclaration;
+        struct {
+            const CS64UTF8 *pFunctionName;
+            CS64INIEntryState functionStatus;
+        } data_error;
+    } status;
+} CS64INIParserResult;
 
 struct CS64INIEntry;
 
@@ -332,7 +361,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 void cs64_ini_lexer_free(CS64INITokenResult *pResult);
 
-void cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokens, CS64Size tokenOffset);
+CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokens, CS64Size tokenOffset);
 
 /**
  * This function reads an ASCII value.
