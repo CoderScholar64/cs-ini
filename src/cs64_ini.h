@@ -140,7 +140,8 @@ typedef enum {
     CS64_INI_PARSER_SUCCESS             = 0, /* Anything other than zero, is an error */
     CS64_INI_PARSER_UNEXPECTED_ERROR    = 1, /* This error states that it expected a token, but got something else instead. */
     CS64_INI_PARSER_REDECLARATION_ERROR = 2, /* Make sure that there is no naming conflicts. */
-    CS64_INI_PARSER_INI_DATA_ERROR      = 3  /* This means that there is an error with the ini data functions used to construct the hash table. */
+    CS64_INI_PARSER_INI_DATA_ERROR      = 3,  /* This means that there is an error with the ini data functions used to construct the hash table. */
+    CS64_INI_PARSER_LEXER_MEM_ERROR     = 4
 } CS64INIParserState;
 
 typedef enum {
@@ -361,7 +362,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 void cs64_ini_lexer_free(CS64INITokenResult *pResult);
 
-CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokens, CS64Size tokenOffset);
+CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokenResult, CS64Size *pTokenOffset);
 
 /**
  * This function reads an ASCII value.
@@ -2374,5 +2375,158 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 #undef IS_CORRECT_VARIABLE
 #undef ATTEMPT_TO_FIND_VARIABLE
 #undef UTF8_CHECK
+
+CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokenResult, CS64Size *pTokenOffset) {
+    CS64INIParserResult result;
+
+    result.state = CS64_INI_PARSER_SUCCESS;
+
+    CS64Offset commentTokenOffset = 0;
+    CS64Size   commentAmount = 0; /* Zero means no token state. */
+
+    CS64INIToken* pToken;
+
+    pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+    if(pToken == NULL) {
+        result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+        return result;
+    }
+
+    if(pToken->type == CS64_INI_TOKEN_COMMENT) {
+        commentTokenOffset = *pTokenOffset;
+        commentAmount = 1;
+
+        /* Comment token successfully read. */
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+    }
+
+    if(pToken->type == CS64_INI_TOKEN_SECTION_START) {
+        /* CS64_INI_TOKEN_SECTION_START token successfully read. */
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        if( pToken->type != CS64_INI_TOKEN_VALUE &&
+            pToken->type != CS64_INI_TOKEN_QUOTE_VALUE) {
+            /* Expected CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
+        }
+
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        if(pToken->type != CS64_INI_TOKEN_SECTION_END) {
+            /* Expected CS64_INI_TOKEN_SECTION_END not pToken->type. */
+        }
+
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        if(pToken->type == CS64_INI_TOKEN_END) {
+            /* Add the section */
+        } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
+
+            (*pTokenOffset)++;
+            pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+            if(pToken == NULL) {
+                result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+                return result;
+            }
+
+            if(pToken->type != CS64_INI_TOKEN_END) {
+                /* Expected CS64_INI_TOKEN_END not pToken->type. */
+            }
+
+            /* Add the section */
+            /* Add the inline comment to the entry */
+        }
+    } else if(
+        pToken->type == CS64_INI_TOKEN_VALUE ||
+        pToken->type == CS64_INI_TOKEN_QUOTE_VALUE) {
+
+        CS64Offset keyTokenOffset = *pTokenOffset;
+        CS64Size   keyAmount = 1;
+
+        /* CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE token successfully read. */
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        if(pToken->type != CS64_INI_TOKEN_DELEMETER) {
+            /* Expected CS64_INI_TOKEN_DELEMETER not pToken->type. */
+        }
+
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        if( pToken->type != CS64_INI_TOKEN_VALUE &&
+            pToken->type != CS64_INI_TOKEN_QUOTE_VALUE) {
+            /* Expected CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
+        }
+
+        CS64Offset valueTokenOffset = *pTokenOffset;
+        CS64Size   valueAmount = 1;
+
+        (*pTokenOffset)++;
+        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        if(pToken == NULL) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        if(pToken->type == CS64_INI_TOKEN_END) {
+            /* Create variable entry */
+        } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
+
+            (*pTokenOffset)++;
+            pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+            if(pToken == NULL) {
+                result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+                return result;
+            }
+
+            if(pToken->type != CS64_INI_TOKEN_END) {
+                /* Expected CS64_INI_TOKEN_END not pToken->type. */
+            }
+
+            /* Create variable entry */
+            /* Add the inline comment to the entry */
+        }
+    } else if(pToken->type == CS64_INI_TOKEN_END) {
+    }
+    else {
+        /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
+    }
+
+    /*
+     * if(pEntry == NULL)
+     *  Submit last comment if there is a comment.
+     * else
+     *  Add the comment to the Entry if possiable */
+
+    return result;
+}
 
 #endif /* CS64_INI_LIBRARY_IMP */
