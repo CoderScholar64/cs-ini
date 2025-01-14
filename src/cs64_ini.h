@@ -2391,7 +2391,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
 
     CS64INIToken* pToken;
 
-    pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+    pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
     if(pToken == NULL) {
         result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
         return result;
@@ -2403,7 +2403,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
 
         /* Comment token successfully read. */
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2416,7 +2416,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
     if(pToken->type == CS64_INI_TOKEN_SECTION_START) {
         /* CS64_INI_TOKEN_SECTION_START token successfully read. */
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2431,7 +2431,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         CS64Size   sectionAmount = 1;
 
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2442,7 +2442,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         }
 
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2450,7 +2450,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
 
         if(pToken->type == CS64_INI_TOKEN_END) {
             /* Add the section */
-            pToken = cs64_ini_token_data_get_token(pTokenResult, sectionTokenOffset);
+            pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, sectionTokenOffset);
 
             entryState = cs64_ini_add_section(pData, pSource + pToken->index, &pEntry);
 
@@ -2463,7 +2463,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             (*pTokenOffset)++;
-            pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+            pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
             if(pToken == NULL) {
                 result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
                 return result;
@@ -2477,7 +2477,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
             CS64Size   inlineCommentAmount = 1;
 
             /* Add the section */
-            pToken = cs64_ini_token_data_get_token(pTokenResult, sectionTokenOffset);
+            pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, sectionTokenOffset);
 
             entryState = cs64_ini_add_section(pData, pSource + pToken->index, &pEntry);
 
@@ -2489,9 +2489,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
             }
 
             /* Add the inline comment to the entry */
-            pToken = cs64_ini_token_data_get_token(pTokenResult, inlineCommentTokenOffset);
+            pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, inlineCommentTokenOffset);
 
-            entryState = cs64_ini_set_entry_inline_comment(pData, pSource + pToken->index);
+            entryState = cs64_ini_set_entry_inline_comment(pEntry, pSource + pToken->index);
 
             if(entryState != CS64_INI_ENTRY_SUCCESS) {
                 result.state = CS64_INI_PARSER_INI_DATA_ERROR;
@@ -2509,7 +2509,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
 
         /* CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE token successfully read. */
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2520,7 +2520,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         }
 
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2535,7 +2535,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         CS64Size   valueAmount = 1;
 
         (*pTokenOffset)++;
-        pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
         if(pToken == NULL) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
@@ -2545,7 +2545,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             (*pTokenOffset)++;
-            pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
+            pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, *pTokenOffset);
             if(pToken == NULL) {
                 result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
                 return result;
@@ -2568,7 +2568,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
     }
 
     if(commentAmount == 1) {
-        pToken = cs64_ini_token_data_get_token(pTokenResult, commentTokenOffset);
+        pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, commentTokenOffset);
 
         const CS64UTF8* pComment;
 
@@ -2579,7 +2579,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         }
         else {
             /* Add the comment to the Entry if possiable */
-            entryState = cs64_ini_set_entry_comment(pData, pSource + pToken->index);
+            entryState = cs64_ini_set_entry_comment(pEntry, pSource + pToken->index);
             pComment = entry_comment_str;
         }
 
