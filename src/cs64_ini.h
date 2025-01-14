@@ -2419,6 +2419,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *
             /* Expected CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
         }
 
+        CS64Offset sectionTokenOffset = *pTokenOffset;
+        CS64Size   sectionAmount = 1;
+
         (*pTokenOffset)++;
         pToken = cs64_ini_token_data_get_token(pTokenResult, *pTokenOffset);
         if(pToken == NULL) {
@@ -2451,6 +2454,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *
             if(pToken->type != CS64_INI_TOKEN_END) {
                 /* Expected CS64_INI_TOKEN_END not pToken->type. */
             }
+
+            CS64Offset inlineCommentTokenOffset = *pTokenOffset;
+            CS64Size   inlineCommentAmount = 1;
 
             /* Add the section */
             /* Add the inline comment to the entry */
@@ -2506,6 +2512,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *
                 result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
                 return result;
             }
+
+            CS64Offset inlineCommentTokenOffset = *pTokenOffset;
+            CS64Size   inlineCommentAmount = 1;
 
             if(pToken->type != CS64_INI_TOKEN_END) {
                 /* Expected CS64_INI_TOKEN_END not pToken->type. */
