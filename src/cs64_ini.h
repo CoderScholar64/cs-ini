@@ -362,7 +362,7 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize);
 void cs64_ini_lexer_free(CS64INITokenResult *pResult);
 
-CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokenResult, CS64Size *pTokenOffset);
+CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Size *pTokenOffset, const CS64UTF8 *const pSource, CS64INIData *pData);
 
 /**
  * This function reads an ASCII value.
@@ -2376,7 +2376,10 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 #undef ATTEMPT_TO_FIND_VARIABLE
 #undef UTF8_CHECK
 
-CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *pTokenResult, CS64Size *pTokenOffset) {
+CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Size *pTokenOffset, const CS64UTF8 *const pSource, CS64INIData *pData) {
+    const static CS64UTF8  last_comment[] = "cs64_ini_set_last_comment";
+    const static CS64UTF8 entry_comment[] = "cs64_ini_set_entry_comment";
+
     CS64INIParserResult result;
 
     result.state = CS64_INI_PARSER_SUCCESS;
@@ -2404,6 +2407,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *
             return result;
         }
     }
+
+    CS64INIEntry *pEntry = NULL;
+    CS64INIEntryState entryState;
 
     if(pToken->type == CS64_INI_TOKEN_SECTION_START) {
         /* CS64_INI_TOKEN_SECTION_START token successfully read. */
@@ -2526,14 +2532,32 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIData *pData, CS64INITokenResult *
     } else if(pToken->type == CS64_INI_TOKEN_END) {
     }
     else {
-        /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
+        /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE or CS64_INI_TOKEN_END not pToken->type. */
     }
 
-    /*
-     * if(pEntry == NULL)
-     *  Submit last comment if there is a comment.
-     * else
-     *  Add the comment to the Entry if possiable */
+    if(commentAmount == 1) {
+        pToken = cs64_ini_token_data_get_token(pTokenResult, commentTokenOffset);
+
+        const CS64UTF8* pSource;
+
+        if(pEntry == NULL) {
+            /* Submit last comment if there is a comment. */
+            entryState = cs64_ini_set_last_comment(pData, pSource + pToken->index);
+            pSource = last_comment;
+        }
+        else {
+            /* Add the comment to the Entry if possiable */
+            entryState = cs64_ini_set_entry_comment(pData, pSource + pToken->index);
+            pSource = entry_comment;
+        }
+
+        if(entryState != CS64_INI_ENTRY_SUCCESS) {
+            result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+            result.status.data_error.pFunctionName = pSource;
+            result.status.data_error.functionStatus = entryState;
+            return result;
+        }
+    }
 
     return result;
 }
