@@ -2585,7 +2585,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
 
         if(entryState != CS64_INI_ENTRY_SUCCESS) {
             result.state = CS64_INI_PARSER_INI_DATA_ERROR;
-            result.status.data_error.pFunctionName = pSource;
+            result.status.data_error.pFunctionName = pComment;
             result.status.data_error.functionStatus = entryState;
             return result;
         }
