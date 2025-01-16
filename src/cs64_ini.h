@@ -2567,7 +2567,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INITokenResult *pTokenResult, CS64Si
         /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE or CS64_INI_TOKEN_END not pToken->type. */
     }
 
-    if(commentAmount == 1) {
+    if(commentAmount != 0) {
         pToken = cs64_ini_token_data_get_token(pTokenResult->pTokenStorage, commentTokenOffset);
 
         const CS64UTF8* pComment;
