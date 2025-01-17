@@ -216,7 +216,7 @@ typedef struct {
 
     union {
         struct {
-            CS64INIToken recievedToken;
+            CS64INIToken receivedToken;
             CS64Size expectedTokenAmount;
             const CS64INIToken* pExpectedTokens;
         } unexpected_token;
@@ -2410,7 +2410,7 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
     }
 
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
-    const static CS64UTF8  add_section_str[] = "cs64_ini_add_section";
+    const static CS64UTF8   add_section_str[] = "cs64_ini_add_section";
     const static CS64UTF8  add_variable_str[] = "cs64_ini_add_variable";
     const static CS64UTF8  last_comment_str[] = "cs64_ini_set_last_comment";
     const static CS64UTF8 entry_comment_str[] = "cs64_ini_set_entry_comment";
@@ -2459,6 +2459,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         if( pToken->type != CS64_INI_TOKEN_VALUE &&
             pToken->type != CS64_INI_TOKEN_QUOTE_VALUE) {
             /* Expected CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_QUOTE_VALUE};
+
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 2;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
         }
 
         CS64Offset sectionTokenOffset = pParserContext->tokenOffset;
@@ -2473,6 +2479,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
         if(pToken->type != CS64_INI_TOKEN_SECTION_END) {
             /* Expected CS64_INI_TOKEN_SECTION_END not pToken->type. */
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_END};
+
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 1;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
         }
 
         pParserContext->tokenOffset++;
@@ -2507,6 +2519,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
             if(pToken->type != CS64_INI_TOKEN_END) {
                 /* Expected CS64_INI_TOKEN_END not pToken->type. */
+                const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_END};
+
+                result.status.unexpected_token.receivedToken = *pToken;
+                result.status.unexpected_token.expectedTokenAmount = 1;
+                result.status.unexpected_token.pExpectedTokens = expected_tokens;
+                return result;
             }
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
@@ -2564,6 +2582,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
         if(pToken->type != CS64_INI_TOKEN_DELEMETER) {
             /* Expected CS64_INI_TOKEN_DELEMETER not pToken->type. */
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_DELEMETER};
+
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 1;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
         }
 
         pParserContext->tokenOffset++;
@@ -2576,6 +2600,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         if( pToken->type != CS64_INI_TOKEN_VALUE &&
             pToken->type != CS64_INI_TOKEN_QUOTE_VALUE) {
             /* Expected CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE not pToken->type. */
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_QUOTE_VALUE};
+
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 2;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
         }
 
         CS64Offset valueTokenOffset = pParserContext->tokenOffset;
@@ -2616,6 +2646,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
             if(pToken->type != CS64_INI_TOKEN_END) {
                 /* Expected CS64_INI_TOKEN_END not pToken->type. */
+                const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_END};
+
+                result.status.unexpected_token.receivedToken = *pToken;
+                result.status.unexpected_token.expectedTokenAmount = 1;
+                result.status.unexpected_token.pExpectedTokens = expected_tokens;
+                return result;
             }
 
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
@@ -2650,6 +2686,12 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     }
     else {
         /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE or CS64_INI_TOKEN_END not pToken->type. */
+        const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_QUOTE_VALUE, CS64_INI_TOKEN_END};
+
+        result.status.unexpected_token.receivedToken = *pToken;
+        result.status.unexpected_token.expectedTokenAmount = 4;
+        result.status.unexpected_token.pExpectedTokens = expected_tokens;
+        return result;
     }
 
     if(commentAmount != 0) {
