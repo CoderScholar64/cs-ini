@@ -79,6 +79,20 @@ void cs64_ini_last_comment_test() {
     parserContext.pSource = fileData;
     parserContext.pTokenResult = &tokenResult;
 
+    CS64INIParserResult result;
+
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_INI_DATA_ERROR, "%d");
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_set_last_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+    UNIT_TEST_ASSERT_EQ(0, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 1, "%zd");
+    UNIT_TEST_ASSERT_NEQ(0, cs64_ini_get_last_comment(parserContext.pData), NULL, "%p");
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_last_comment(parserContext.pData), "cs64_ini_set_last_comment") == 0, printf("Actually (%s) \n", cs64_ini_get_last_comment(parserContext.pData)););
+
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
 
