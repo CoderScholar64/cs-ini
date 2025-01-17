@@ -883,6 +883,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
     CS64INIToken token;
 
     CALC_UTF_8_BYTE_SIZE(CS64_INI_COMMENT);
+    CALC_UTF_8_BYTE_SIZE(CS64_INI_VALUE_QUOTE);
 
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
@@ -915,6 +916,15 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
         }
         else if(character == CS64_INI_VALUE_QUOTE) {
             CALL_TOKEN_FUNCTION(cs64_ini_tokenize_value_quote)
+
+            if(token.byteLength != 0) {
+                token.index      += CS64_INI_VALUE_QUOTE_BYTE_SIZE;
+                token.byteLength -= CS64_INI_VALUE_QUOTE_BYTE_SIZE;
+            }
+
+            if(token.byteLength != 0) {
+                token.byteLength -= CS64_INI_VALUE_QUOTE_BYTE_SIZE;
+            }
         }
         else if(cs64_ini_is_character_whitespace(character)) { /* Skip whitespace. */
             ADVANCE_CHARACTER(&result)
