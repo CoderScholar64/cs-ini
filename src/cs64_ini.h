@@ -140,8 +140,8 @@ typedef enum {
     CS64_INI_PARSER_SUCCESS             = 0, /* Anything other than zero, is an error */
     CS64_INI_PARSER_UNEXPECTED_ERROR    = 1, /* This error states that it expected a token, but got something else instead. */
     CS64_INI_PARSER_REDECLARATION_ERROR = 2, /* Make sure that there is no naming conflicts. */
-    CS64_INI_PARSER_INI_DATA_ERROR      = 3,  /* This means that there is an error with the ini data functions used to construct the hash table. */
-    CS64_INI_PARSER_LEXER_MEM_ERROR     = 4
+    CS64_INI_PARSER_INI_DATA_ERROR      = 3, /* This means that there is an error with the ini data functions used to construct the hash table. */
+    CS64_INI_PARSER_LEXER_MEM_ERROR     = 4  /* The memory limit has been exceeded */
 } CS64INIParserState;
 
 typedef enum {
@@ -307,10 +307,9 @@ typedef struct {
 
 /* This is mostly for internal use only. */
 typedef struct {
-    CS64UTF8 *pStringBuffer;
-    CS64Size stringBufferLimit;
-
     /* Nonconstants */
+    CS64UTF8 *pStringBuffer; /* Initially, this should be something like 512 or something. */
+    CS64Size stringBufferLimit;
     CS64INIData *pData; /* Initially empty. */
     CS64Size tokenOffset; /* Initially zero. */
     CS64INIEntry *pSection; /* Initially NULL. Which means "global" section.*/
@@ -2585,16 +2584,33 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     if(commentAmount != 0) {
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
 
+        /* The byte length must not exceed the buffer limit. */
+        if(pToken->byteLength >= pParserContext->stringBufferLimit) {
+            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
+            return result;
+        }
+
+        /* Copy operation. */
+        {
+            CS64Size length = 0;
+            while(length != pToken->byteLength) {
+                pParserContext->pStringBuffer[length] = pParserContext->pSource[pToken->index + length];
+                length++;
+            }
+            pParserContext->pStringBuffer[length] = '\0';
+            length++;
+        }
+
         const CS64UTF8* pComment;
 
         if(pEntry == NULL) {
             /* Submit last comment if there is a comment. */
-            entryState = cs64_ini_set_last_comment(pParserContext->pData, pParserContext->pSource + pToken->index);
+            entryState = cs64_ini_set_last_comment(pParserContext->pData, pParserContext->pStringBuffer);
             pComment = last_comment_str;
         }
         else {
             /* Add the comment to the Entry if possiable */
-            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pSource + pToken->index);
+            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pStringBuffer);
             pComment = entry_comment_str;
         }
 
