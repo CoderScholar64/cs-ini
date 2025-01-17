@@ -218,7 +218,7 @@ typedef struct {
         struct {
             CS64INIToken receivedToken;
             CS64Size expectedTokenAmount;
-            const CS64INIToken* pExpectedTokens;
+            const CS64INITokenType* pExpectedTokens;
         } unexpected_token;
         struct {
             const CS64UTF8 *pSectionName;
