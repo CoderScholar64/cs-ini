@@ -46,9 +46,43 @@ int mallocPagesLeft = 0;
     UNIT_TEST_DETAIL_ASSERT(0, pointerTrackAmount == 0, printf("pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);)
 
 // Prototypes here.
+void cs64_ini_last_comment_test();
 
 int main() {
+    cs64_ini_last_comment_test();
+
     return 0;
+}
+
+void cs64_ini_last_comment_test() {
+    CS64UTF8 buffer[1024];
+
+    CS64INIParserContext parserContext;
+
+    parserContext.stringBufferLimit = sizeof(buffer) / 2;
+    parserContext.pStringBuffer = buffer;
+    parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    parserContext.pData = cs64_ini_data_alloc();
+    parserContext.tokenOffset = 0;
+    parserContext.pSection = NULL;
+
+    CS64UTF8 fileData[] = "; First Test";
+    CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, fileDataSize);
+
+    UNIT_TEST_ASSERT_NEQ(0, tokenResult.state, CS64_INI_LEXER_NO_MEMORY_ERROR, "%d");
+
+    parserContext.pSource = fileData;
+    parserContext.pTokenResult = &tokenResult;
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
 }
 
 void *test_malloc(unsigned linePos, size_t size) {

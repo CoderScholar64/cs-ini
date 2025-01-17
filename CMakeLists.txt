@@ -23,3 +23,6 @@ add_test(NAME hash_table_test COMMAND $<TARGET_FILE:hash_table_test>)
 add_executable(hash_table_bad_hash_test src-tests/hash_table.c)
 target_compile_definitions(hash_table_bad_hash_test PUBLIC USE_BAD_HASH_FUNCTION)
 add_test(NAME hash_table_bad_hash_test COMMAND $<TARGET_FILE:hash_table_bad_hash_test>)
+
+add_executable(parse_line_test src-tests/parse_line.c)
+add_test(NAME parse_line_test COMMAND $<TARGET_FILE:parse_line_test>)

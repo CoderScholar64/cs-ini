@@ -307,12 +307,12 @@ typedef struct {
 /* This is mostly for internal use only. */
 typedef struct {
     /* Nonconstants */
-    CS64UTF8 *pStringBuffer; /* Initially, this should be something like 512 or something. */
-    CS64UTF8 *pValueBuffer; /* Initially, this should be something like 512 or something. */
+    CS64UTF8 *pStringBuffer; /* Initially, with a byte size of 512. */
+    CS64UTF8 *pValueBuffer; /* Initially, with a byte size of 512. */
     CS64Size stringBufferLimit;
     CS64INIData *pData; /* Initially empty. */
     CS64Size tokenOffset; /* Initially zero. */
-    CS64INIEntry *pSection; /* Initially NULL. Which means "global" section.*/
+    CS64INIEntry *pSection; /* Initially NULL. Which means "global" section. */
 
     /* Constants */
     const CS64UTF8 *pSource;
