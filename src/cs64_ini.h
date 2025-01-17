@@ -309,6 +309,7 @@ typedef struct {
 typedef struct {
     /* Nonconstants */
     CS64UTF8 *pStringBuffer; /* Initially, this should be something like 512 or something. */
+    CS64UTF8 *pValueBuffer; /* Initially, this should be something like 512 or something. */
     CS64Size stringBufferLimit;
     CS64INIData *pData; /* Initially empty. */
     CS64Size tokenOffset; /* Initially zero. */
@@ -2410,6 +2411,7 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     const static CS64UTF8  add_section_str[] = "cs64_ini_add_section";
+    const static CS64UTF8  add_variable_str[] = "cs64_ini_add_variable";
     const static CS64UTF8  last_comment_str[] = "cs64_ini_set_last_comment";
     const static CS64UTF8 entry_comment_str[] = "cs64_ini_set_entry_comment";
     const static CS64UTF8 entry_inline_comment_str[] = "cs64_ini_set_entry_inline_comment";
@@ -2545,8 +2547,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         pToken->type == CS64_INI_TOKEN_VALUE ||
         pToken->type == CS64_INI_TOKEN_QUOTE_VALUE) {
 
-        CS64Offset keyTokenOffset = pParserContext->tokenOffset;
-        CS64Size   keyAmount = 1;
+        CS64Size keyAmount = 1;
 
         /* CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE token successfully read. */
 
@@ -2590,7 +2591,17 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         if(pToken->type == CS64_INI_TOKEN_END) {
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
 
+            COPY_TOKEN_OPERATION(pValueBuffer)
+
             /* Create variable entry */
+            entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);
+
+            if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+                result.status.data_error.pFunctionName = add_variable_str;
+                result.status.data_error.functionStatus = entryState;
+                return result;
+            }
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             pParserContext->tokenOffset++;
@@ -2607,8 +2618,33 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 /* Expected CS64_INI_TOKEN_END not pToken->type. */
             }
 
+            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
+
+            COPY_TOKEN_OPERATION(pValueBuffer)
+
             /* Create variable entry */
+            entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);
+
+            if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+                result.status.data_error.pFunctionName = add_variable_str;
+                result.status.data_error.functionStatus = entryState;
+                return result;
+            }
+
             /* Add the inline comment to the entry */
+            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
+
+            COPY_TOKEN_OPERATION(pValueBuffer)
+
+            entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pValueBuffer);
+
+            if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+                result.status.data_error.pFunctionName = add_variable_str;
+                result.status.data_error.functionStatus = entryState;
+                return result;
+            }
         }
     } else if(pToken->type == CS64_INI_TOKEN_END) {
     }
