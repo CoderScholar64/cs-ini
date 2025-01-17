@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void *test_malloc(size_t size);
-void test_free(void *pointer);
+void *test_malloc(unsigned linePos, size_t size);
+void test_free(unsigned linePos, void *pointer);
 
-#define CS64_INI_MALLOC(size)  test_malloc(size)
-#define CS64_INI_FREE(pointer) test_free(pointer)
+#define CS64_INI_MALLOC(size)  test_malloc(__LINE__, size)
+#define CS64_INI_FREE(pointer) test_free(__LINE__, pointer)
 
 // This limit would make this test easier to write.
 #define CS64_INI_TOKEN_AMOUNT 4
@@ -1501,12 +1501,12 @@ int lexer_test() {
     return 0;
 }
 
-void *test_malloc(size_t size) {
+void *test_malloc(unsigned linePos, size_t size) {
     if(mallocPagesLeft <= 0)
         return NULL;
     mallocPagesLeft--;
 
-    printf("Log: Allocating pointer of size 0x%zx", size);
+    printf("Log: Line %u Allocating pointer of size 0x%zx", linePos, size);
     void *pointer = malloc(size);
     printf(". Address %p\n", pointer);
 
@@ -1528,8 +1528,8 @@ void *test_malloc(size_t size) {
     return pointer;
 }
 
-void test_free(void *pPointer) {
-    printf("Log: Freeing %p\n", pPointer);
+void test_free(unsigned linePos, void *pPointer) {
+    printf("Log: Line %u Freeing %p\n", linePos, pPointer);
     unsigned pointerTrackIndex = 0;
     while(pointerTrackIndex < pointerTrackAmount && pPointerTrackArray[pointerTrackIndex] != pPointer) {
         pointerTrackIndex++;
