@@ -2502,6 +2502,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
 
+            /* Remember the section. */
+            pParserContext->pSection = pEntry;
+
             /* Add the inline comment to the entry */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
 
