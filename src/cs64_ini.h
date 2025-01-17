@@ -849,6 +849,17 @@ CS64INIToken cs64_ini_tokenize_value_quote(CS64INITokenResult *pResult, const CS
     characterSize = 0; /* Do not advance the position so CS64_INI_TOKEN_END can properly be produced. */\
     result.linePosition--;
 
+#define CALC_UTF_8_BYTE_SIZE(X)\
+    CS64Size X ## _BYTE_SIZE;\
+    if(X < 0x80) /* ASCII range. UTF-8 1 Byte Case. */\
+        X ## _BYTE_SIZE = 1;\
+    else if(X < 0x800) /* UTF-8 2 Byte Case. */\
+        X ## _BYTE_SIZE = 2;\
+    else if(X < 0x10000) /* UTF-8 3 Byte Case. */\
+        X ## _BYTE_SIZE = 3;\
+    else /* UTF-8 4 Byte Case. */\
+        X ## _BYTE_SIZE = 4;\
+
 CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8ByteSize) {
     CS64INITokenResult result;
     result.state = CS64_INI_LEXER_SUCCESS;
@@ -871,6 +882,8 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
     CS64UniChar character;
     CS64INIToken token;
 
+    CALC_UTF_8_BYTE_SIZE(CS64_INI_COMMENT);
+
     while(UTF8Offset < UTF8ByteSize) {
         character = cs64_ini_utf_8_read(&pUTF8Data[UTF8Offset], UTF8ByteSize - UTF8Offset, &characterSize);
 
@@ -890,6 +903,11 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
         }
         else if(character == CS64_INI_COMMENT) {
             CALL_TOKEN_FUNCTION(cs64_ini_tokenize_comment)
+
+            if(token.byteLength != 0) {
+                token.index      += CS64_INI_COMMENT_BYTE_SIZE;
+                token.byteLength -= CS64_INI_COMMENT_BYTE_SIZE;
+            }
         }
         else if(character == CS64_INI_DELEMETER) {
             SET_TOKEN(CS64_INI_TOKEN_DELEMETER)

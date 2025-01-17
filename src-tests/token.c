@@ -1241,31 +1241,31 @@ int lexer_test() {
     CS64UTF8 fileData[] = ";\n\nkey =\tvalue; Commenter\n[Section] ; comment\nkey = \"value\"; Comment\n\n\n; Comment\n\"key2\" = value value2\"\tvalue3\"; Comment";
     CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
     CS64INIToken expectedFileDataTokens[] = {
-        {CS64_INI_TOKEN_COMMENT, 0, 1},
+        {CS64_INI_TOKEN_COMMENT, 1, 0},
         {CS64_INI_TOKEN_END, 1, 2},
         {CS64_INI_TOKEN_VALUE, 3, 3},
         {CS64_INI_TOKEN_DELEMETER, 7, 1},
         {CS64_INI_TOKEN_VALUE, 9, 5},
-        {CS64_INI_TOKEN_COMMENT, 14, 11},
+        {CS64_INI_TOKEN_COMMENT, 15, 10},
         {CS64_INI_TOKEN_END, 25, 1},
         {CS64_INI_TOKEN_SECTION_START, 26, 1},
         {CS64_INI_TOKEN_VALUE, 27, 7},
         {CS64_INI_TOKEN_SECTION_END, 34, 1},
-        {CS64_INI_TOKEN_COMMENT, 36, 9},
+        {CS64_INI_TOKEN_COMMENT, 37, 8},
         {CS64_INI_TOKEN_END, 45, 1},
         {CS64_INI_TOKEN_VALUE, 46, 3},
         {CS64_INI_TOKEN_DELEMETER, 50, 1},
         {CS64_INI_TOKEN_QUOTE_VALUE, 52, 7},
-        {CS64_INI_TOKEN_COMMENT, 59, 9},
+        {CS64_INI_TOKEN_COMMENT, 60, 8},
         {CS64_INI_TOKEN_END, 68, 3},
-        {CS64_INI_TOKEN_COMMENT, 71, 9},
+        {CS64_INI_TOKEN_COMMENT, 72, 8},
         {CS64_INI_TOKEN_END, 80, 1},
         {CS64_INI_TOKEN_QUOTE_VALUE, 81, 6},
         {CS64_INI_TOKEN_DELEMETER, 88, 1},
         {CS64_INI_TOKEN_VALUE, 90, 5},
         {CS64_INI_TOKEN_VALUE, 96, 6},
         {CS64_INI_TOKEN_QUOTE_VALUE, 102, 9},
-        {CS64_INI_TOKEN_COMMENT, 111, 9},
+        {CS64_INI_TOKEN_COMMENT, 112, 8},
         {CS64_INI_TOKEN_END, 120, 0}
     };
 
