@@ -2549,6 +2549,11 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         CS64Size   keyAmount = 1;
 
         /* CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_QUOTE_VALUE token successfully read. */
+
+        /* Copy token to buffer. */
+        COPY_TOKEN_OPERATION
+
+        /* Advance tokenOffset */
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
         if(pToken == NULL) {
@@ -2583,6 +2588,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type == CS64_INI_TOKEN_END) {
+            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
+
+            /* Create variable entry */
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             pParserContext->tokenOffset++;
