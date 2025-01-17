@@ -2390,6 +2390,24 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 #undef ATTEMPT_TO_FIND_VARIABLE
 #undef UTF8_CHECK
 
+#define COPY_TOKEN_OPERATION\
+    /* The byte length must not exceed the buffer limit. */\
+    if(pToken->byteLength >= pParserContext->stringBufferLimit) {\
+        result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;\
+        return result;\
+    }\
+\
+    /* Copy operation. */\
+    {\
+        CS64Size length = 0;\
+        while(length != pToken->byteLength) {\
+            pParserContext->pStringBuffer[length] = pParserContext->pSource[pToken->index + length];\
+            length++;\
+        }\
+        pParserContext->pStringBuffer[length] = '\0';\
+        length++;\
+    }
+
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     const static CS64UTF8  add_section_str[] = "cs64_ini_add_section";
     const static CS64UTF8  last_comment_str[] = "cs64_ini_set_last_comment";
@@ -2466,7 +2484,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the section */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
 
-            entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pSource + pToken->index, &pEntry);
+            COPY_TOKEN_OPERATION
+
+            entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);
 
             if(entryState != CS64_INI_ENTRY_SUCCESS) {
                 result.state = CS64_INI_PARSER_INI_DATA_ERROR;
@@ -2493,7 +2513,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the section */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
 
-            entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pSource + pToken->index, &pEntry);
+            COPY_TOKEN_OPERATION
+
+            entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);
 
             if(entryState != CS64_INI_ENTRY_SUCCESS) {
                 result.state = CS64_INI_PARSER_INI_DATA_ERROR;
@@ -2508,7 +2530,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the inline comment to the entry */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
 
-            entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pSource + pToken->index);
+            COPY_TOKEN_OPERATION
+
+            entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pStringBuffer);
 
             if(entryState != CS64_INI_ENTRY_SUCCESS) {
                 result.state = CS64_INI_PARSER_INI_DATA_ERROR;
@@ -2587,22 +2611,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     if(commentAmount != 0) {
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
 
-        /* The byte length must not exceed the buffer limit. */
-        if(pToken->byteLength >= pParserContext->stringBufferLimit) {
-            result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
-            return result;
-        }
-
-        /* Copy operation. */
-        {
-            CS64Size length = 0;
-            while(length != pToken->byteLength) {
-                pParserContext->pStringBuffer[length] = pParserContext->pSource[pToken->index + length];
-                length++;
-            }
-            pParserContext->pStringBuffer[length] = '\0';
-            length++;
-        }
+        COPY_TOKEN_OPERATION
 
         const CS64UTF8* pComment;
 
@@ -2627,5 +2636,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
     return result;
 }
+
+#undef COPY_TOKEN_OPERATION
 
 #endif /* CS64_INI_LIBRARY_IMP */
