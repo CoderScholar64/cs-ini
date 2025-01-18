@@ -64,19 +64,18 @@ void cs64_ini_section_test() {
     parserContext.stringBufferLimit = sizeof(buffer) / 2;
     parserContext.pStringBuffer = buffer;
     parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;
-
-    SET_AVAILABLE_MEM_PAGES(2)
-    parserContext.pData = cs64_ini_data_alloc();
     parserContext.tokenOffset = 0;
     parserContext.pSection = NULL;
 
     CS64UTF8 fileData[] = "[SectionWithTOOmuchData]";
-    CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
 
     SET_AVAILABLE_MEM_PAGES(1)
-    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, fileDataSize);
-
+    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, sizeof(fileData) / sizeof(fileData[0]) - 1);
     UNIT_TEST_ASSERT_EQ(0, tokenResult.state, CS64_INI_LEXER_SUCCESS, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    parserContext.pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT_NEQ(0, parserContext.pData, NULL, "%p");
 
     parserContext.pSource = fileData;
     parserContext.pTokenResult = &tokenResult;
@@ -110,19 +109,18 @@ void cs64_ini_last_comment_test() {
     parserContext.stringBufferLimit = sizeof(buffer) / 2;
     parserContext.pStringBuffer = buffer;
     parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;
-
-    SET_AVAILABLE_MEM_PAGES(2)
-    parserContext.pData = cs64_ini_data_alloc();
     parserContext.tokenOffset = 0;
     parserContext.pSection = NULL;
 
     CS64UTF8 fileData[] = "; First Test";
-    CS64Size fileDataSize = sizeof(fileData) / sizeof(fileData[0]) - 1;
 
     SET_AVAILABLE_MEM_PAGES(1)
-    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, fileDataSize);
-
+    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, sizeof(fileData) / sizeof(fileData[0]) - 1);
     UNIT_TEST_ASSERT_EQ(0, tokenResult.state, CS64_INI_LEXER_SUCCESS, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    parserContext.pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT_NEQ(0, parserContext.pData, NULL, "%p");
 
     parserContext.pSource = fileData;
     parserContext.pTokenResult = &tokenResult;
