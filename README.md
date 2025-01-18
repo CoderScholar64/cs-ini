@@ -1,15 +1,15 @@
 # cs-ini
-A yet another header only library for ini in C89. **INCOMPLETE**
+A yet another header only library for ini in relatively the C89 standard. **INCOMPLETE**
 
 ## Planned Features
 * A way to enable ASCII only mode.
-* INI Parser. Convert the tokens and place them in a hash table. This should not be too hard to write.
+* INI Parser Unit Testing. **Partially**
 
 ## Features
 * ASCII Encoding/Decoding Support.
 * Custom Library Function Aliasing.
 * A Hash Table that stores sections and variables. Also each entry is a double linked list.
-* INI Lexer.
+* INI Lexer and Parser.
 * Section Support.
 * Linked Lists each containing an array with a fixed amount which holds the tokens.
 * UTF-8 Encoding/Decoding Support.
