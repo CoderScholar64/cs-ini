@@ -56,29 +56,32 @@ int main() {
     return 0;
 }
 
-void cs64_ini_section_test() {
-    CS64UTF8 buffer[1024];
-
-    CS64INIParserContext parserContext;
-
-    parserContext.stringBufferLimit = sizeof(buffer) / 2;
-    parserContext.pStringBuffer = buffer;
-    parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;
-    parserContext.tokenOffset = 0;
-    parserContext.pSection = NULL;
-
-    CS64UTF8 fileData[] = "[SectionWithTOOmuchData]";
-
-    SET_AVAILABLE_MEM_PAGES(1)
-    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, sizeof(fileData) / sizeof(fileData[0]) - 1);
-    UNIT_TEST_ASSERT_EQ(0, tokenResult.state, CS64_INI_LEXER_SUCCESS, "%d");
-
-    SET_AVAILABLE_MEM_PAGES(2)
-    parserContext.pData = cs64_ini_data_alloc();
-    UNIT_TEST_ASSERT_NEQ(0, parserContext.pData, NULL, "%p");
-
-    parserContext.pSource = fileData;
+#define PARSE_LINE_SETUP(BUFFER_SIZE, FILE_DATA, TOKEN_DATA_PAGES) \
+    CS64UTF8 buffer[BUFFER_SIZE];\
+\
+    CS64INIParserContext parserContext;\
+\
+    parserContext.stringBufferLimit = sizeof(buffer) / 2;\
+    parserContext.pStringBuffer = buffer;\
+    parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;\
+    parserContext.tokenOffset = 0;\
+    parserContext.pSection = NULL;\
+\
+    CS64UTF8 fileData[] = FILE_DATA;\
+\
+    SET_AVAILABLE_MEM_PAGES(TOKEN_DATA_PAGES)\
+    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, sizeof(fileData) / sizeof(fileData[0]) - 1);\
+    UNIT_TEST_ASSERT_EQ(0, tokenResult.state, CS64_INI_LEXER_SUCCESS, "%d");\
+\
+    SET_AVAILABLE_MEM_PAGES(2)\
+    parserContext.pData = cs64_ini_data_alloc();\
+    UNIT_TEST_ASSERT_NEQ(0, parserContext.pData, NULL, "%p");\
+\
+    parserContext.pSource = fileData;\
     parserContext.pTokenResult = &tokenResult;
+
+void cs64_ini_section_test() {
+    PARSE_LINE_SETUP(1024, "[SectionWithTOOmuchData]", 2)
 
     CS64INIParserResult result;
 
@@ -102,28 +105,7 @@ void cs64_ini_section_test() {
 }
 
 void cs64_ini_last_comment_test() {
-    CS64UTF8 buffer[1024];
-
-    CS64INIParserContext parserContext;
-
-    parserContext.stringBufferLimit = sizeof(buffer) / 2;
-    parserContext.pStringBuffer = buffer;
-    parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;
-    parserContext.tokenOffset = 0;
-    parserContext.pSection = NULL;
-
-    CS64UTF8 fileData[] = "; First Test";
-
-    SET_AVAILABLE_MEM_PAGES(1)
-    CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, sizeof(fileData) / sizeof(fileData[0]) - 1);
-    UNIT_TEST_ASSERT_EQ(0, tokenResult.state, CS64_INI_LEXER_SUCCESS, "%d");
-
-    SET_AVAILABLE_MEM_PAGES(2)
-    parserContext.pData = cs64_ini_data_alloc();
-    UNIT_TEST_ASSERT_NEQ(0, parserContext.pData, NULL, "%p");
-
-    parserContext.pSource = fileData;
-    parserContext.pTokenResult = &tokenResult;
+    PARSE_LINE_SETUP(1024, "; First Test", 2)
 
     CS64INIParserResult result;
 
