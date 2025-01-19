@@ -49,6 +49,8 @@ int mallocPagesLeft = 0;
 void cs64_ini_section_test();
 void cs64_ini_last_comment_test();
 
+void display_parser_result(CS64INIParserResult *pParserResult);
+
 int main() {
     cs64_ini_section_test();
     cs64_ini_last_comment_test();
@@ -115,6 +117,7 @@ void cs64_ini_section_test() {
     SET_AVAILABLE_MEM_PAGES(0);
     parserContext.tokenOffset = 4;
     result = cs64_ini_parse_line(&parserContext);
+    display_parser_result(&result);
     UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_INI_DATA_ERROR, "%d");
     UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 9, "%zd");
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
@@ -155,6 +158,71 @@ void cs64_ini_last_comment_test() {
     cs64_ini_lexer_free(parserContext.pTokenResult);
 
     UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void display_token_type(CS64INITokenType type) {
+    switch(type) {
+        case CS64_INI_TOKEN_DELEMETER:
+            printf("    CS64_INI_TOKEN_DELEMETER\n");
+            return;
+        case CS64_INI_TOKEN_VALUE:
+            printf("    CS64_INI_TOKEN_VALUE\n");
+            return;
+        case CS64_INI_TOKEN_COMMENT:
+            printf("    CS64_INI_TOKEN_COMMENT\n");
+            return;
+        case CS64_INI_TOKEN_END:
+            printf("    CS64_INI_TOKEN_END\n");
+            return;
+        case CS64_INI_TOKEN_SECTION_START:
+            printf("    CS64_INI_TOKEN_SECTION_START\n");
+            return;
+        case CS64_INI_TOKEN_SECTION_END:
+            printf("    CS64_INI_TOKEN_SECTION_END\n");
+            return;
+    }
+}
+
+void display_parser_result(CS64INIParserResult *pParserResult) {
+    if(pParserResult == NULL) {
+        printf("CS64INIParserContext is NULL\n");
+        return;
+    }
+    printf("CS64INIParserContext is %p\n", pParserResult);
+
+    switch(pParserResult->state) {
+        case CS64_INI_PARSER_SUCCESS:
+            printf("  CS64_INI_PARSER_SUCCESS\n");
+            return;
+        case CS64_INI_PARSER_UNEXPECTED_ERROR:
+            printf("  CS64_INI_PARSER_UNEXPECTED_ERROR\n");
+            {
+                printf("  Received Token\n");
+                display_token_type(pParserResult->status.unexpected_token.receivedToken.type);
+
+                CS64Size p = 0;
+
+                while(p < pParserResult->status.unexpected_token.expectedTokenAmount) {
+                    printf("  Other %zu\n", p);
+                    display_token_type(pParserResult->status.unexpected_token.pExpectedTokens[p]);
+                    p++;
+                }
+            }
+            return;
+        case CS64_INI_PARSER_REDECLARATION_ERROR:
+            printf("  CS64_INI_PARSER_REDECLARATION_ERROR\n");
+            return;
+        case CS64_INI_PARSER_INI_DATA_ERROR:
+            printf("  CS64_INI_PARSER_INI_DATA_ERROR\n");
+            {
+                printf("  Function Name\n    %s\n", pParserResult->status.data_error.pFunctionName);
+                printf("  Function Status\n    %d\n", pParserResult->status.data_error.functionStatus);
+            }
+            return;
+        case CS64_INI_PARSER_LEXER_MEM_ERROR:
+            printf("  CS64_INI_PARSER_LEXER_MEM_ERROR\n");
+            return;
+    }
 }
 
 void *test_malloc(unsigned linePos, size_t size) {
