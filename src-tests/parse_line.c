@@ -72,7 +72,7 @@ int main() {
     SET_AVAILABLE_MEM_PAGES(TOKEN_DATA_PAGES)\
     CS64INITokenResult tokenResult = cs64_ini_lexer(fileData, sizeof(fileData) / sizeof(fileData[0]) - 1);\
     UNIT_TEST_ASSERT_EQ(0, tokenResult.state, CS64_INI_LEXER_SUCCESS, "%d");\
-    UNIT_TEST_DETAIL_ASSERT(0, tokenResult.sectionBeginCount == tokenResult.sectionEndCount, printf("These sections should be equal %zd != %zd\n", tokenResult.sectionBeginCount == tokenResult.sectionEndCount);)\
+    UNIT_TEST_DETAIL_ASSERT(0, tokenResult.sectionBeginCount == tokenResult.sectionEndCount, printf("These sections should be equal %zu != %zu\n", tokenResult.sectionBeginCount, tokenResult.sectionEndCount);)\
 \
     SET_AVAILABLE_MEM_PAGES(2)\
     parserContext.pData = cs64_ini_data_alloc();\
