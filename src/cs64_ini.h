@@ -2536,6 +2536,9 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 result.status.data_error.functionStatus = entryState;
                 return result;
             }
+
+            /* Remember the section. */
+            pParserContext->pSection = pEntry;
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             pParserContext->tokenOffset++;
