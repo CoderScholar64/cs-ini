@@ -90,23 +90,41 @@ int main() {
     parserContext.pTokenResult = &tokenResult;
 
 void cs64_ini_section_test() {
-    PARSE_LINE_SETUP(1024, "[SectionWithTOOmuchData]", 2)
+    PARSE_LINE_SETUP(1024, "[SectionWithTOOmuchData]\n; comment\n[SectA]\n; above comment\n[SectB]; inline comment", 5)
 
     CS64INIParserResult result;
 
+    /* Failure test. */
     result = cs64_ini_parse_line(&parserContext);
     UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_INI_DATA_ERROR, "%d");
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_add_section") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
     UNIT_TEST_ASSERT_EQ(0, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
 
+    CS64INIEntry *pEntry;
+
+    /* SectionWithTOOmuchData Success test. */
     SET_AVAILABLE_MEM_PAGES(1)
     parserContext.tokenOffset = 0;
     result = cs64_ini_parse_line(&parserContext);
     UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 3, "%zd");
-    CS64INIEntry *pEntry = cs64_ini_get_section(parserContext.pData, "SectionWithTOOmuchData");
+    pEntry = cs64_ini_get_section(parserContext.pData, "SectionWithTOOmuchData");
     UNIT_TEST_ASSERT_NEQ(0, pEntry, NULL, "%p");
     UNIT_TEST_ASSERT_EQ(0, parserContext.pSection, pEntry, "%p");
+
+    SET_AVAILABLE_MEM_PAGES(0)
+    parserContext.tokenOffset = 4;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_INI_DATA_ERROR, "%d");
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+    UNIT_TEST_ASSERT_EQ(0, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    parserContext.tokenOffset = 4;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_SUCCESS, "%d");
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 5, "%zd");
+    pEntry = cs64_ini_get_section(parserContext.pData, "SectA");
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
