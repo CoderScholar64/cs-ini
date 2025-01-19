@@ -106,6 +106,7 @@ void cs64_ini_section_test() {
     UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 3, "%zd");
     CS64INIEntry *pEntry = cs64_ini_get_section(parserContext.pData, "SectionWithTOOmuchData");
     UNIT_TEST_ASSERT_NEQ(0, pEntry, NULL, "%p");
+    UNIT_TEST_ASSERT_EQ(0, parserContext.pSection, pEntry, "%p");
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
