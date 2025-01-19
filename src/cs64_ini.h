@@ -2451,6 +2451,8 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     CS64Size   commentAmount = 0; /* Zero means no token state. */
 
     CS64INIToken* pToken;
+    CS64INIEntry *pEntry = NULL;
+    CS64INIEntryState entryState;
 
     pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
     if(pToken == NULL) {
@@ -2469,10 +2471,37 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
             return result;
         }
-    }
 
-    CS64INIEntry *pEntry = NULL;
-    CS64INIEntryState entryState;
+        /* Test to see if token is END */
+        if(pToken->type != CS64_INI_TOKEN_END) {
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_END};
+
+            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 1;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
+        }
+
+        pParserContext->tokenOffset++;
+        pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
+        if(pToken == NULL) {
+            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
+
+            COPY_TOKEN_OPERATION(pStringBuffer)
+
+            entryState = cs64_ini_set_last_comment(pParserContext->pData, pParserContext->pStringBuffer);
+
+            if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+                result.status.data_error.pFunctionName = last_comment_str;
+                result.status.data_error.functionStatus = entryState;
+                return result;
+            }
+
+            return result; /* This means that there is nothing else.*/
+        }
+    }
 
     if(pToken->type == CS64_INI_TOKEN_SECTION_START) {
         /* CS64_INI_TOKEN_SECTION_START token successfully read. */
@@ -2588,6 +2617,22 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             if(entryState != CS64_INI_ENTRY_SUCCESS) {
                 result.state = CS64_INI_PARSER_INI_DATA_ERROR;
                 result.status.data_error.pFunctionName = entry_inline_comment_str;
+                result.status.data_error.functionStatus = entryState;
+                return result;
+            }
+        }
+
+        if(commentAmount != 0) {
+            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
+
+            COPY_TOKEN_OPERATION(pStringBuffer)
+
+            /* Add the comment to the Entry if possiable */
+            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pStringBuffer);
+
+            if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+                result.status.data_error.pFunctionName = entry_comment_str;
                 result.status.data_error.functionStatus = entryState;
                 return result;
             }
@@ -2713,7 +2758,24 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
         }
+
+        if(commentAmount != 0) {
+            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
+
+            COPY_TOKEN_OPERATION(pStringBuffer)
+
+            /* Add the comment to the Entry if possiable */
+            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pStringBuffer);
+
+            if(entryState != CS64_INI_ENTRY_SUCCESS) {
+                result.state = CS64_INI_PARSER_INI_DATA_ERROR;
+                result.status.data_error.pFunctionName = entry_comment_str;
+                result.status.data_error.functionStatus = entryState;
+                return result;
+            }
+        }
     } else if(pToken->type == CS64_INI_TOKEN_END) {
+        /* NOP */
     }
     else {
         /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_END not pToken->type. */
@@ -2724,32 +2786,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         result.status.unexpected_token.expectedTokenAmount = 3;
         result.status.unexpected_token.pExpectedTokens = expected_tokens;
         return result;
-    }
-
-    if(commentAmount != 0) {
-        pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
-
-        COPY_TOKEN_OPERATION(pStringBuffer)
-
-        const CS64UTF8* pComment;
-
-        if(pEntry == NULL) {
-            /* Submit last comment if there is a comment. */
-            entryState = cs64_ini_set_last_comment(pParserContext->pData, pParserContext->pStringBuffer);
-            pComment = last_comment_str;
-        }
-        else {
-            /* Add the comment to the Entry if possiable */
-            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pStringBuffer);
-            pComment = entry_comment_str;
-        }
-
-        if(entryState != CS64_INI_ENTRY_SUCCESS) {
-            result.state = CS64_INI_PARSER_INI_DATA_ERROR;
-            result.status.data_error.pFunctionName = pComment;
-            result.status.data_error.functionStatus = entryState;
-            return result;
-        }
     }
 
     return result;
