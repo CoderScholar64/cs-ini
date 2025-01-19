@@ -117,7 +117,6 @@ void cs64_ini_section_test() {
     SET_AVAILABLE_MEM_PAGES(0);
     parserContext.tokenOffset = 4;
     result = cs64_ini_parse_line(&parserContext);
-    display_parser_result(&result);
     UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_INI_DATA_ERROR, "%d");
     UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 9, "%zd");
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
@@ -126,6 +125,7 @@ void cs64_ini_section_test() {
     SET_AVAILABLE_MEM_PAGES(1)
     parserContext.tokenOffset = 4;
     result = cs64_ini_parse_line(&parserContext);
+    display_parser_result(&result);
     UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_SUCCESS, "%d");
     UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 9, "%zd");
     pEntry = cs64_ini_get_section(parserContext.pData, "SectA");
