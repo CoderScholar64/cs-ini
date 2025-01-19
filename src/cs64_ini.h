@@ -2560,7 +2560,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             }
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
-            CS64Size   inlineCommentAmount = 1;
 
             /* Add the section */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
