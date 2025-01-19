@@ -183,6 +183,38 @@ void display_token_type(CS64INITokenType type) {
     }
 }
 
+void display_entry_state(CS64INIEntryState type) {
+    switch(type) {
+        case CS64_INI_ENTRY_SUCCESS:
+            printf("    CS64_INI_ENTRY_SUCCESS\n");
+            return;
+        case CS64_INI_ENTRY_DATA_NULL_ERROR:
+            printf("    CS64_INI_ENTRY_DATA_NULL_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_SECTION_EMPTY_ERROR:
+            printf("    CS64_INI_ENTRY_SECTION_EMPTY_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_ENTRY_EMPTY_ERROR:
+            printf("    CS64_INI_ENTRY_ENTRY_EMPTY_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_ENTRY_EXISTS_ERROR:
+            printf("    CS64_INI_ENTRY_ENTRY_EXISTS_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_ENTRY_DNE_ERROR:
+            printf("    CS64_INI_ENTRY_ENTRY_DNE_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_NO_MEMORY_ERROR:
+            printf("    CS64_INI_ENTRY_NO_MEMORY_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_ILLEGAL_STRING_ERROR:
+            printf("    CS64_INI_ENTRY_ILLEGAL_STRING_ERROR\n");
+            return;
+        case CS64_INI_ENTRY_INVALID_ENCODE_ERROR:
+            printf("    CS64_INI_ENTRY_INVALID_ENCODE_ERROR\n");
+            return;
+    }
+}
+
 void display_parser_result(CS64INIParserResult *pParserResult) {
     if(pParserResult == NULL) {
         printf("CS64INIParserContext is NULL\n");
@@ -216,7 +248,8 @@ void display_parser_result(CS64INIParserResult *pParserResult) {
             printf("  CS64_INI_PARSER_INI_DATA_ERROR\n");
             {
                 printf("  Function Name\n    %s\n", pParserResult->status.data_error.pFunctionName);
-                printf("  Function Status\n    %d\n", pParserResult->status.data_error.functionStatus);
+                printf("  Function Status\n");
+                display_entry_state(pParserResult->status.data_error.functionStatus);
             }
             return;
         case CS64_INI_PARSER_LEXER_MEM_ERROR:
