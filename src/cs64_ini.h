@@ -2443,7 +2443,7 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
     X.status.unexpected_token.pExpectedTokens = expected_tokens;\
     return X;
 
-#define TEST_IF_TOKEN_CORRECT(X, Y, EXPECTED_TOKEN)\
+#define RETURN_IF_WRONG_TOKEN(X, Y, EXPECTED_TOKEN)\
     if((Y)->type != EXPECTED_TOKEN) {\
         const static CS64INITokenType expected_tokens[] = {EXPECTED_TOKEN};\
         RETURN_EXPECTED_TOKEN_ERROR(X, expected_tokens)\
@@ -2485,7 +2485,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_END)
+        RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_END)
 
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2516,7 +2516,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_VALUE)
+        RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_VALUE)
 
         CS64Offset sectionTokenOffset = pParserContext->tokenOffset;
         CS64Size   sectionAmount = 1;
@@ -2528,7 +2528,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_SECTION_END)
+        RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_SECTION_END)
 
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2563,7 +2563,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
 
-            TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_END)
+            RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_END)
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
 
@@ -2634,7 +2634,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_DELEMETER)
+        RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_DELEMETER)
 
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2643,7 +2643,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_VALUE)
+        RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_VALUE)
 
         CS64Offset valueTokenOffset = pParserContext->tokenOffset;
         CS64Size   valueAmount = 1;
@@ -2681,7 +2681,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
             CS64Size   inlineCommentAmount = 1;
 
-            TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_END)
+            RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_END)
 
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
 
@@ -2743,6 +2743,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
 #undef COPY_TOKEN_OPERATION
 #undef RETURN_EXPECTED_TOKEN_ERROR
-#undef TEST_IF_TOKEN_CORRECT
+#undef RETURN_IF_WRONG_TOKEN
 
 #endif /* CS64_INI_LIBRARY_IMP */
