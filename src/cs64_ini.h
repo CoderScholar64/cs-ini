@@ -2605,7 +2605,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
-        ADD_OR_ERROR_IF_COMMENT_PRESENT(pEntry, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
+        ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
     } else if(pToken->type == CS64_INI_TOKEN_VALUE) {
 
         CS64Size keyAmount = 1;
@@ -2689,7 +2689,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
-        ADD_OR_ERROR_IF_COMMENT_PRESENT(pEntry, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
+        ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
     } else if(pToken->type == CS64_INI_TOKEN_END) {
         /* NOP */
     }
