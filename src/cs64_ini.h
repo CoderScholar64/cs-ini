@@ -2420,7 +2420,7 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 
 /* ### PARSER SECTION ### */
 
-#define COPY_TOKEN_OPERATION(X)\
+#define COPY_TOKEN_TO_STRING_BUFFER(X)\
     /* The byte length must not exceed the buffer limit. */\
     if(pToken->byteLength >= pParserContext->stringBufferLimit) {\
         result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;\
@@ -2463,7 +2463,7 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
     if(AMOUNT != 0) {\
         pToken = cs64_ini_token_data_get_token(PARSER_CONTEXT->pTokenResult->pTokenStorage, COMMENT_TOKEN_OFFSET);\
 \
-        COPY_TOKEN_OPERATION(pStringBuffer)\
+        COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)\
 \
         /* Add the comment to the Entry if possible */\
         STATE = cs64_ini_set_entry_comment(pEntry, PARSER_CONTEXT->pStringBuffer);\
@@ -2515,7 +2515,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         if(pToken == NULL) {
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
 
-            COPY_TOKEN_OPERATION(pStringBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
 
             entryState = cs64_ini_set_last_comment(pParserContext->pData, pParserContext->pStringBuffer);
 
@@ -2559,7 +2559,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the section */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
 
-            COPY_TOKEN_OPERATION(pStringBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
 
             entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);
 
@@ -2583,7 +2583,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the section */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
 
-            COPY_TOKEN_OPERATION(pStringBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
 
             entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);
 
@@ -2595,7 +2595,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the inline comment to the entry */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
 
-            COPY_TOKEN_OPERATION(pStringBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
 
             entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pStringBuffer);
 
@@ -2613,7 +2613,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         /* CS64_INI_TOKEN_VALUE token successfully read. */
 
         /* Copy token to buffer. */
-        COPY_TOKEN_OPERATION(pStringBuffer)
+        COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
 
         /* Advance tokenOffset */
         pParserContext->tokenOffset++;
@@ -2647,7 +2647,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         if(pToken->type == CS64_INI_TOKEN_END) {
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
 
-            COPY_TOKEN_OPERATION(pValueBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)
 
             /* Create variable entry */
             entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);
@@ -2669,7 +2669,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
 
-            COPY_TOKEN_OPERATION(pValueBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)
 
             /* Create variable entry */
             entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);
@@ -2679,7 +2679,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             /* Add the inline comment to the entry */
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
 
-            COPY_TOKEN_OPERATION(pValueBuffer)
+            COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)
 
             entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pValueBuffer);
 
@@ -2701,7 +2701,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     return result;
 }
 
-#undef COPY_TOKEN_OPERATION
+#undef COPY_TOKEN_TO_STRING_BUFFER
 #undef RETURN_EXPECTED_TOKEN_ERROR
 #undef RETURN_IF_WRONG_TOKEN
 #undef RETURN_IF_DATA_ERROR
