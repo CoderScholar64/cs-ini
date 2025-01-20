@@ -2472,6 +2472,19 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
         RETURN_IF_DATA_ERROR(X, STATE, FUNC_NAME)\
     }
 
+#define ADD_SECTION_OR_ERROR\
+    /* Add the section */\
+    pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);\
+\
+    COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)\
+\
+    entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);\
+\
+    RETURN_IF_DATA_ERROR(result, entryState, add_section_str)\
+\
+    /* Remember the section. */\
+    pParserContext->pSection = pEntry;
+
 #define ADD_VARIABLE_OR_ERROR\
     pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);\
 \
@@ -2566,17 +2579,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type == CS64_INI_TOKEN_END) {
-            /* Add the section */
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
-
-            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
-
-            entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);
-
-            RETURN_IF_DATA_ERROR(result, entryState, add_section_str)
-
-            /* Remember the section. */
-            pParserContext->pSection = pEntry;
+            ADD_SECTION_OR_ERROR
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             pParserContext->tokenOffset++;
@@ -2590,17 +2593,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
 
-            /* Add the section */
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, sectionTokenOffset);
-
-            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
-
-            entryState = cs64_ini_add_section(pParserContext->pData, pParserContext->pStringBuffer, &pEntry);
-
-            RETURN_IF_DATA_ERROR(result, entryState, add_section_str)
-
-            /* Remember the section. */
-            pParserContext->pSection = pEntry;
+            ADD_SECTION_OR_ERROR
 
             /* Add the inline comment to the entry */
             ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, pParserContext, inlineCommentTokenOffset, 1, cs64_ini_set_entry_inline_comment, entry_inline_comment_str)
