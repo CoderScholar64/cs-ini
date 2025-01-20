@@ -2593,13 +2593,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             pParserContext->pSection = pEntry;
 
             /* Add the inline comment to the entry */
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
-
-            COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)
-
-            entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pStringBuffer);
-
-            RETURN_IF_DATA_ERROR(result, entryState, entry_inline_comment_str)
+            ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, pParserContext, inlineCommentTokenOffset, 1, cs64_ini_set_entry_inline_comment, entry_inline_comment_str)
         } else {
             const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
@@ -2663,7 +2657,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             }
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
-            CS64Size   inlineCommentAmount = 1;
 
             RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_END)
 
@@ -2677,13 +2670,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_IF_DATA_ERROR(result, entryState, add_variable_str)
 
             /* Add the inline comment to the entry */
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, inlineCommentTokenOffset);
-
-            COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)
-
-            entryState = cs64_ini_set_entry_inline_comment(pEntry, pParserContext->pValueBuffer);
-
-            RETURN_IF_DATA_ERROR(result, entryState, entry_inline_comment_str)
+            ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, pParserContext, inlineCommentTokenOffset, 1, cs64_ini_set_entry_inline_comment, entry_inline_comment_str)
         } else {
             const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
