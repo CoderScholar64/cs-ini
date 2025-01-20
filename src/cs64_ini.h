@@ -2436,6 +2436,15 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
         length++;\
     }
 
+#define RETURN_EXPECTED_TOKEN_ERROR(X, EXPECTED_ARRAY)\
+    const static CS64INITokenType expected_tokens[] = EXPECTED_ARRAY;\
+\
+    X.state = CS64_INI_PARSER_UNEXPECTED_ERROR;\
+    X.status.unexpected_token.receivedToken = *pToken;\
+    X.status.unexpected_token.expectedTokenAmount = sizeof(expected_tokens) / sizeof(expected_tokens[0]);\
+    X.status.unexpected_token.pExpectedTokens = expected_tokens;\
+    return X;
+
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     const static CS64UTF8   add_section_str[] = "cs64_ini_add_section";
     const static CS64UTF8  add_variable_str[] = "cs64_ini_add_variable";
@@ -2474,13 +2483,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
         /* Test to see if token is END */
         if(pToken->type != CS64_INI_TOKEN_END) {
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_END};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 1;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_END})
         }
 
         pParserContext->tokenOffset++;
@@ -2513,14 +2516,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type != CS64_INI_TOKEN_VALUE) {
-            /* Expected CS64_INI_TOKEN_VALUE not pToken->type. */
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_VALUE};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 1;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_VALUE})
         }
 
         CS64Offset sectionTokenOffset = pParserContext->tokenOffset;
@@ -2534,14 +2530,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type != CS64_INI_TOKEN_SECTION_END) {
-            /* Expected CS64_INI_TOKEN_SECTION_END not pToken->type. */
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_END};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 1;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_SECTION_END})
         }
 
         pParserContext->tokenOffset++;
@@ -2578,14 +2567,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             }
 
             if(pToken->type != CS64_INI_TOKEN_END) {
-                /* Expected CS64_INI_TOKEN_END not pToken->type. */
-                const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_END};
-
-                result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-                result.status.unexpected_token.receivedToken = *pToken;
-                result.status.unexpected_token.expectedTokenAmount = 1;
-                result.status.unexpected_token.pExpectedTokens = expected_tokens;
-                return result;
+                RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_END})
             }
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
@@ -2621,14 +2603,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
         } else {
-            /* Expected CS64_INI_TOKEN_COMMENT or CS64_INI_TOKEN_END not pToken->type. */
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 2;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END})
         }
 
         if(commentAmount != 0) {
@@ -2664,14 +2639,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type != CS64_INI_TOKEN_DELEMETER) {
-            /* Expected CS64_INI_TOKEN_DELEMETER not pToken->type. */
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_DELEMETER};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 1;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_DELEMETER})
         }
 
         pParserContext->tokenOffset++;
@@ -2682,14 +2650,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type != CS64_INI_TOKEN_VALUE) {
-            /* Expected CS64_INI_TOKEN_VALUE not pToken->type. */
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_VALUE};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 1;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_VALUE})
         }
 
         CS64Offset valueTokenOffset = pParserContext->tokenOffset;
@@ -2729,14 +2690,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             CS64Size   inlineCommentAmount = 1;
 
             if(pToken->type != CS64_INI_TOKEN_END) {
-                /* Expected CS64_INI_TOKEN_END not pToken->type. */
-                const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_END};
-
-                result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-                result.status.unexpected_token.receivedToken = *pToken;
-                result.status.unexpected_token.expectedTokenAmount = 1;
-                result.status.unexpected_token.pExpectedTokens = expected_tokens;
-                return result;
+                RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_END})
             }
 
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
@@ -2767,14 +2721,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
         } else {
-            /* Expected CS64_INI_TOKEN_COMMENT or CS64_INI_TOKEN_END not pToken->type. */
-            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
-
-            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-            result.status.unexpected_token.receivedToken = *pToken;
-            result.status.unexpected_token.expectedTokenAmount = 2;
-            result.status.unexpected_token.pExpectedTokens = expected_tokens;
-            return result;
+            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END})
         }
 
         if(commentAmount != 0) {
@@ -2796,19 +2743,13 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         /* NOP */
     }
     else {
-        /* Expected CS64_INI_TOKEN_SECTION_START or CS64_INI_TOKEN_VALUE or CS64_INI_TOKEN_END not pToken->type. */
-        const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_END};
-
-        result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
-        result.status.unexpected_token.receivedToken = *pToken;
-        result.status.unexpected_token.expectedTokenAmount = 3;
-        result.status.unexpected_token.pExpectedTokens = expected_tokens;
-        return result;
+        RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_END})
     }
 
     return result;
 }
 
 #undef COPY_TOKEN_OPERATION
+#undef RETURN_EXPECTED_TOKEN_ERROR
 
 #endif /* CS64_INI_LIBRARY_IMP */
