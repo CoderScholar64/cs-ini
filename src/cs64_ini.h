@@ -2682,6 +2682,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 #undef RETURN_IF_WRONG_TOKEN
 #undef RETURN_IF_DATA_ERROR
 #undef ADD_OR_ERROR_IF_COMMENT_PRESENT
+#undef ADD_SECTION_OR_ERROR
 #undef ADD_VARIABLE_OR_ERROR
 
 #endif /* CS64_INI_LIBRARY_IMP */
