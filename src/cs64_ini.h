@@ -2620,6 +2620,15 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 result.status.data_error.functionStatus = entryState;
                 return result;
             }
+        } else {
+            /* Expected CS64_INI_TOKEN_COMMENT or CS64_INI_TOKEN_END not pToken->type. */
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
+
+            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 2;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
         }
 
         if(commentAmount != 0) {
@@ -2757,6 +2766,15 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 result.status.data_error.functionStatus = entryState;
                 return result;
             }
+        } else {
+            /* Expected CS64_INI_TOKEN_COMMENT or CS64_INI_TOKEN_END not pToken->type. */
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
+
+            result.state = CS64_INI_PARSER_UNEXPECTED_ERROR;
+            result.status.unexpected_token.receivedToken = *pToken;
+            result.status.unexpected_token.expectedTokenAmount = 2;
+            result.status.unexpected_token.pExpectedTokens = expected_tokens;
+            return result;
         }
 
         if(commentAmount != 0) {
