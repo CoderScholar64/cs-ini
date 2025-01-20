@@ -2418,6 +2418,8 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
 #undef ATTEMPT_TO_FIND_VARIABLE
 #undef UTF8_CHECK
 
+/* ### PARSER SECTION ### */
+
 #define COPY_TOKEN_OPERATION(X)\
     /* The byte length must not exceed the buffer limit. */\
     if(pToken->byteLength >= pParserContext->stringBufferLimit) {\
