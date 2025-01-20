@@ -2472,6 +2472,16 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
         RETURN_IF_DATA_ERROR(X, STATE, FUNC_NAME)\
     }
 
+#define ADD_VARIABLE_OR_ERROR\
+    pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);\
+\
+    COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)\
+\
+    /* Create variable entry */\
+    entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);\
+\
+    RETURN_IF_DATA_ERROR(result, entryState, add_variable_str)
+
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     const static CS64UTF8   add_section_str[] = "cs64_ini_add_section";
     const static CS64UTF8  add_variable_str[] = "cs64_ini_add_variable";
@@ -2639,14 +2649,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         }
 
         if(pToken->type == CS64_INI_TOKEN_END) {
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
-
-            COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)
-
-            /* Create variable entry */
-            entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);
-
-            RETURN_IF_DATA_ERROR(result, entryState, add_variable_str)
+            ADD_VARIABLE_OR_ERROR
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
 
             pParserContext->tokenOffset++;
@@ -2660,14 +2663,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
             RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_END)
 
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
-
-            COPY_TOKEN_TO_STRING_BUFFER(pValueBuffer)
-
-            /* Create variable entry */
-            entryState = cs64_ini_add_variable(pParserContext->pData, cs64_ini_get_entry_name(pParserContext->pSection), pParserContext->pStringBuffer, pParserContext->pValueBuffer, &pEntry);
-
-            RETURN_IF_DATA_ERROR(result, entryState, add_variable_str)
+            ADD_VARIABLE_OR_ERROR
 
             /* Add the inline comment to the entry */
             ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, pParserContext, inlineCommentTokenOffset, 1, cs64_ini_set_entry_inline_comment, entry_inline_comment_str)
@@ -2693,5 +2689,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 #undef RETURN_IF_WRONG_TOKEN
 #undef RETURN_IF_DATA_ERROR
 #undef ADD_OR_ERROR_IF_COMMENT_PRESENT
+#undef ADD_VARIABLE_OR_ERROR
 
 #endif /* CS64_INI_LIBRARY_IMP */
