@@ -2459,14 +2459,14 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
         return X;\
     }
 
-#define ADD_OR_ERROR_IF_COMMENT_PRESENT(X, STATE, AMOUNT, PARSER_CONTEXT, COMMENT_TOKEN_OFFSET, FUNC_NAME)\
+#define ADD_OR_ERROR_IF_COMMENT_PRESENT(X, STATE, PARSER_CONTEXT, COMMENT_TOKEN_OFFSET, AMOUNT, FUNC, FUNC_NAME)\
     if(AMOUNT != 0) {\
         pToken = cs64_ini_token_data_get_token(PARSER_CONTEXT->pTokenResult->pTokenStorage, COMMENT_TOKEN_OFFSET);\
 \
         COPY_TOKEN_TO_STRING_BUFFER(pStringBuffer)\
 \
         /* Add the comment to the Entry if possible */\
-        STATE = cs64_ini_set_entry_comment(pEntry, PARSER_CONTEXT->pStringBuffer);\
+        STATE = FUNC(pEntry, PARSER_CONTEXT->pStringBuffer);\
 \
         /* If this function fails then return an error. */\
         RETURN_IF_DATA_ERROR(X, STATE, FUNC_NAME)\
@@ -2605,7 +2605,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
-        ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
+        ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, pParserContext, commentTokenOffset, commentAmount, cs64_ini_set_entry_comment, entry_comment_str)
     } else if(pToken->type == CS64_INI_TOKEN_VALUE) {
 
         CS64Size keyAmount = 1;
@@ -2689,7 +2689,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
-        ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
+        ADD_OR_ERROR_IF_COMMENT_PRESENT(result, entryState, pParserContext, commentTokenOffset, commentAmount, cs64_ini_set_entry_comment, entry_comment_str)
     } else if(pToken->type == CS64_INI_TOKEN_END) {
         /* NOP */
     }
