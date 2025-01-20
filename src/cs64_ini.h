@@ -2436,14 +2436,18 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
         length++;\
     }
 
-#define RETURN_EXPECTED_TOKEN_ERROR(X, EXPECTED_ARRAY)\
-    const static CS64INITokenType expected_tokens[] = EXPECTED_ARRAY;\
-\
+#define RETURN_EXPECTED_TOKEN_ERROR(X, expected_tokens)\
     X.state = CS64_INI_PARSER_UNEXPECTED_ERROR;\
     X.status.unexpected_token.receivedToken = *pToken;\
     X.status.unexpected_token.expectedTokenAmount = sizeof(expected_tokens) / sizeof(expected_tokens[0]);\
     X.status.unexpected_token.pExpectedTokens = expected_tokens;\
     return X;
+
+#define TEST_IF_TOKEN_CORRECT(X, Y, EXPECTED_TOKEN)\
+    if((Y)->type != EXPECTED_TOKEN) {\
+        const static CS64INITokenType expected_tokens[] = {EXPECTED_TOKEN};\
+        RETURN_EXPECTED_TOKEN_ERROR(X, expected_tokens)\
+    }
 
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     const static CS64UTF8   add_section_str[] = "cs64_ini_add_section";
@@ -2481,10 +2485,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        /* Test to see if token is END */
-        if(pToken->type != CS64_INI_TOKEN_END) {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_END})
-        }
+        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_END)
 
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2515,9 +2516,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        if(pToken->type != CS64_INI_TOKEN_VALUE) {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_VALUE})
-        }
+        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_VALUE)
 
         CS64Offset sectionTokenOffset = pParserContext->tokenOffset;
         CS64Size   sectionAmount = 1;
@@ -2529,9 +2528,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        if(pToken->type != CS64_INI_TOKEN_SECTION_END) {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_SECTION_END})
-        }
+        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_SECTION_END)
 
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2566,9 +2563,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
 
-            if(pToken->type != CS64_INI_TOKEN_END) {
-                RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_END})
-            }
+            TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_END)
 
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
 
@@ -2603,7 +2598,8 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
         } else {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END})
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
+            RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
         if(commentAmount != 0) {
@@ -2638,9 +2634,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        if(pToken->type != CS64_INI_TOKEN_DELEMETER) {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_DELEMETER})
-        }
+        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_DELEMETER)
 
         pParserContext->tokenOffset++;
         pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2649,9 +2643,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             return result;
         }
 
-        if(pToken->type != CS64_INI_TOKEN_VALUE) {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_VALUE})
-        }
+        TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_VALUE)
 
         CS64Offset valueTokenOffset = pParserContext->tokenOffset;
         CS64Size   valueAmount = 1;
@@ -2689,9 +2681,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
             CS64Size   inlineCommentAmount = 1;
 
-            if(pToken->type != CS64_INI_TOKEN_END) {
-                RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_END})
-            }
+            TEST_IF_TOKEN_CORRECT(result, pToken, CS64_INI_TOKEN_END)
 
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, valueTokenOffset);
 
@@ -2721,7 +2711,8 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 return result;
             }
         } else {
-            RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END})
+            const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
+            RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
         if(commentAmount != 0) {
@@ -2743,7 +2734,8 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         /* NOP */
     }
     else {
-        RETURN_EXPECTED_TOKEN_ERROR(result, {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_END})
+        const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_END};
+        RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
     }
 
     return result;
@@ -2751,5 +2743,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 
 #undef COPY_TOKEN_OPERATION
 #undef RETURN_EXPECTED_TOKEN_ERROR
+#undef TEST_IF_TOKEN_CORRECT
 
 #endif /* CS64_INI_LIBRARY_IMP */
