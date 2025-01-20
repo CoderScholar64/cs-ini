@@ -2707,5 +2707,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 #undef COPY_TOKEN_OPERATION
 #undef RETURN_EXPECTED_TOKEN_ERROR
 #undef RETURN_IF_WRONG_TOKEN
+#undef RETURN_IF_DATA_ERROR
 
 #endif /* CS64_INI_LIBRARY_IMP */
