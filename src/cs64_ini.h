@@ -2459,6 +2459,19 @@ const CS64UTF8 *const cs64_ini_get_last_comment(CS64INIData *pData) {
         return X;\
     }
 
+#define ADD_OR_ERROR_IF_COMMENT_PRESENT(X, STATE, AMOUNT, PARSER_CONTEXT, COMMENT_TOKEN_OFFSET, FUNC_NAME)\
+    if(AMOUNT != 0) {\
+        pToken = cs64_ini_token_data_get_token(PARSER_CONTEXT->pTokenResult->pTokenStorage, COMMENT_TOKEN_OFFSET);\
+\
+        COPY_TOKEN_OPERATION(pStringBuffer)\
+\
+        /* Add the comment to the Entry if possible */\
+        STATE = cs64_ini_set_entry_comment(pEntry, PARSER_CONTEXT->pStringBuffer);\
+\
+        /* If this function fails then return an error. */\
+        RETURN_IF_DATA_ERROR(X, STATE, FUNC_NAME)\
+    }
+
 CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
     const static CS64UTF8   add_section_str[] = "cs64_ini_add_section";
     const static CS64UTF8  add_variable_str[] = "cs64_ini_add_variable";
@@ -2592,16 +2605,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
-        if(commentAmount != 0) {
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
-
-            COPY_TOKEN_OPERATION(pStringBuffer)
-
-            /* Add the comment to the Entry if possiable */
-            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pStringBuffer);
-
-            RETURN_IF_DATA_ERROR(result, entryState, entry_comment_str)
-        }
+        ADD_OR_ERROR_IF_COMMENT_PRESENT(pEntry, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
     } else if(pToken->type == CS64_INI_TOKEN_VALUE) {
 
         CS64Size keyAmount = 1;
@@ -2685,16 +2689,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
             RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
         }
 
-        if(commentAmount != 0) {
-            pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, commentTokenOffset);
-
-            COPY_TOKEN_OPERATION(pStringBuffer)
-
-            /* Add the comment to the Entry if possiable */
-            entryState = cs64_ini_set_entry_comment(pEntry, pParserContext->pStringBuffer);
-
-            RETURN_IF_DATA_ERROR(result, entryState, entry_comment_str)
-        }
+        ADD_OR_ERROR_IF_COMMENT_PRESENT(pEntry, entryState, commentAmount, pParserContext, commentTokenOffset, entry_comment_str)
     } else if(pToken->type == CS64_INI_TOKEN_END) {
         /* NOP */
     }
@@ -2710,5 +2705,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
 #undef RETURN_EXPECTED_TOKEN_ERROR
 #undef RETURN_IF_WRONG_TOKEN
 #undef RETURN_IF_DATA_ERROR
+#undef ADD_OR_ERROR_IF_COMMENT_PRESENT
 
 #endif /* CS64_INI_LIBRARY_IMP */
