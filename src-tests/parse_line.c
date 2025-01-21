@@ -52,6 +52,8 @@ void cs64_ini_last_comment_test();
 
 void display_parser_context(CS64INIParserContext *pParserContext);
 void display_parser_result(CS64INIParserResult *pParserResult);
+void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
+void cs64_ini_display_data(const CS64INIData *const pData);
 
 int main() {
     cs64_ini_section_test();
@@ -495,6 +497,7 @@ void cs64_ini_variable_test() {
 
         /* The entry should still be there. */
         pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+        cs64_ini_display_data(parserContext.pData);
         UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
         if(INLINE_MEM_REQUIRED[testIndex]) {
@@ -848,6 +851,84 @@ void display_parser_result(CS64INIParserResult *pParserResult) {
         case CS64_INI_PARSER_LEXER_MEM_ERROR:
             printf("  CS64_INI_PARSER_LEXER_MEM_ERROR\n");
             return;
+    }
+}
+void cs64_ini_display_entry(const CS64INIEntry *const pEntry) {
+    if(pEntry == NULL) {
+        printf("ENTRY NULL!\n");
+        return;
+    }
+
+    switch(pEntry->entryType) {
+        case CS64_INI_ENTRY_EMPTY:
+            printf("ENTRY Always Empty!\n");
+            return;
+        case CS64_INI_ENTRY_WAS_OCCUPIED:
+            printf("ENTRY Was Occupied!\n");
+            return;
+        case CS64_INI_ENTRY_SECTION:
+        case CS64_INI_ENTRY_DYNAMIC_SECTION:
+            printf("ENTRY IS A SECTION!\n");
+            printf("\tnext           = %p\n",  pEntry->pNext);
+            printf("\tprevious       = %p\n",  pEntry->pPrev);
+            printf("\tfirst    value = %p\n",  pEntry->type.section.header.pFirstValue);
+            printf("\tlast     value = %p\n",  pEntry->type.section.header.pLastValue);
+            printf("\tname byte size = %zd\n", pEntry->type.section.nameByteSize);
+
+            if(pEntry->entryType == CS64_INI_ENTRY_DYNAMIC_SECTION) {
+                printf("\tname = %s\n", pEntry->type.section.name.pDynamic);
+            }
+            else {
+                printf("\tname = %s\n", pEntry->type.section.name.fixed);
+            }
+
+            break;
+        case CS64_INI_ENTRY_VALUE:
+        case CS64_INI_ENTRY_DYNAMIC_VALUE:
+            printf("ENTRY IS A VALUE!\n");
+            printf("\tnext            = %p\n",  pEntry->pNext);
+            printf("\tprevious        = %p\n",  pEntry->pPrev);
+            printf("\tparent  section = %p\n",  pEntry->type.value.pSection);
+            printf("\tname  byte size = %zd\n", pEntry->type.value.nameByteSize);
+            printf("\tvalue byte size = %zd\n", pEntry->type.value.valueByteSize);
+            printf("\tname            = %s\n", cs64_ini_get_entry_name(pEntry));
+            printf("\tvalue           = %s\n", cs64_ini_get_entry_value(pEntry));
+            break;
+        default:
+            printf("ENTRY is corrupted with a value %d!\n", pEntry->entryType);
+            return;
+    }
+}
+
+void cs64_ini_display_data(const CS64INIData *const pData) {
+    if(pData == NULL) {
+        printf("INI DATA is NULL!\n");
+        return;
+    }
+    printf("INI DATA DUMP!\n");
+
+    printf("\tentries                   = %p\n",  pData->hashTable.pEntries);
+    printf("\tcurrent entry amount      = %zd\n", pData->hashTable.currentEntryAmount);
+    printf("\tentry capacity            = %zd\n", pData->hashTable.entryCapacity);
+    printf("\tentry capacity up limit   = %zd\n", pData->hashTable.entryCapacityUpLimit);
+    printf("\tentry capacity down limit = %zd\n", pData->hashTable.entryCapacityDownLimit);
+
+    printf("\tlast comment size    = %zd\n", pData->lastCommentSize);
+    printf("\tlast comment pointer = %p\n",  pData->pLastComment);
+    if(pData->pLastComment != NULL) {
+        printf("\tlast comment = %s\n",  pData->pLastComment);
+    }
+
+    printf("\tglobals first value = %p\n", pData->globals.pFirstValue);
+    printf("\tglobals last  value = %p\n", pData->globals.pLastValue);
+    printf("\tfirst section = %p\n", pData->pFirstSection);
+    printf("\tlast  section = %p\n", pData->pLastSection);
+
+    CS64Size l = 0;
+    while(l < pData->hashTable.entryCapacity) {
+        printf("[%p] ", &pData->hashTable.pEntries[l]);
+        cs64_ini_display_entry( &pData->hashTable.pEntries[l] );
+        l++;
     }
 }
 
