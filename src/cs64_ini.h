@@ -2643,6 +2643,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         if(pToken->type == CS64_INI_TOKEN_END) {
             ADD_VARIABLE_OR_ERROR
         } else if(pToken->type == CS64_INI_TOKEN_COMMENT) {
+            CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
 
             pParserContext->tokenOffset++;
             pToken = cs64_ini_token_data_get_token(pParserContext->pTokenResult->pTokenStorage, pParserContext->tokenOffset);
@@ -2650,8 +2651,6 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
                 result.state = CS64_INI_PARSER_LEXER_MEM_ERROR;
                 return result;
             }
-
-            CS64Offset inlineCommentTokenOffset = pParserContext->tokenOffset;
 
             RETURN_IF_WRONG_TOKEN(result, pToken, CS64_INI_TOKEN_END)
 
