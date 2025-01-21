@@ -162,25 +162,25 @@ void cs64_ini_section_test() {
         12)
 
     static const int START_OFFSETS[8] = {
-        0,
-        4,
-        9,
-        324,
-        4,
-        3,
-        3,
-        3
+         0,
+         4,
+         9,
+        15,
+        22,
+        26,
+        31,
+        37
     };
 
     static const int END_OFFSETS[8] = {
         3,
         8,
-        3,
-        3,
-        3,
-        3,
-        3,
-        3
+        14,
+        21,
+        25,
+        30,
+        36,
+        43
     };
 
     CS64INIParserResult result;
