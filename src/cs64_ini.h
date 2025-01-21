@@ -210,8 +210,6 @@ typedef struct {
 
 typedef struct {
     CS64INIParserState state;
-    CS64Size lineCount; /* the number of lines that has been processed. */
-    CS64Size linePosition; /* in the amount of unicode points not bytes. Useful for parser errors. */
 
     union {
         struct {
@@ -219,10 +217,6 @@ typedef struct {
             CS64Size expectedTokenAmount;
             const CS64INITokenType* pExpectedTokens;
         } unexpected_token;
-        struct {
-            const CS64UTF8 *pSectionName;
-            const CS64UTF8 *pKeyName;
-        } redeclaration;
         struct {
             const CS64UTF8 *pFunctionName;
             CS64INIEntryState functionStatus;
