@@ -47,6 +47,7 @@ int mallocPagesLeft = 0;
 
 // Prototypes here.
 void cs64_ini_section_test();
+void cs64_ini_variable_test();
 void cs64_ini_last_comment_test();
 
 void display_parser_context(CS64INIParserContext *pParserContext);
@@ -385,6 +386,300 @@ void cs64_ini_section_test() {
 
             /* The entry and the section should still be set. */
             pEntry = cs64_ini_get_section(parserContext.pData, section[testIndex]);
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
+
+            cs64_ini_del_entry(parserContext.pData, pEntry);
+        }
+
+        /* End of Test */
+        testIndex++;
+    }
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_variable_test() {
+    /* Configure section names here */
+    #define KEY(N) "key_" #N
+    #define SHORT_VALUE "val"
+    #define  LONG_VALUE "This is an intentially long value"
+
+    static const int VALUE_MEM_REQUIRED[8] = {
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+    };
+
+    static const int INLINE_MEM_REQUIRED[8] = {
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+    };
+
+    static const int COMMENT_MEM_REQUIRED[8] = {
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1
+    };
+
+    PARSE_LINE_SETUP(1024,
+                         KEY(0) " = " SHORT_VALUE "\n"                     /* 0 malloc */
+                         KEY(1) " = " SHORT_VALUE ";" INLINE_COMMENT "\n"  /* 1 malloc */
+        ";" COMMENT "\n" KEY(2) " = " SHORT_VALUE "\n"                     /* 1 malloc */
+        ";" COMMENT "\n" KEY(3) " = " SHORT_VALUE ";" INLINE_COMMENT "\n"  /* 2 malloc */
+                         KEY(4) " = "  LONG_VALUE "\n"                     /* 1 malloc */
+                         KEY(5) " = "  LONG_VALUE ";" INLINE_COMMENT "\n"  /* 2 malloc */
+        ";" COMMENT "\n" KEY(6) " = "  LONG_VALUE "\n"                     /* 2 malloc */
+        ";" COMMENT "\n" KEY(7) " = "  LONG_VALUE ";" INLINE_COMMENT "\n", /* 3 malloc */
+        12)
+
+    static const int START_OFFSETS[8] = {
+         0,
+         4,
+         9,
+        15,
+        22,
+        26,
+        31,
+        37
+    };
+
+    static const int END_OFFSETS[8] = {
+        3,
+        8,
+        14,
+        21,
+        25,
+        30,
+        36,
+        43
+    };
+
+    CS64INIParserResult result;
+    CS64INIEntry *pEntry;
+
+    int testIndex;
+
+    /* Successful cases */
+    testIndex = 0;
+    while(testIndex < 8) {
+        SET_AVAILABLE_MEM_PAGES(VALUE_MEM_REQUIRED[testIndex] + INLINE_MEM_REQUIRED[testIndex] + COMMENT_MEM_REQUIRED[testIndex])
+        parserContext.tokenOffset = START_OFFSETS[testIndex];
+        result = cs64_ini_parse_line(&parserContext);
+        UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
+        UNIT_TEST_ASSERT_EQ(testIndex, parserContext.tokenOffset, END_OFFSETS[testIndex], "%zd");
+        pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
+        UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+        if(INLINE_MEM_REQUIRED[testIndex]) {
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+        }
+
+        if(COMMENT_MEM_REQUIRED[testIndex]) {
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_comment(pEntry), COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_comment(pEntry)););
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+        }
+
+        cs64_ini_del_entry(parserContext.pData, pEntry);
+
+        /* End of Test */
+        testIndex++;
+    }
+
+    /* No mem cases */
+    testIndex = 0;
+    while(testIndex < 8) {
+        SET_AVAILABLE_MEM_PAGES(0)
+        parserContext.tokenOffset = START_OFFSETS[testIndex];
+
+        if(VALUE_MEM_REQUIRED[testIndex] + INLINE_MEM_REQUIRED[testIndex] + COMMENT_MEM_REQUIRED[testIndex] == 0) {
+            /* This function should succeed since there is no memory required. */
+            result = cs64_ini_parse_line(&parserContext);
+
+            UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.tokenOffset, END_OFFSETS[testIndex], "%zd");
+            pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+
+            cs64_ini_del_entry(parserContext.pData, pEntry);
+        }
+        else if(VALUE_MEM_REQUIRED[testIndex] == 1) {
+            result = cs64_ini_parse_line(&parserContext);
+
+            UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_section") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            UNIT_TEST_ASSERT_EQ(testIndex, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
+        }
+        else {
+            /* This function should succeed in creating an entry with a short name. The short name sections do not need malloc. */
+            result = cs64_ini_parse_line(&parserContext);
+
+            /* It should still error out though. */
+            UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+
+            /* Inline comments are called before the normal comments. Just the way the parser works. */
+            if(INLINE_MEM_REQUIRED[testIndex] == 1) {
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+                UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_inline_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            }
+            else {
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+                UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            }
+
+            /* The entry and the section should still be set. */
+            pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+            /* The comments in this case should fail. */
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry),        NULL, "%p");
+
+            cs64_ini_del_entry(parserContext.pData, pEntry);
+        }
+
+        /* End of Test */
+        testIndex++;
+    }
+
+    /* One mem cases */
+    testIndex = 0;
+    while(testIndex < 8) {
+        SET_AVAILABLE_MEM_PAGES(1)
+        parserContext.tokenOffset = START_OFFSETS[testIndex];
+
+        if(VALUE_MEM_REQUIRED[testIndex] == 1) {
+            /* SECTION = 1 INLINE = X COMMENT = Y */
+
+            result = cs64_ini_parse_line(&parserContext);
+
+            if(INLINE_MEM_REQUIRED[testIndex] == 1) {
+                /* SECTION = 1 INLINE = 1 COMMENT = Y */
+
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+                UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_inline_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            }
+            else if(COMMENT_MEM_REQUIRED[testIndex] == 1) {
+                /* SECTION = 1 INLINE = 0 COMMENT = 1 */
+
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+                UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            }
+            else {
+                /* SECTION = 1 INLINE = 0 COMMENT = 0 */
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
+            }
+
+            /* The entry and the section should still be set. */
+            pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+            /* The comments in this case should fail. */
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry),        NULL, "%p");
+
+            cs64_ini_del_entry(parserContext.pData, pEntry);
+        }
+        else if(INLINE_MEM_REQUIRED[testIndex] == 1) {
+            /* SECTION = 0 INLINE = 1 COMMENT = Y */
+
+            result = cs64_ini_parse_line(&parserContext);
+
+            if(COMMENT_MEM_REQUIRED[testIndex] == 1) {
+                /* SECTION = 0 INLINE = 1 COMMENT = 1 */
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+                UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            }
+            else {
+                /* SECTION = 0 INLINE = 1 COMMENT = 0 */
+                UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
+            }
+
+            /* The entry and the section should still be set. */
+            pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
+
+            cs64_ini_del_entry(parserContext.pData, pEntry);
+        }
+        else if(COMMENT_MEM_REQUIRED[testIndex] == 1) {
+            /* SECTION = 0 INLINE = 0 COMMENT = 1 */
+
+            result = cs64_ini_parse_line(&parserContext);
+
+            UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
+
+            /* The entry and the section should still be set. */
+            pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
+            UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_comment(pEntry), COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_comment(pEntry)););
+
+            cs64_ini_del_entry(parserContext.pData, pEntry);
+        }
+        else {
+            /* I am sure that the case would always succeed. */
+        }
+
+        /* End of Test */
+        testIndex++;
+    }
+
+    /* Two mem case */
+    testIndex = 0;
+    while(testIndex < 8) {
+        SET_AVAILABLE_MEM_PAGES(2)
+        parserContext.tokenOffset = START_OFFSETS[testIndex];
+
+        if(VALUE_MEM_REQUIRED[testIndex] == 1 && INLINE_MEM_REQUIRED[testIndex] == 1 && COMMENT_MEM_REQUIRED[testIndex] == 1) {
+            result = cs64_ini_parse_line(&parserContext);
+
+            UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+
+            /* The entry and the section should still be set. */
+            pEntry = cs64_ini_get_section(parserContext.pData, KEY(testIndex));
             UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
