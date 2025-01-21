@@ -413,7 +413,7 @@ void cs64_ini_variable_test() {
     /* Configure section names here */
     #define KEY(N) "key_" #N
     #define SHORT_VALUE "val"
-    #define  LONG_VALUE "This is an intentially long value"
+    #define  LONG_VALUE "\"This is an intentially long value\""
 
     static const CS64UTF8 key[8][6] = {
         KEY(0),
@@ -467,7 +467,7 @@ void cs64_ini_variable_test() {
                          KEY(5) " = "  LONG_VALUE ";" INLINE_COMMENT "\n"  /* 2 malloc */
         ";" COMMENT "\n" KEY(6) " = "  LONG_VALUE "\n"                     /* 2 malloc */
         ";" COMMENT "\n" KEY(7) " = "  LONG_VALUE ";" INLINE_COMMENT "\n", /* 3 malloc */
-        17)
+        12)
 
     static const int START_OFFSETS[8] = {
          0,
