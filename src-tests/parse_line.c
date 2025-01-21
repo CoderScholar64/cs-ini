@@ -188,6 +188,39 @@ void cs64_ini_section_test() {
 
     int testIndex;
 
+    /* Successful cases */
+    testIndex = 0;
+    while(testIndex < 8) {
+        SET_AVAILABLE_MEM_PAGES(SECTION_MEM_REQUIRED[testIndex] + INLINE_MEM_REQUIRED[testIndex] + COMMENT_MEM_REQUIRED[testIndex])
+        parserContext.tokenOffset = START_OFFSETS[testIndex];
+        result = cs64_ini_parse_line(&parserContext);
+        UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
+        UNIT_TEST_ASSERT_EQ(testIndex, parserContext.tokenOffset, END_OFFSETS[testIndex], "%zd");
+        pEntry = cs64_ini_get_section(parserContext.pData, section[testIndex]);
+        UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
+
+        if(INLINE_MEM_REQUIRED[testIndex]) {
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
+        }
+
+        if(COMMENT_MEM_REQUIRED[testIndex]) {
+            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_comment(pEntry), COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_comment(pEntry)););
+        }
+        else {
+            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
+        }
+
+        cs64_ini_del_entry(parserContext.pData, pEntry);
+
+        /* End of Test */
+        testIndex++;
+    }
+
     /* No mem cases */
     testIndex = 0;
     while(testIndex < 8) {
@@ -360,37 +393,6 @@ void cs64_ini_section_test() {
             UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
 
             cs64_ini_del_entry(parserContext.pData, pEntry);
-        }
-
-        /* End of Test */
-        testIndex++;
-    }
-
-    /* Successful cases */
-    testIndex = 0;
-    while(testIndex < 8) {
-        SET_AVAILABLE_MEM_PAGES(SECTION_MEM_REQUIRED[testIndex] + INLINE_MEM_REQUIRED[testIndex] + COMMENT_MEM_REQUIRED[testIndex])
-        parserContext.tokenOffset = START_OFFSETS[testIndex];
-        result = cs64_ini_parse_line(&parserContext);
-        UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
-        UNIT_TEST_ASSERT_EQ(testIndex, parserContext.tokenOffset, END_OFFSETS[testIndex], "%zd");
-        pEntry = cs64_ini_get_section(parserContext.pData, section[testIndex]);
-        UNIT_TEST_ASSERT_EQ(testIndex, parserContext.pSection, pEntry, "%p");
-
-        if(INLINE_MEM_REQUIRED[testIndex]) {
-            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
-            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
-        }
-        else {
-            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
-        }
-
-        if(COMMENT_MEM_REQUIRED[testIndex]) {
-            UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
-            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_comment(pEntry), COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_comment(pEntry)););
-        }
-        else {
-            UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
         }
 
         /* End of Test */
