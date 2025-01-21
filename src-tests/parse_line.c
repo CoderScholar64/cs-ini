@@ -151,20 +151,20 @@ void cs64_ini_section_test() {
     };
 
     PARSE_LINE_SETUP(1024,
-                      "[" SECTION_0 "]\n"                      /* 0 malloc */
-                      "[" SECTION_1 "]; " INLINE_COMMENT "\n"  /* 1 malloc */
-        ";" COMMENT "\n[" SECTION_2 "]\n"                      /* 1 malloc */
-        ";" COMMENT "\n[" SECTION_3 "]; " INLINE_COMMENT "\n"  /* 2 malloc */
-                      "[" SECTION_4 "]\n"                      /* 1 malloc */
-                      "[" SECTION_5 "]; " INLINE_COMMENT "\n"  /* 2 malloc */
-        ";" COMMENT "\n[" SECTION_6 "]\n"                      /* 2 malloc */
-        ";" COMMENT "\n[" SECTION_7 "]; " INLINE_COMMENT "\n", /* 3 malloc */
+                      "[" SECTION_0 "]\n"                     /* 0 malloc */
+                      "[" SECTION_1 "];" INLINE_COMMENT "\n"  /* 1 malloc */
+        ";" COMMENT "\n[" SECTION_2 "]\n"                     /* 1 malloc */
+        ";" COMMENT "\n[" SECTION_3 "];" INLINE_COMMENT "\n"  /* 2 malloc */
+                      "[" SECTION_4 "]\n"                     /* 1 malloc */
+                      "[" SECTION_5 "];" INLINE_COMMENT "\n"  /* 2 malloc */
+        ";" COMMENT "\n[" SECTION_6 "]\n"                     /* 2 malloc */
+        ";" COMMENT "\n[" SECTION_7 "];" INLINE_COMMENT "\n", /* 3 malloc */
         12)
 
     static const int START_OFFSETS[8] = {
         0,
         4,
-        34,
+        9,
         324,
         4,
         3,
@@ -174,7 +174,7 @@ void cs64_ini_section_test() {
 
     static const int END_OFFSETS[8] = {
         3,
-        3,
+        8,
         3,
         3,
         3,
@@ -200,7 +200,7 @@ void cs64_ini_section_test() {
 
         if(INLINE_MEM_REQUIRED[testIndex]) {
             UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
-            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_inline_comment(pEntry), INLINE_COMMENT) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_inline_comment(pEntry)););
         }
         else {
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
