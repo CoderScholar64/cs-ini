@@ -415,6 +415,16 @@ void cs64_ini_variable_test() {
     #define SHORT_VALUE "val"
     #define  LONG_VALUE "This is an intentially long value"
 
+    static const CS64UTF8 key[8][6] = {
+        KEY(0),
+        KEY(1),
+        KEY(2),
+        KEY(3),
+        KEY(4),
+        KEY(5),
+        KEY(6),
+        KEY(7)};
+
     static const int VALUE_MEM_REQUIRED[8] = {
         0,
         0,
@@ -496,8 +506,7 @@ void cs64_ini_variable_test() {
         UNIT_TEST_ASSERT_EQ(testIndex, parserContext.tokenOffset, END_OFFSETS[testIndex], "%zd");
 
         /* The entry should still be there. */
-        pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
-        cs64_ini_display_data(parserContext.pData);
+        pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
         UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
         if(INLINE_MEM_REQUIRED[testIndex]) {
@@ -536,7 +545,7 @@ void cs64_ini_variable_test() {
             UNIT_TEST_ASSERT_EQ(testIndex, parserContext.tokenOffset, END_OFFSETS[testIndex], "%zd");
 
             /* The entry should still be there. */
-            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
             UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
@@ -570,7 +579,7 @@ void cs64_ini_variable_test() {
             }
 
             /* The entry should still be there. */
-            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
             UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             /* The comments in this case should fail. */
@@ -613,7 +622,7 @@ void cs64_ini_variable_test() {
             }
 
             /* The entry should still be there. */
-            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
             UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             /* The comments in this case should fail. */
@@ -638,7 +647,7 @@ void cs64_ini_variable_test() {
             }
 
             /* The entry should still be there. */
-            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
             UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
@@ -656,7 +665,7 @@ void cs64_ini_variable_test() {
             UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result); display_parser_context(&parserContext););
 
             /* The entry should still be there. */
-            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
             UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
@@ -687,7 +696,7 @@ void cs64_ini_variable_test() {
             UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_set_entry_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
 
             /* The entry should still be there. */
-            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
             UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
