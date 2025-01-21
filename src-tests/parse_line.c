@@ -413,7 +413,7 @@ void cs64_ini_variable_test() {
     /* Configure section names here */
     #define KEY(N) "key_" #N
     #define SHORT_VALUE "val"
-    #define  LONG_VALUE "\"This is an intentially long value\""
+    #define  LONG_VALUE "This is an intentially long value"
 
     static const CS64UTF8 key[8][6] = {
         KEY(0),
@@ -459,14 +459,14 @@ void cs64_ini_variable_test() {
     };
 
     PARSE_LINE_SETUP(1024,
-                         KEY(0) " = " SHORT_VALUE "\n"                     /* 0 malloc */
-                         KEY(1) " = " SHORT_VALUE ";" INLINE_COMMENT "\n"  /* 1 malloc */
-        ";" COMMENT "\n" KEY(2) " = " SHORT_VALUE "\n"                     /* 1 malloc */
-        ";" COMMENT "\n" KEY(3) " = " SHORT_VALUE ";" INLINE_COMMENT "\n"  /* 2 malloc */
-                         KEY(4) " = "  LONG_VALUE "\n"                     /* 1 malloc */
-                         KEY(5) " = "  LONG_VALUE ";" INLINE_COMMENT "\n"  /* 2 malloc */
-        ";" COMMENT "\n" KEY(6) " = "  LONG_VALUE "\n"                     /* 2 malloc */
-        ";" COMMENT "\n" KEY(7) " = "  LONG_VALUE ";" INLINE_COMMENT "\n", /* 3 malloc */
+                         KEY(0) " = "   SHORT_VALUE   "\n"                     /* 0 malloc */
+                         KEY(1) " = "   SHORT_VALUE   ";" INLINE_COMMENT "\n"  /* 1 malloc */
+        ";" COMMENT "\n" KEY(2) " = "   SHORT_VALUE   "\n"                     /* 1 malloc */
+        ";" COMMENT "\n" KEY(3) " = "   SHORT_VALUE   ";" INLINE_COMMENT "\n"  /* 2 malloc */
+                         KEY(4) " = \""  LONG_VALUE "\"\n"                     /* 1 malloc */
+                         KEY(5) " = \""  LONG_VALUE "\";" INLINE_COMMENT "\n"  /* 2 malloc */
+        ";" COMMENT "\n" KEY(6) " = \""  LONG_VALUE "\"\n"                     /* 2 malloc */
+        ";" COMMENT "\n" KEY(7) " = \""  LONG_VALUE "\";" INLINE_COMMENT "\n", /* 3 malloc */
         12)
 
     static const int START_OFFSETS[8] = {
@@ -508,6 +508,14 @@ void cs64_ini_variable_test() {
         /* The entry should still be there. */
         pEntry = cs64_ini_get_variable(parserContext.pData, NULL, key[testIndex]);
         UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
+
+        UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_name(pEntry), NULL, "%p");
+
+        if(VALUE_MEM_REQUIRED[testIndex] == 1) {
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_value(pEntry), LONG_VALUE) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_value(pEntry)););
+        } else {
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)cs64_ini_get_entry_value(pEntry), SHORT_VALUE) == 0, printf("Actually (%s) \n", cs64_ini_get_entry_value(pEntry)););
+        }
 
         if(INLINE_MEM_REQUIRED[testIndex]) {
             UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
