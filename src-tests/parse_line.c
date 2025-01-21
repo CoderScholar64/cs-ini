@@ -455,7 +455,7 @@ void cs64_ini_variable_test() {
                          KEY(5) " = "  LONG_VALUE ";" INLINE_COMMENT "\n"  /* 2 malloc */
         ";" COMMENT "\n" KEY(6) " = "  LONG_VALUE "\n"                     /* 2 malloc */
         ";" COMMENT "\n" KEY(7) " = "  LONG_VALUE ";" INLINE_COMMENT "\n", /* 3 malloc */
-        12)
+        17)
 
     static const int START_OFFSETS[8] = {
          0,
