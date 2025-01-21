@@ -558,7 +558,7 @@ void cs64_ini_variable_test() {
 
             UNIT_TEST_DETAIL_ASSERT(testIndex, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result); display_parser_context(&parserContext););
 
-            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_section") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+            UNIT_TEST_DETAIL_ASSERT(testIndex, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_variable") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
             UNIT_TEST_ASSERT_EQ(testIndex, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
         }
         else {
