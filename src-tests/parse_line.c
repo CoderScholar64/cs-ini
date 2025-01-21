@@ -495,6 +495,7 @@ void cs64_ini_variable_test() {
 
         /* The entry should still be there. */
         pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+        UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
         if(INLINE_MEM_REQUIRED[testIndex]) {
             UNIT_TEST_ASSERT_NEQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
@@ -533,6 +534,7 @@ void cs64_ini_variable_test() {
 
             /* The entry should still be there. */
             pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
@@ -566,6 +568,7 @@ void cs64_ini_variable_test() {
 
             /* The entry should still be there. */
             pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             /* The comments in this case should fail. */
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
@@ -608,6 +611,7 @@ void cs64_ini_variable_test() {
 
             /* The entry should still be there. */
             pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             /* The comments in this case should fail. */
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
@@ -632,6 +636,7 @@ void cs64_ini_variable_test() {
 
             /* The entry should still be there. */
             pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
 
@@ -649,6 +654,7 @@ void cs64_ini_variable_test() {
 
             /* The entry should still be there. */
             pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_inline_comment(pEntry), NULL, "%p");
 
@@ -679,6 +685,7 @@ void cs64_ini_variable_test() {
 
             /* The entry should still be there. */
             pEntry = cs64_ini_get_variable(parserContext.pData, NULL, (CS64UTF8*)KEY(testIndex));
+            UNIT_TEST_ASSERT_NEQ(testIndex, pEntry, NULL, "%p");
 
             UNIT_TEST_ASSERT_EQ(testIndex, cs64_ini_get_entry_comment(pEntry), NULL, "%p");
 
