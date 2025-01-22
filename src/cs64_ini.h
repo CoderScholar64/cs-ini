@@ -947,7 +947,7 @@ CS64INITokenResult cs64_ini_lexer(const CS64UTF8 *const pUTF8Data, CS64Size UTF8
 
     /* Add an end */
     CS64INIToken *pToken = cs64_ini_token_data_last_token(result.pTokenStorage);
-    if(pToken != NULL || pToken->type != CS64_INI_TOKEN_END) {
+    if(pToken == NULL || pToken->type != CS64_INI_TOKEN_END) {
         token.type       = CS64_INI_TOKEN_END;
         token.index      = UTF8Offset;
         token.byteLength = 0;
