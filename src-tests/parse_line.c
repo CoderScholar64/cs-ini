@@ -752,7 +752,7 @@ void cs64_ini_last_comment_test() {
 }
 
 void cs64_ini_parser_expectation_test() {
-    PARSE_LINE_SETUP(1024, "\t\t\t", 2)
+    PARSE_LINE_SETUP(1024, "", 2)
 
     CS64INIParserResult result;
 
@@ -760,6 +760,41 @@ void cs64_ini_parser_expectation_test() {
     cs64_ini_lexer_free(parserContext.pTokenResult);
 
     UNIT_TEST_MEM_CHECK_ASSERT
+
+    /* Plan
+     * [ ... ] Optional
+     * { ... } Invalid Token Options
+     *
+     * Invalid Comment Test
+     * X = 4 Combo = 1 Total = 4
+     * Comment X{SecE, SecB, Value, Delem}
+     *
+     * Invalid Start Tests.
+     * X = 2 Combo = 2 Total = 4
+     * [Comment END] X{SecE, Delem}
+     *
+     * Section Tests.
+     * X = 5 Combo = 2 Total = 10
+     * [Comment END] SecB X{End, SecE, Comment, Delem, SecB}
+     * X = 4 Combo = 2 Total =  8
+     * [Comment END] SecB Values X{Delem, Comment, End, SecB}
+     * X = 4 Combo = 2 Total =  8
+     * [Comment END] SecB Values SecE X{Delem, Value, SecB, SecE}
+     * X = 4 Combo = 2 Total =  8
+     * [Comment END] SecB Values SecE Comment X{Delem, Value, SecB, SecE}
+     *
+     * Variable Tests.
+     * X = 4 Combo = 2 Total =  8
+     * [Comment END] Values X{Comment, End, SecB, SecE}
+     * X = 5 Combo = 2 Total = 10
+     * [Comment END] Values Delem X{Delem, Comment, End, SecB, SecE}
+     * X = 3 Combo = 2 Total =  6
+     * [Comment END] Values Delem Values X{Delem, SecB, SecE}
+     * X = 3 Combo = 2 Total =  6
+     * [Comment END] Values Delem Values X{Delem, SecB, SecE}
+     * X = 4 Combo = 2 Total =  8
+     * [Comment END] Values Delem Values X{Delem, Value, SecB, SecE}
+     */
 }
 
 void display_token_type(CS64INITokenType type) {
