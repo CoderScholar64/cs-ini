@@ -1498,6 +1498,14 @@ int lexer_test() {
         i++;
     }
 
+    /* Empty Test Meant to */
+    tokenResult = cs64_ini_lexer("\t ", 2);
+
+    if(tokenResult.state != CS64_INI_LEXER_SUCCESS) {
+        printf("Error lexer_test: empty/whitepsace %i did not produce CS64_INI_LEXER_SUCCESS, but returned %u.\n", i, tokenResult.state);
+        return 13;
+    }
+
     return 0;
 }
 
