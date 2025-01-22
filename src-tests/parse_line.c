@@ -46,8 +46,9 @@ int mallocPagesLeft = 0;
     UNIT_TEST_DETAIL_ASSERT(0, pointerTrackAmount == 0, printf("pointerTrackAmount is supposed to be zero after test not be %i.\n", pointerTrackAmount);)
 
 // Prototypes here.
-void cs64_ini_section_test();
-void cs64_ini_variable_test();
+void cs64_ini_section_memory_test();
+void cs64_ini_variable_memory_test();
+void cs64_ini_parser_expectation_test();
 void cs64_ini_last_comment_test();
 
 void display_parser_context(CS64INIParserContext *pParserContext);
@@ -56,8 +57,9 @@ void cs64_ini_display_entry(const CS64INIEntry *const pEntry);
 void cs64_ini_display_data(const CS64INIData *const pData);
 
 int main() {
-    cs64_ini_section_test();
-    cs64_ini_variable_test();
+    cs64_ini_section_memory_test();
+    cs64_ini_variable_memory_test();
+    cs64_ini_parser_expectation_test();
     cs64_ini_last_comment_test();
 
     return 0;
@@ -96,7 +98,7 @@ int main() {
     parserContext.pSource = fileData;\
     parserContext.pTokenResult = &tokenResult;
 
-void cs64_ini_section_test() {
+void cs64_ini_section_memory_test() {
     /* Configure section names here */
     #define SECTION_0 "sect0"
     #define SECTION_1 "sect1"
@@ -409,7 +411,7 @@ void cs64_ini_section_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_variable_test() {
+void cs64_ini_variable_memory_test() {
     /* Configure section names here */
     #define KEY(N) "key_" #N
     #define SHORT_VALUE "val"
@@ -742,6 +744,17 @@ void cs64_ini_last_comment_test() {
     UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 2, "%zd");
     UNIT_TEST_ASSERT_NEQ(0, cs64_ini_get_last_comment(parserContext.pData), NULL, "%p");
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_last_comment(parserContext.pData), " First Test") == 0, printf("Actually (%s) \n", cs64_ini_get_last_comment(parserContext.pData)););
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_parser_expectation_test() {
+    PARSE_LINE_SETUP(1024, "\t\t\t", 2)
+
+    CS64INIParserResult result;
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
