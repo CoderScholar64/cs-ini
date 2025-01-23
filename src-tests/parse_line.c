@@ -754,7 +754,23 @@ void cs64_ini_last_comment_test() {
 void cs64_ini_parser_expectation_test() {
     PARSE_LINE_SETUP(1024, "", 2)
 
+    CS64INIToken token;
+
+    token.type       = CS64_INI_TOKEN_COMMENT;
+    token.index      = 0;
+    token.byteLength = 0;
+    cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
+
+    token.type       = CS64_INI_TOKEN_DELEMETER;
+    token.index      = 0;
+    token.byteLength = 0;
+    cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
+
     CS64INIParserResult result;
+
+    parserContext.tokenOffset = 0;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_DETAIL_ASSERT(0, result.state != CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
