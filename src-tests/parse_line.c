@@ -836,6 +836,50 @@ void cs64_ini_parser_expectation_test() {
 
             index++;
         }
+
+        pToken[0]->type = CS64_INI_TOKEN_END;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+    }
+
+    {
+        /*
+         * Invalid Start Tests.
+         * X = 2 Combo = 2 Total = 4
+         * [Comment END] X{SecE, Delem}
+         */
+        CS64INITokenType types[] = {
+            CS64_INI_TOKEN_DELEMETER,
+            CS64_INI_TOKEN_SECTION_END};
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(0);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 3, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_SECTION_START, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[1] == CS64_INI_TOKEN_VALUE, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[2] == CS64_INI_TOKEN_END, display_parser_result(&result););
+
+            index++;
+        }
+
+        pToken[0]->type = CS64_INI_TOKEN_COMMENT;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(2);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 3, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_SECTION_START, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[1] == CS64_INI_TOKEN_VALUE, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[2] == CS64_INI_TOKEN_END, display_parser_result(&result););
+
+            index++;
+        }
+
+        pToken[0]->type = CS64_INI_TOKEN_END;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+        pToken[2]->type = CS64_INI_TOKEN_END;
     }
 
     cs64_ini_data_free(parserContext.pData);
@@ -846,10 +890,6 @@ void cs64_ini_parser_expectation_test() {
     /* Plan
      * [ ... ] Optional
      * { ... } Invalid Token Options
-     *
-     * Invalid Start Tests.
-     * X = 2 Combo = 2 Total = 4
-     * [Comment END] X{SecE, Delem}
      *
      * Section Tests.
      * X = 5 Combo = 2 Total = 10
