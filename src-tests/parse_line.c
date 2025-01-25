@@ -751,8 +751,37 @@ void cs64_ini_last_comment_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
+
+#define PARSE_LINE_TOKENLESS_SETUP(BUFFER_SIZE) \
+    CS64UTF8 buffer[BUFFER_SIZE];\
+\
+    CS64INIParserContext parserContext;\
+\
+    parserContext.stringBufferLimit = sizeof(buffer) / 2;\
+    parserContext.pStringBuffer = buffer;\
+    parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;\
+    parserContext.tokenOffset   = 0;\
+    parserContext.pSection      = NULL;\
+\
+    CS64INITokenResult tokenResult;\
+    tokenResult.state = CS64_INI_LEXER_SUCCESS;\
+    tokenResult.lineCount = 0;\
+    tokenResult.linePosition = 0;\
+    tokenResult.delimeterCount = 0;\
+    tokenResult.sectionBeginCount = 0;\
+    tokenResult.sectionEndCount = 0;\
+    SET_AVAILABLE_MEM_PAGES(1)\
+    tokenResult.pTokenStorage = cs64_ini_token_data_alloc();\
+\
+    SET_AVAILABLE_MEM_PAGES(2)\
+    parserContext.pData = cs64_ini_data_alloc();\
+    UNIT_TEST_ASSERT_NEQ(0, parserContext.pData, NULL, "%p");\
+\
+    parserContext.pSource = NULL;\
+    parserContext.pTokenResult = &tokenResult;
+
 void cs64_ini_parser_expectation_test() {
-    PARSE_LINE_SETUP(1024, "", 2)
+    PARSE_LINE_TOKENLESS_SETUP(1024)
 
     CS64INIToken token;
 
@@ -761,7 +790,14 @@ void cs64_ini_parser_expectation_test() {
     token.byteLength = 0;
     cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
 
-    token.type       = CS64_INI_TOKEN_DELEMETER;
+    token.type       = CS64_INI_TOKEN_COMMENT;
+    token.index      = 0;
+    token.byteLength = 0;
+    cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
+
+    CS64INIToken *pLastToken = cs64_ini_token_data_last_token(parserContext.pTokenResult->pTokenStorage);
+
+    token.type       = CS64_INI_TOKEN_END;
     token.index      = 0;
     token.byteLength = 0;
     cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
@@ -782,8 +818,8 @@ void cs64_ini_parser_expectation_test() {
      * { ... } Invalid Token Options
      *
      * Invalid Comment Test
-     * X = 4 Combo = 1 Total = 4
-     * Comment X{SecE, SecB, Value, Delem}
+     * X = 5 Combo = 1 Total = 5
+     * Comment X{SecE, SecB, Comment, Value, Delem}
      *
      * Invalid Start Tests.
      * X = 2 Combo = 2 Total = 4
