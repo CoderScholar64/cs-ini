@@ -2662,7 +2662,7 @@ CS64INIParserResult cs64_ini_parse_line(CS64INIParserContext *pParserContext) {
         /* NOP */
     }
     else {
-        const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_END};
+        const static CS64INITokenType expected_tokens[] = {CS64_INI_TOKEN_SECTION_START, CS64_INI_TOKEN_VALUE, CS64_INI_TOKEN_COMMENT, CS64_INI_TOKEN_END};
         RETURN_EXPECTED_TOKEN_ERROR(result, expected_tokens)
     }
 

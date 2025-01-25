@@ -855,10 +855,11 @@ void cs64_ini_parser_expectation_test() {
         while(index < sizeof(types) / sizeof(types[0])) {
             UNEXPECTED_TOKEN_TEST(0);
 
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 3, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 4, display_parser_result(&result););
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_SECTION_START, display_parser_result(&result););
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[1] == CS64_INI_TOKEN_VALUE, display_parser_result(&result););
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[2] == CS64_INI_TOKEN_END, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[2] == CS64_INI_TOKEN_COMMENT, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[3] == CS64_INI_TOKEN_END, display_parser_result(&result););
 
             index++;
         }
@@ -869,10 +870,11 @@ void cs64_ini_parser_expectation_test() {
         while(index < sizeof(types) / sizeof(types[0])) {
             UNEXPECTED_TOKEN_TEST(2);
 
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 3, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 4, display_parser_result(&result););
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_SECTION_START, display_parser_result(&result););
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[1] == CS64_INI_TOKEN_VALUE, display_parser_result(&result););
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[2] == CS64_INI_TOKEN_END, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[2] == CS64_INI_TOKEN_COMMENT, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[3] == CS64_INI_TOKEN_END, display_parser_result(&result););
 
             index++;
         }
