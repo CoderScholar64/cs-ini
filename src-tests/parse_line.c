@@ -780,7 +780,16 @@ void cs64_ini_last_comment_test() {
     parserContext.pSource = NULL;\
     parserContext.pTokenResult = &tokenResult;
 
-#define UNEXPECTED_TOKEN_TEST
+#define UNEXPECTED_TOKEN_TEST(X)\
+    pToken[X]->type = types[index];\
+\
+    parserContext.tokenOffset = 0;\
+    result = cs64_ini_parse_line(&parserContext);\
+    UNIT_TEST_DETAIL_ASSERT(index, result.state == CS64_INI_PARSER_UNEXPECTED_ERROR, display_parser_result(&result););\
+    UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.receivedToken.type == types[index], display_parser_result(&result););\
+    UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.receivedToken.index == 0, display_parser_result(&result););\
+    UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.receivedToken.byteLength == 0, display_parser_result(&result););\
+    UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens != NULL, display_parser_result(&result););
 
 void cs64_ini_parser_expectation_test() {
     PARSE_LINE_TOKENLESS_SETUP(1024)
@@ -820,18 +829,9 @@ void cs64_ini_parser_expectation_test() {
 
         index = 0;
         while(index < sizeof(types) / sizeof(types[0])) {
-            pToken[1]->type = types[index];
-
-            parserContext.tokenOffset = 0;
-            result = cs64_ini_parse_line(&parserContext);
-            UNIT_TEST_DETAIL_ASSERT(index, result.state == CS64_INI_PARSER_UNEXPECTED_ERROR, display_parser_result(&result););
-
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.receivedToken.type == types[index], display_parser_result(&result););
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.receivedToken.index == 0, display_parser_result(&result););
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.receivedToken.byteLength == 0, display_parser_result(&result););
+            UNEXPECTED_TOKEN_TEST(1);
 
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
-            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens != NULL, display_parser_result(&result););
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_END, display_parser_result(&result););
 
             index++;
