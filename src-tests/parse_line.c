@@ -911,10 +911,11 @@ void cs64_ini_parser_expectation_test() {
 
         pToken[0]->type = CS64_INI_TOKEN_COMMENT;
         pToken[1]->type = CS64_INI_TOKEN_END;
+        pToken[2]->type = CS64_INI_TOKEN_SECTION_START;
 
         index = 0;
         while(index < sizeof(types) / sizeof(types[0])) {
-            UNEXPECTED_TOKEN_TEST(2);
+            UNEXPECTED_TOKEN_TEST(3);
 
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
             UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_VALUE, display_parser_result(&result););
@@ -925,6 +926,53 @@ void cs64_ini_parser_expectation_test() {
         pToken[0]->type = CS64_INI_TOKEN_END;
         pToken[1]->type = CS64_INI_TOKEN_END;
         pToken[2]->type = CS64_INI_TOKEN_END;
+        pToken[3]->type = CS64_INI_TOKEN_END;
+    }
+    {
+        /*
+         * Section Tests.
+         * X = 4 Combo = 2 Total =  8
+         * [Comment END] SecB Values X{Delem, Comment, End, SecB}
+         */
+        CS64INITokenType types[] = {
+            CS64_INI_TOKEN_DELEMETER,
+            CS64_INI_TOKEN_COMMENT,
+            CS64_INI_TOKEN_END,
+            CS64_INI_TOKEN_SECTION_START};
+
+        pToken[0]->type = CS64_INI_TOKEN_SECTION_START;
+        pToken[1]->type = CS64_INI_TOKEN_VALUE;
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(2);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_SECTION_END, display_parser_result(&result););
+
+            index++;
+        }
+
+        pToken[0]->type = CS64_INI_TOKEN_COMMENT;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+        pToken[2]->type = CS64_INI_TOKEN_SECTION_START;
+        pToken[3]->type = CS64_INI_TOKEN_VALUE;
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(4);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_SECTION_END, display_parser_result(&result););
+
+            index++;
+        }
+
+        pToken[0]->type = CS64_INI_TOKEN_END;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+        pToken[2]->type = CS64_INI_TOKEN_END;
+        pToken[3]->type = CS64_INI_TOKEN_END;
+        pToken[4]->type = CS64_INI_TOKEN_END;
     }
 
     cs64_ini_data_free(parserContext.pData);
@@ -937,8 +985,6 @@ void cs64_ini_parser_expectation_test() {
      * { ... } Invalid Token Options
      *
      * Section Tests.
-     * X = 4 Combo = 2 Total =  8
-     * [Comment END] SecB Values X{Delem, Comment, End, SecB}
      * X = 4 Combo = 2 Total =  8
      * [Comment END] SecB Values SecE X{Delem, Value, SecB, SecE}
      * X = 4 Combo = 2 Total =  8
