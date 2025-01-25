@@ -780,36 +780,36 @@ void cs64_ini_last_comment_test() {
     parserContext.pSource = NULL;\
     parserContext.pTokenResult = &tokenResult;
 
+#define GENERAL_STATISTICS
+
 void cs64_ini_parser_expectation_test() {
     PARSE_LINE_TOKENLESS_SETUP(1024)
 
     CS64INIToken token;
 
-    token.type       = CS64_INI_TOKEN_COMMENT;
-    token.index      = 0;
-    token.byteLength = 0;
-    cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
-
-    token.type       = CS64_INI_TOKEN_COMMENT;
-    token.index      = 0;
-    token.byteLength = 0;
-    cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
-
-    CS64INIToken *pLastToken = cs64_ini_token_data_last_token(parserContext.pTokenResult->pTokenStorage);
-
     token.type       = CS64_INI_TOKEN_END;
     token.index      = 0;
     token.byteLength = 0;
-    cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token);
+
+    CS64INIToken *pToken[3];
+    unsigned index = 0;
+
+    while(index < sizeof(pToken) / sizeof(pToken[0])) {
+        UNIT_TEST_ASSERT(index, cs64_ini_token_data_append_token(parserContext.pTokenResult->pTokenStorage, token));
+        pToken[index] = cs64_ini_token_data_last_token(parserContext.pTokenResult->pTokenStorage);
+        index++;
+    }
 
     CS64INIParserResult result;
 
     {
         /*
-        * Invalid Comment Test
-        * X = 5 Combo = 1 Total = 5
-        * Comment X{Delem, Value, Comment, SecE, SecB}
-        */
+         * Invalid Comment Test
+         * X = 5 Combo = 1 Total = 5
+         * Comment X{Delem, Value, Comment, SecE, SecB}
+         */
+        pToken[0]->type = CS64_INI_TOKEN_COMMENT;
+
         CS64INITokenType types[] = {
             CS64_INI_TOKEN_DELEMETER,
             CS64_INI_TOKEN_VALUE,
@@ -817,10 +817,10 @@ void cs64_ini_parser_expectation_test() {
             CS64_INI_TOKEN_SECTION_START,
             CS64_INI_TOKEN_SECTION_END};
 
-        CS64Size index = 0;
+        index = 0;
 
         while(index < sizeof(types) / sizeof(types[0])) {
-            pLastToken->type = types[index];
+            pToken[1]->type = types[index];
 
             parserContext.tokenOffset = 0;
             result = cs64_ini_parse_line(&parserContext);
