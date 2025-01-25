@@ -804,9 +804,31 @@ void cs64_ini_parser_expectation_test() {
 
     CS64INIParserResult result;
 
-    parserContext.tokenOffset = 0;
-    result = cs64_ini_parse_line(&parserContext);
-    UNIT_TEST_DETAIL_ASSERT(0, result.state != CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+    {
+        /*
+        * Invalid Comment Test
+        * X = 5 Combo = 1 Total = 5
+        * Comment X{Delem, Value, Comment, SecE, SecB}
+        */
+        CS64INITokenType types[] = {
+            CS64_INI_TOKEN_DELEMETER,
+            CS64_INI_TOKEN_VALUE,
+            CS64_INI_TOKEN_COMMENT,
+            CS64_INI_TOKEN_SECTION_START,
+            CS64_INI_TOKEN_SECTION_END};
+
+        CS64Size index = 0;
+
+        while(index < sizeof(types) / sizeof(types[0])) {
+            pLastToken->type = types[index];
+
+            parserContext.tokenOffset = 0;
+            result = cs64_ini_parse_line(&parserContext);
+            UNIT_TEST_DETAIL_ASSERT(index, result.state != CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+
+            index++;
+        }
+    }
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
@@ -816,10 +838,6 @@ void cs64_ini_parser_expectation_test() {
     /* Plan
      * [ ... ] Optional
      * { ... } Invalid Token Options
-     *
-     * Invalid Comment Test
-     * X = 5 Combo = 1 Total = 5
-     * Comment X{SecE, SecB, Comment, Value, Delem}
      *
      * Invalid Start Tests.
      * X = 2 Combo = 2 Total = 4
