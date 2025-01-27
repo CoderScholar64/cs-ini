@@ -812,6 +812,11 @@ void cs64_ini_parser_expectation_test() {
 
     CS64INIParserResult result;
 
+    /*
+     * [ ... ] Optional
+     * { ... } Invalid Token Options
+     */
+
     {
         /*
          * Invalid Comment Test
@@ -1212,19 +1217,58 @@ void cs64_ini_parser_expectation_test() {
         }
     }
 
+    {
+        /*
+         * Variable Tests.
+         * X = 5 Combo = 2 Total = 10
+         * [Comment END] Values Delem Values Comment X{Delem, Comment, Value, SecB, SecE}
+         */
+        CS64INITokenType types[] = {
+            CS64_INI_TOKEN_DELEMETER,
+            CS64_INI_TOKEN_COMMENT,
+            CS64_INI_TOKEN_VALUE,
+            CS64_INI_TOKEN_SECTION_START,
+            CS64_INI_TOKEN_SECTION_END};
+
+        pToken[0]->type = CS64_INI_TOKEN_VALUE;
+        pToken[1]->type = CS64_INI_TOKEN_DELEMETER;
+        pToken[2]->type = CS64_INI_TOKEN_VALUE;
+        pToken[3]->type = CS64_INI_TOKEN_COMMENT;
+        pToken[5]->type = CS64_INI_TOKEN_END;
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(4);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_END, display_parser_result(&result););
+
+            index++;
+        }
+
+        pToken[0]->type = CS64_INI_TOKEN_COMMENT;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+        pToken[2]->type = CS64_INI_TOKEN_VALUE;
+        pToken[3]->type = CS64_INI_TOKEN_DELEMETER;
+        pToken[4]->type = CS64_INI_TOKEN_VALUE;
+        pToken[5]->type = CS64_INI_TOKEN_COMMENT;
+        pToken[7]->type = CS64_INI_TOKEN_END;
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(6);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_END, display_parser_result(&result););
+
+            index++;
+        }
+    }
+
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
 
     UNIT_TEST_MEM_CHECK_ASSERT
-
-    /* Plan
-     * [ ... ] Optional
-     * { ... } Invalid Token Options
-     *
-     * Variable Tests.
-     * X = 5 Combo = 2 Total = 10
-     * [Comment END] Values Delem Values Comment X{Delem, Comment, Value, SecB, SecE}
-     */
 }
 
 void display_token_type(CS64INITokenType type) {
