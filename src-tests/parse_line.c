@@ -49,6 +49,9 @@ int mallocPagesLeft = 0;
 void cs64_ini_section_memory_test();
 void cs64_ini_variable_memory_test();
 void cs64_ini_parser_expectation_test();
+void cs64_ini_section_conflict_test();
+void cs64_ini_variable_conflict_test();
+void cs64_ini_variable_section_conflict_test();
 void cs64_ini_last_comment_test();
 
 void display_parser_context(CS64INIParserContext *pParserContext);
@@ -60,6 +63,9 @@ int main() {
     cs64_ini_section_memory_test();
     cs64_ini_variable_memory_test();
     cs64_ini_parser_expectation_test();
+    cs64_ini_section_conflict_test();
+    cs64_ini_variable_conflict_test();
+    cs64_ini_variable_section_conflict_test();
     cs64_ini_last_comment_test();
 
     return 0;
@@ -727,31 +733,6 @@ void cs64_ini_variable_memory_test() {
     UNIT_TEST_MEM_CHECK_ASSERT
 }
 
-void cs64_ini_last_comment_test() {
-    PARSE_LINE_SETUP(1024, "; First Test", 2)
-
-    CS64INIParserResult result;
-
-    result = cs64_ini_parse_line(&parserContext);
-    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result););
-    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_set_last_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
-    UNIT_TEST_ASSERT_EQ(0, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
-
-    SET_AVAILABLE_MEM_PAGES(1)
-    parserContext.tokenOffset = 0;
-    result = cs64_ini_parse_line(&parserContext);
-    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
-    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 2, "%zd");
-    UNIT_TEST_ASSERT_NEQ(0, cs64_ini_get_last_comment(parserContext.pData), NULL, "%p");
-    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_last_comment(parserContext.pData), " First Test") == 0, printf("Actually (%s) \n", cs64_ini_get_last_comment(parserContext.pData)););
-
-    cs64_ini_data_free(parserContext.pData);
-    cs64_ini_lexer_free(parserContext.pTokenResult);
-
-    UNIT_TEST_MEM_CHECK_ASSERT
-}
-
-
 #define PARSE_LINE_TOKENLESS_SETUP(BUFFER_SIZE) \
     CS64UTF8 buffer[BUFFER_SIZE];\
 \
@@ -1264,6 +1245,118 @@ void cs64_ini_parser_expectation_test() {
             index++;
         }
     }
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_section_conflict_test() {
+    PARSE_LINE_SETUP(1024, "[same]\n[same]", 2)
+
+    CS64INIParserResult result;
+
+    parserContext.tokenOffset = 0;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 3, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+
+    parserContext.tokenOffset = 4;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 7, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result););
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_section") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+    UNIT_TEST_DETAIL_ASSERT(0, result.status.data_error.functionStatus == CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, display_parser_result(&result););
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_variable_conflict_test() {
+    PARSE_LINE_SETUP(1024, "same=0\nsame=1", 2)
+
+    CS64INIParserResult result;
+
+    parserContext.tokenOffset = 0;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 3, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+
+    parserContext.tokenOffset = 4;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 7, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result););
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_variable") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+    UNIT_TEST_DETAIL_ASSERT(0, result.status.data_error.functionStatus == CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, display_parser_result(&result););
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_variable_section_conflict_test() {
+    PARSE_LINE_SETUP(1024, "vSame=0\n[section]\nvSame=1\nsame=2\nsame=3", 5)
+
+    CS64INIParserResult result;
+
+    /*vSame=0*/
+    parserContext.tokenOffset = 0;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 3, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+
+    /*[section]*/
+    parserContext.tokenOffset = 4;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 7, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+
+    /*vSame=1*/
+    parserContext.tokenOffset = 8;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 11, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+
+    /*same=2*/
+    parserContext.tokenOffset = 12;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 15, "%zd");
+
+    /*same=3*/
+    parserContext.tokenOffset = 16;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 19, "%zd");
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result););
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_variable") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+    UNIT_TEST_DETAIL_ASSERT(0, result.status.data_error.functionStatus == CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, display_parser_result(&result););
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_last_comment_test() {
+    PARSE_LINE_SETUP(1024, "; First Test", 2)
+
+    CS64INIParserResult result;
+
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result););
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)result.status.data_error.pFunctionName, "cs64_ini_set_last_comment") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
+    UNIT_TEST_ASSERT_EQ(0, result.status.data_error.functionStatus, CS64_INI_ENTRY_NO_MEMORY_ERROR, "%d");
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    parserContext.tokenOffset = 0;
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_SUCCESS, display_parser_result(&result););
+    UNIT_TEST_ASSERT_EQ(0, parserContext.tokenOffset, 2, "%zd");
+    UNIT_TEST_ASSERT_NEQ(0, cs64_ini_get_last_comment(parserContext.pData), NULL, "%p");
+    UNIT_TEST_DETAIL_ASSERT(0, strcmp((const char*)cs64_ini_get_last_comment(parserContext.pData), " First Test") == 0, printf("Actually (%s) \n", cs64_ini_get_last_comment(parserContext.pData)););
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
