@@ -53,6 +53,10 @@ void cs64_ini_section_conflict_test();
 void cs64_ini_variable_conflict_test();
 void cs64_ini_variable_section_conflict_test();
 void cs64_ini_comment_bad_lexer_memory_test(); /* TODO Make a test for this as well. */
+void cs64_ini_multi_comment_test(); /* TODO Make a test for this as well. */
+void cs64_ini_multi_section_test(); /* TODO Make a test for this as well. */
+void cs64_ini_multi_variable_test(); /* TODO Make a test for this as well. */
+void cs64_ini_multi_value_test(); /* TODO Make a test for this as well. */
 void cs64_ini_last_comment_test();
 
 void display_parser_context(CS64INIParserContext *pParserContext);
