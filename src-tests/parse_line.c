@@ -1081,6 +1081,47 @@ void cs64_ini_parser_expectation_test() {
         pToken[6]->type = CS64_INI_TOKEN_END;
     }
 
+    {
+        /*
+         * Variable Tests.
+         * X = 4 Combo = 2 Total =  8
+         * [Comment END] Values X{Comment, End, SecB, SecE}
+         */
+        CS64INITokenType types[] = {
+            CS64_INI_TOKEN_COMMENT,
+            CS64_INI_TOKEN_END,
+            CS64_INI_TOKEN_SECTION_START,
+            CS64_INI_TOKEN_SECTION_END};
+
+        pToken[0]->type = CS64_INI_TOKEN_VALUE;
+        pToken[2]->type = CS64_INI_TOKEN_END;
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(1);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_DELEMETER, display_parser_result(&result););
+
+            index++;
+        }
+
+        pToken[0]->type = CS64_INI_TOKEN_COMMENT;
+        pToken[1]->type = CS64_INI_TOKEN_END;
+        pToken[2]->type = CS64_INI_TOKEN_VALUE;
+        pToken[4]->type = CS64_INI_TOKEN_END;
+
+        index = 0;
+        while(index < sizeof(types) / sizeof(types[0])) {
+            UNEXPECTED_TOKEN_TEST(3);
+
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.expectedTokenAmount == 1, display_parser_result(&result););
+            UNIT_TEST_DETAIL_ASSERT(index, result.status.unexpected_token.pExpectedTokens[0] == CS64_INI_TOKEN_DELEMETER, display_parser_result(&result););
+
+            index++;
+        }
+    }
+
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
