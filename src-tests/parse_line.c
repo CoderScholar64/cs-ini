@@ -71,6 +71,7 @@ int main() {
     cs64_ini_section_conflict_test();
     cs64_ini_variable_conflict_test();
     cs64_ini_variable_section_conflict_test();
+    cs64_ini_comment_bad_lexer_memory_test();
     cs64_ini_last_comment_test();
 
     return 0;
@@ -1338,6 +1339,15 @@ void cs64_ini_variable_section_conflict_test() {
     UNIT_TEST_DETAIL_ASSERT(0, result.state == CS64_INI_PARSER_INI_DATA_ERROR, display_parser_result(&result););
     UNIT_TEST_DETAIL_ASSERT(0, strcmp((char*)result.status.data_error.pFunctionName, "cs64_ini_add_variable") == 0, printf("Actually (%s) \n", result.status.data_error.pFunctionName););
     UNIT_TEST_DETAIL_ASSERT(0, result.status.data_error.functionStatus == CS64_INI_ENTRY_ENTRY_EXISTS_ERROR, display_parser_result(&result););
+
+    cs64_ini_data_free(parserContext.pData);
+    cs64_ini_lexer_free(parserContext.pTokenResult);
+
+    UNIT_TEST_MEM_CHECK_ASSERT
+}
+
+void cs64_ini_comment_bad_lexer_memory_test() {
+    PARSE_LINE_SETUP(1024, "vSame=0\n[section]\nvSame=1\nsame=2\nsame=3", 5)
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
