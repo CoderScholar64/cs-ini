@@ -1347,7 +1347,36 @@ void cs64_ini_variable_section_conflict_test() {
 }
 
 void cs64_ini_comment_bad_lexer_memory_test() {
-    PARSE_LINE_SETUP(1024, "vSame=0\n[section]\nvSame=1\nsame=2\nsame=3", 5)
+    CS64UTF8 buffer[64];
+
+    CS64INIParserContext parserContext;
+
+    parserContext.stringBufferLimit = sizeof(buffer) / 2;
+    parserContext.pStringBuffer = buffer;
+    parserContext.pValueBuffer  = buffer + parserContext.stringBufferLimit;
+    parserContext.tokenOffset   = 0;
+    parserContext.pSection      = NULL;
+
+    CS64INITokenResult tokenResult;
+    tokenResult.state = CS64_INI_LEXER_SUCCESS;
+    tokenResult.lineCount = 0;
+    tokenResult.linePosition = 0;
+    tokenResult.delimeterCount = 0;
+    tokenResult.sectionBeginCount = 0;
+    tokenResult.sectionEndCount = 0;
+
+    SET_AVAILABLE_MEM_PAGES(1)
+    tokenResult.pTokenStorage = cs64_ini_token_data_alloc();
+
+    UNIT_TEST_ASSERT(0, tokenResult.pTokenStorage != NULL);
+    parserContext.pTokenResult = &tokenResult;
+
+    SET_AVAILABLE_MEM_PAGES(2)
+    parserContext.pData = cs64_ini_data_alloc();
+    UNIT_TEST_ASSERT(0, parserContext.pData != NULL);
+
+    CS64INIParserResult result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_LEXER_MEM_ERROR, "%zd");
 
     cs64_ini_data_free(parserContext.pData);
     cs64_ini_lexer_free(parserContext.pTokenResult);
