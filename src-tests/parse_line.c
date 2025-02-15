@@ -1375,7 +1375,18 @@ void cs64_ini_comment_bad_lexer_memory_test() {
     parserContext.pData = cs64_ini_data_alloc();
     UNIT_TEST_ASSERT(0, parserContext.pData != NULL);
 
-    CS64INIParserResult result = cs64_ini_parse_line(&parserContext);
+    CS64INIParserResult result;
+
+    result = cs64_ini_parse_line(&parserContext);
+    UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_LEXER_MEM_ERROR, "%zd");
+
+    CS64INIToken token;
+    token.type = CS64_INI_TOKEN_COMMENT;
+    token.index = 0;
+    token.byteLength = 0;
+    UNIT_TEST_ASSERT(0, cs64_ini_token_data_append_token(tokenResult.pTokenStorage, token));
+
+    result = cs64_ini_parse_line(&parserContext);
     UNIT_TEST_ASSERT_EQ(0, result.state, CS64_INI_PARSER_LEXER_MEM_ERROR, "%zd");
 
     cs64_ini_data_free(parserContext.pData);
